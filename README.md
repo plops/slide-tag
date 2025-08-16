@@ -69,7 +69,7 @@
             * **Cell Barcode:** Uniquely identifies the nucleus in that droplet.
             * **Unique Molecular Identifier (UMI):** Uniquely identifies each individual mRNA molecule captured.
     4. **Library Preparation and Sequencing:**
-        * After the reactions in the droplets, the emulsion is broken, and the now-barcoded cDNA is pooled. Adapters are
+        * After the reactions in the droplets [3], the emulsion is broken, and the now-barcoded cDNA is pooled. Adapters are
           added to this cDNA to make it compatible with an NGS machine. This final collection of molecules is the "
           library."
         * This library is loaded onto an NGS sequencer, which reads the sequence of the mRNA fragment as well as the
@@ -115,6 +115,9 @@
 
 # References
 
-- https://youtu.be/rd2G3yjWszQ?t=385 youtube video with some visualizations of slide-tag measurements using a commercial
-  kit
-- https://www.nature.com/articles/s41586-023-06837-4 slide-tag paper
+[1] https://youtu.be/rd2G3yjWszQ?t=385 youtube video with some visualizations of slide-tag measurements using a
+commercial
+kit
+[2] https://www.nature.com/articles/s41586-023-06837-4 slide-tag paper
+[3] https://www.youtube.com/watch?v=SURGNo44wmU Animation showing reverse transcriptase converting messenger RNA (mRNA)
+into complimentary DNA (cDNA).
