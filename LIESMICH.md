@@ -1,5 +1,28 @@
 [ Dieser Text wurde mit Hilfe von KI erstellt ]
 
+Im Bereich der modernen Genomik ist die Fähigkeit, nicht nur zu verstehen, welche Gene aktiv sind, sondern auch genau
+*wo* sie innerhalb eines komplexen Gewebes aktiv sind, eine bedeutende neue Grenze. Dieser Artikel beschreibt ein
+leistungsstarkes technologisches Trio, das in Kombination dieses Ziel erreicht: Es misst die Genexpression von Tausenden
+einzelner Zellkerne und ordnet sie dann ihrer ursprünglichen Position in einem Gewebe zu. Dieser Ansatz ermöglicht eine
+unglaublich detaillierte Ansicht der zellulären Organisation und Funktion biologischer Proben.
+
+Die folgenden Abschnitte führen Sie durch die Schlüsselkomponenten dieses Arbeitsablaufs, von der grundlegenden
+Sequenzierungstechnologie bis zu den fortschrittlichen räumlichen Barcoding-Methoden, die diese hochauflösende
+Kartierung ermöglichen. Wir werden behandeln:
+
+* **Next-Generation Sequencing (NGS):** Die Kerntechnologie, die das massenhafte Auslesen von DNA-Sequenzen ermöglicht
+  und die Grundlage aller modernen Genomanalysen bildet.
+* **Einzelkern-RNA-Sequenzierung (snRNA-seq):** Eine Technik, die die Leistungsfähigkeit von NGS nutzt, um die
+  Genexpressionsprofile von Tausenden einzelner Kerne zu isolieren und zu analysieren, was die Klassifizierung von
+  Zelltypen und -zuständen ermöglicht.
+* **Takara Bio Trekker / Slide-tags:** Eine innovative Methode, die die entscheidende „Wo“-Komponente zum „Was“
+  hinzufügt. Diese Technologie markiert jeden Zellkern mit einem einzigartigen räumlichen Barcode, während er sich noch
+  im Gewebe befindet, und ermöglicht so die rechnerische Rekonstruktion seiner präzisen zweidimensionalen Koordinaten.
+
+Zusammengenommen verwandeln diese Technologien ein biologisches Gewebe in eine hochauflösende Karte, die die zelluläre
+Identität, definiert durch die Genexpression, mit ihrer spezifischen Position in einem breiteren anatomischen Kontext
+verknüpft.
+
 ### Abschnitt 1: Next-Generation Sequencing (NGS)
 
 * **Grundprinzip:** Next-Generation Sequencing (NGS) ist ein Überbegriff für verschiedene Hochdurchsatz-Technologien,
