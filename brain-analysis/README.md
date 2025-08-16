@@ -61,10 +61,6 @@ Essentially, the core of your `adata` object is a massive table with 31,209 rows
 
 ### `obs`: Observation Metadata
 
-```
-obs: 'nCount_RNA', 'nFeature_RNA', 'percent.mt', 'log10_nCount_RNA', 'log10_nFeature_RNA', 'nCount_SCT', 'nFeature_SCT', 'SCT_snn_res.0.2', 'seurat_clusters'
-```
-
 The `.obs` attribute is a table (a pandas DataFrame) containing metadata *about each nucleus*.
 
 ```
@@ -87,9 +83,8 @@ It has 31,209 rows, one for each nucleus, and the columns listed are attributes 
 * `log10_...`: Log-transformed versions of the count and feature metrics, which are often used for visualization and
   statistical modeling.
 * `nCount_SCT` / `nFeature_SCT`: Counts and features after applying a specific normalization method called "SCTransform"
-  from the Seurat package. This suggests the data was processed in R with Seurat before being loaded into Python.
-
-
+  from the Seurat package. This suggests the data was processed in R with Seurat before being loaded into Python. See
+  the appendix for a description of the SCTransform.
 * `SCT_snn_res.0.2` / `seurat_clusters`: **These are your cell clusters.** Based on gene expression similarity, the
   nuclei have been grouped together. `seurat_clusters` is likely the primary result, and these clusters serve as our
   best guess for different cell types (e.g., cluster '0' might be one type of neuron, cluster '1' another, etc.). This
@@ -100,7 +95,21 @@ It has 31,209 rows, one for each nucleus, and the columns listed are attributes 
 ### `var`: Variable Metadata
 
 ```
-var: 'name'
+>>> adata.var
+                        name
+0610005C13Rik  0610005C13Rik
+0610006L08Rik  0610006L08Rik
+0610009B22Rik  0610009B22Rik
+0610009E02Rik  0610009E02Rik
+0610009L18Rik  0610009L18Rik
+...                      ...
+Xlr5c                  Xlr5c
+Zcchc13              Zcchc13
+Zdhhc25              Zdhhc25
+Zfp683                Zfp683
+Zfp969                Zfp969
+
+[30105 rows x 1 columns]
 ```
 
 The `.var` attribute is a DataFrame containing metadata *about each gene*. It has 30,105 rows, one for each gene. In
@@ -112,7 +121,8 @@ Gad1', 'Slc17a7').
 ### `uns`: Unstructured Metadata
 
 ```
-uns: 'seurat_clusters_colors'
+>>> adata.uns
+OrderedDict({'seurat_clusters_colors': ['#1f77b4', '#ff7f0e', '#279e68', '#d62728', '#aa40fc', '#8c564b', '#e377c2', '#b5bd61', '#17becf', '#aec7e8', '#ffbb78', '#98df8a', '#ff9896', '#c5b0d5', '#c49c94', '#f7b6d2', '#dbdb8d', '#9edae5', '#ad494a']})
 ```
 
 The `.uns` attribute (for "unstructured") is a dictionary for storing dataset-level information that doesn't fit into
@@ -127,7 +137,16 @@ the `obs` or `var` tables.
 ### `obsm`: Multi-dimensional Observation Data
 
 ```
-obsm: 'X_pca', 'X_spatial', 'X_umap', 'spatial'
+>>> adata.obsm
+AxisArrays with keys: X_pca, X_spatial, X_umap, spatial
+>>> adata.obsm['X_pca']
+array([[ 1.02934457e+01,  3.62081661e+00, -1.05177368e+01, ...
+>>> adata.obsm['X_spatial']
+array([[ 4756.8087    , -6268.35166667], ...
+>>> adata.obsm['X_umap']
+array([[-2.80912987, -0.52719992], ...
+>>> adata.obsm['spatial']
+array([[ 4756.8087    , -6268.35166667], ...
 ```
 
 The `.obsm` attribute stores matrix-like data where the rows still correspond to the nuclei, but the columns are
@@ -137,8 +156,8 @@ something other than genes. This is primarily used for dimensionality reductions
   the original 30,105-gene expression data.
 * `X_umap`: The results of the UMAP algorithm, which is a technique to visualize the high-dimensional PCA data in a 2D
   plot. This is used to create plots where similar cells appear close together in abstract space.
-* `X_spatial`: **This is your key spatial data.** It's a table with 31,209 rows and 2 or 3 columns, representing the (x,
-  y) or (x, y, z) coordinates for each nucleus in the brain tissue.
+* `X_spatial`: **This is your key spatial data.** It's a table with 31,209 rows and 2 columns, representing the (x,
+  y) coordinates for each nucleus in the brain tissue.
 * `spatial`: This is a copy of `X_spatial` that your script created. The Scanpy plotting function `sc.pl.spatial`
   specifically looks for a key named `'spatial'`, so creating this copy ensures compatibility.
 
@@ -173,7 +192,8 @@ RNA sequencing:
 * **The Signal:** The biologically meaningful variation in gene expression between different cell types or states. This
   is what you want to study.
 * **The Noise:** Technical variation introduced during the experiment. The most significant source of this noise is *
-  *sequencing depth** (the total number of RNA molecules captured per cell [FIXME: Is that correct?]). A cell that was sequenced more deeply will
+  *sequencing depth** (the total number of RNA molecules captured per cell [FIXME: Is that correct?]). A cell that was
+  sequenced more deeply will
   show higher counts for *all* its genes, which can easily be mistaken for a biological effect.
 
 The purpose of SCTransform is to build a precise mathematical model of the technical noise so that it can be cleanly
