@@ -183,4 +183,4 @@ verknüpft.
 
 1. [YouTube-Video mit einigen Visualisierungen von Slide-tag-Messungen unter Verwendung eines kommerziellen Kits](https://youtu.be/rd2G3yjWszQ?t=385)
 2. [Slide-tag-Paper (Nature)](https://www.nature.com/articles/s41586-023-06837-4)
-3. [Animation, die die reverse Transkriptase zeigt](https://youtu.be/c4a93FEqPBU?t=56)
+3. [Animation, die die reverse Transkriptase zeigt](https://www.youtube.com/watch?v=SURGNo44wmU)
