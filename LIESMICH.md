@@ -154,8 +154,8 @@ verknüpft.
             * **Genexpressions (GEX)-cDNA:** Die mRNA des Zellkerns wird eingefangen, wodurch ein langes cDNA-Molekül
               mit der Struktur **[Gensequenz] + [UMI] + [Zell-Barcode]** entsteht.
             * **Räumlicher Barcode (SB)-cDNA:** Die räumlichen Barcodes von Trekker werden eingefangen, wodurch ein
-              separates und viel kürzeres cDNA-Molekül mit der Struktur **[Räumlicher Barcode] + [UMI] + [Zell-Barcode]
-              ** entsteht.
+              separates und viel kürzeres cDNA-Molekül mit der Struktur **[Räumlicher Barcode] + [UMI] + [Zell-Barcode]**
+              entsteht.
         * **Physische Trennung:** Nachdem die Tröpfchen aufgebrochen wurden, werden die beiden cDNA-Typen aus der
           gepoolten Lösung physisch getrennt, typischerweise aufgrund ihres signifikanten Größenunterschieds. Sie werden
           dann zu zwei unterschiedlichen Sequenzierbibliotheken amplifiziert: einer GEX-Bibliothek und einer
