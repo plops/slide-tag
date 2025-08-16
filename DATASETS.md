@@ -1,3 +1,5 @@
+[ This file was written with the (considerable) help of AI ]
+
 # **A Guide to the Slide-tags Dataset and Computational Workflow**
 
 This document provides a detailed description of the input data, source code, and output files for the Slide-tags spatial genomics pipeline. It uses the Trekker Mouse Kidney dataset as a practical example to illustrate the structure of the data and the steps involved in transforming raw sequencing reads into a spatially-resolved map of nuclei.

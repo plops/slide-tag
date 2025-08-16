@@ -118,6 +118,7 @@ defined by gene expression, to its specific location within a broader anatomical
 
 ### Section 3: Takara Bio Trekker / Slide-tags: Adding Spatial Coordinates to Single-Nucleus Data
 
+
 * **Core Principle:** This method tags individual cell nuclei with spatial barcodes *while they are still in an intact
   tissue slice*. Instead of capturing molecules onto a surface, it releases barcodes from a surface up into the tissue,
   allowing for high-quality single-cell data while retaining the original spatial coordinates.
