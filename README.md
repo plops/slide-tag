@@ -85,6 +85,17 @@
     * **Mitochondrial RNA Content:** In snRNA-seq, this percentage should be very low. A high value can indicate
       contamination from the cytoplasm due to ruptured nuclei.
 
+
+| **KPI** | **What it Measures** | **How it's Calculated** | **Typical High-Quality Range** | **Factors Influencing the Metric** |
+| :--- | :--- | :--- | :--- | :--- |
+| **Number of Nuclei Captured** | The total number of individual nuclei for which data is obtained. | The number of unique cell barcodes with a sufficient number of reads. | Thousands to tens of thousands, depending on the platform and experimental goals. | Cell concentration, microfluidic device performance, and downstream filtering criteria. |
+| **Median Genes per Nucleus** | The median number of distinct genes detected in a single nucleus. This reflects the sensitivity of the assay. | For each nucleus (cell barcode), count the number of genes with at least one read. Then, find the median of these counts across all nuclei. | 500 - 5,000+ (highly dependent on cell type and sequencing depth). | RNA quality, reverse transcription efficiency, and sequencing depth. |
+| **Median UMIs per Nucleus** | The median number of unique mRNA molecules detected per nucleus. This is a measure of the library complexity and capture efficiency. | For each nucleus, count the number of unique UMIs. Then, find the median of these counts across all nuclei. | 1,000 - 20,000+ (highly dependent on cell type and sequencing depth). | RNA content of the nucleus, bead capture efficiency, and PCR amplification cycles. |
+| **Fraction of Reads in Nuclei** | The percentage of sequencing reads that are associated with valid cell barcodes. | (Total reads with valid cell barcodes / Total sequencing reads) * 100%. | > 50% | Quality of the single-nucleus suspension, efficiency of droplet encapsulation, and accuracy of barcode identification. |
+| **Sequencing Saturation** | The extent to which the sequencing depth has captured the complexity of the library. | 1 - (Number of unique UMIs / Total reads for a given cell barcode). A higher value indicates that further sequencing is unlikely to detect many new molecules. | > 30-50%, depending on the desired level of gene detection. | Total number of sequencing reads relative to the complexity of the cDNA library. |
+| **Mitochondrial RNA Content** | The percentage of reads that map to the mitochondrial genome. | (Number of reads mapping to mitochondrial genes / Total reads for a nucleus) * 100%. | Typically < 5% for snRNA-seq. | In snRNA-seq, high mitochondrial RNA is often indicative of cytoplasmic contamination due to incomplete cell lysis or damage to the nuclear membrane. |
+| **Doublet Rate** | The percentage of "cells" that are actually two or more nuclei encapsulated in the same droplet. | Estimated computationally based on gene expression profiles or experimentally through sample mixing. | < 1% per 1,000 cells loaded. | The concentration of nuclei loaded into the microfluidic device. |
+
 ### Section 3: Slide-tag: Adding Spatial Coordinates to Single-Nucleus Data
 
 * **Primary Goal:** To determine the original (x,y) location within a tissue slice for each nucleus being analyzed. This
