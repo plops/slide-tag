@@ -39,7 +39,7 @@ available to guide users through the analysis process on this platform.
 
 The pipeline requires several input files:
 
-    *   **Raw Sequencing Reads (FASTQ files):** Specifically, `TrekkerU_RATAC_MouseKidney1_R1_001.fastq.gz` and `TrekkerU_RATAC_MouseKidney1_R2_001.fastq.gz` which contain the genetic and barcode information.
+*   **Raw Sequencing Reads (FASTQ files):** Specifically, `TrekkerU_RATAC_MouseKidney1_R1_001.fastq.gz` and `TrekkerU_RATAC_MouseKidney1_R2_001.fastq.gz` which contain the genetic and barcode information.
 
 ```
 @VL00269:355:AAG5VW3M5:1:1101:18989:1000 1:N:0:CGTACTAN+TATGCAGT
