@@ -1,6 +1,5 @@
 [ this is a summary of a conversation with AI (gemini 2.5 pro) ]
 
-
 ### Section 1: Next-Generation Sequencing (NGS)
 
 * **Core Principle:** Next-Generation Sequencing (NGS) is a term for several high-throughput technologies that allow for
@@ -111,3 +110,9 @@
     * **High-Quality Data:** The core gene expression data is of the same high quality as standard snRNA-seq.
     * **Multimodal Compatibility:** The spatially tagged nuclei can be used as input for a variety of other single-cell
       assays that measure different aspects of cell biology.
+
+# References
+
+- https://youtu.be/rd2G3yjWszQ?t=385 youtube video with some visualizations of slide-tag measurements using a commercial
+  kit
+- https://www.nature.com/articles/s41586-023-06837-4 slide-tag paper
