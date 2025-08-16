@@ -318,3 +318,5 @@ If you prefer not to use the integrated objects, you would need to load:
 
 You would then need to perform normalization, dimensionality reduction, and clustering on the expression data yourself
 to assign a cell type or cluster ID to each barcode before you can create the colored spatial plot.
+
+The folder `brain-analysis/` contains a Python project to load and visualize the data in `Mouse_Brain_TrekkerR_ConfPositioned_anndata_merged.h5ad`.
