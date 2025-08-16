@@ -207,7 +207,9 @@ TGTGTTCGCTCACACTTATCCATTCAT,4627.2793,-3301.5116
 TGTGTTCGCTAGTTCAATGGTCCGACT,7811.34746,-6443.133325
 ...
 ```
-        *   **Gene Expression Matrix:** The files `TrekkerU_RATAC_MouseKidney1_MoleculesPer_ConfPositionedNuclei.mtx`, with contents
+
+*   **Gene Expression Matrix:** The files `TrekkerU_RATAC_MouseKidney1_MoleculesPer_ConfPositionedNuclei.mtx`, with contents
+
 ```
 %%MatrixMarket matrix coordinate integer general
 27355 5785 2675218
