@@ -1,4 +1,4 @@
-Absolut. Hier ist die deutsche Übersetzung des bereitgestellten Textes.
+[ Dieser Text wurde mit Hilfe von KI erstellt ]
 
 ### Abschnitt 1: Next-Generation Sequencing (NGS)
 
