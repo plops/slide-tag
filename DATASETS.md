@@ -14,6 +14,28 @@ These example datasets allow researchers to explore the capabilities of the Trek
 pipelines without having to generate their own data initially.[1] The Trekker system is designed to be species-agnostic
 and compatible with various single-cell platforms like the 10x Genomics Chromium and BD Rhapsody systems.[1][2]
 
+### Trekker Mouse Kidney raw sequencing data 
+
+```
+└── [4.0K May  7 00:36]  TrekkerU_RATAC_ExampleInput_MouseKidney1
+    ├── [895M May  7 00:34]  TrekkerU_RATAC_MouseKidney1_R1_001.fastq.gz
+    ├── [710M May  7 00:34]  TrekkerU_RATAC_MouseKidney1_R2_001.fastq.gz
+    ├── [4.0K May  9 18:16]  TrekkerU_RATAC_MouseKidney1_scRNAseqOut
+    │   ├── [4.0K May  9 18:30]  TrekkerU_RATAC_MouseKidney1_ATAC_Cell_by_Peak_MEX
+    │   │   ├── [596M May  9 18:18]  ATAC_Fragments.bed.gz
+    │   │   ├── [625K May  9 18:18]  ATAC_Fragments.bed.gz.tbi
+    │   │   ├── [ 39K May  7 00:53]  atac-barcodes.tsv.gz
+    │   │   ├── [1.5M May  7 00:53]  atac-features.tsv.gz
+    │   │   └── [ 45M May  7 00:53]  atac-matrix.mtx.gz
+    │   └── [4.0K May  9 18:43]  TrekkerU_RATAC_MouseKidney1_RSEC_MolsPerCell_MEX
+    │       ├── [ 39K May  7 00:35]  barcodes.tsv.gz
+    │       ├── [148K May  7 00:35]  features.tsv.gz
+    │       ├── [ 13M May  7 00:35]  matrix.mtx.gz
+    │       └── [377K May  9 18:43]  translate.csv
+    └── [ 24M May  7 00:33]  U0027_016_BeadBarcodes.txt
+
+5 directories, 12 files
+```
 ## Source Code:
 
 The computational pipeline for assigning spatial coordinates to the single-nucleus sequencing data is available on
