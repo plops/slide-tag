@@ -35,13 +35,33 @@ available to guide users through the analysis process on this platform.
 
 ### Trekker Mouse Kidney Example
 
-#### Raw sequencing data input
+#### Input Data
 
+The pipeline requires several input files:
 
-*   **Input Data:** The pipeline requires several input files:
     *   **Raw Sequencing Reads (FASTQ files):** Specifically, `TrekkerU_RATAC_MouseKidney1_R1_001.fastq.gz` and `TrekkerU_RATAC_MouseKidney1_R2_001.fastq.gz` which contain the genetic and barcode information.
-    *   **Bead Barcode Information:** The `U0027_016_BeadBarcodes.txt` file, which contains the sequences of the spatial barcodes on the slide.
-    *   **Cell Ranger Output:** The directory `TrekkerU_RATAC_MouseKidney1_scRNAseqOut` contains the results of initial single-cell analysis, including files that define the valid cell barcodes.
+
+```
+@VL00269:355:AAG5VW3M5:1:1101:18989:1000 1:N:0:CGTACTAN+TATGCAGT
+AGTTATCACCGTGATTGTGCGGAGACAATTAAGCATATCTGCCTTTTTTTTTTTTTTTTTTTTTTTTTTCC
++
+IIIIIIII9IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII9IIIIIIIIIIIII
+@VL00269:355:AAG5VW3M5:1:1101:19178:1000 1:N:0:CGTACTAN+TATGCAGT
+TCCAGTTGGTATGTGATTCGGAATAGACAGGCCATTGCACTACGCATTTTTTTTTTTTTTTTTTTTTTTCC
++
+I--9999--I-9I9I99II-IIII9II-I9IIIIIIII-III-IIIIIIIIIII99-I-IIIIIIIII9-I
+@VL00269:355:AAG5VW3M5:1:1101:19519:1000 1:N:0:CGTACTAN+TATGCAGT
+...
+```
+
+  *   **Bead Barcode Information:** The `U0027_016_BeadBarcodes.txt` file, which contains the sequences of the spatial barcodes on the slide.
+
+```
+CAGGTGCCAAATAG  1942.0  594.4
+CATTCCATCGTCTA  2338.6  1531.6
+...
+```
+  *   **Cell Ranger Output:** The directory `TrekkerU_RATAC_MouseKidney1_scRNAseqOut` contains the results of initial single-cell analysis, including files that define the valid cell barcodes.
 
 ```
 └── [4.0K May  7 00:36]  TrekkerU_RATAC_ExampleInput_MouseKidney1
@@ -50,15 +70,45 @@ available to guide users through the analysis process on this platform.
     ├── [4.0K May  9 18:16]  TrekkerU_RATAC_MouseKidney1_scRNAseqOut
     │   ├── [4.0K May  9 18:30]  TrekkerU_RATAC_MouseKidney1_ATAC_Cell_by_Peak_MEX
     │   │   ├── [596M May  9 18:18]  ATAC_Fragments.bed.gz
+GL456210.1      789     841     53432314        3
+GL456210.1      4239    4266    6830190 6
+GL456210.1      4239    4282    46951500        2
+...
     │   │   ├── [625K May  9 18:18]  ATAC_Fragments.bed.gz.tbi
     │   │   ├── [ 39K May  7 00:53]  atac-barcodes.tsv.gz
+13236
+19637
+19697
+32480
+...
     │   │   ├── [1.5M May  7 00:53]  atac-features.tsv.gz
+GL456233.2:133919-134450        GL456233.2:133919-134450        Peaks
+GL456233.2:144822-145037        GL456233.2:144822-145037        Peaks
+GL456233.2:206157-206441        GL456233.2:206157-206441        Peaks
+...
     │   │   └── [ 45M May  7 00:53]  atac-matrix.mtx.gz
+%%MatrixMarket matrix coordinate integer general
+142635 10494 14164239
+94 1 2
+237 1 2
+...
     │   └── [4.0K May  9 18:43]  TrekkerU_RATAC_MouseKidney1_RSEC_MolsPerCell_MEX
     │       ├── [ 39K May  7 00:35]  barcodes.tsv.gz
+13236
+19637
+19697
+...
     │       ├── [148K May  7 00:35]  features.tsv.gz
+0610005C13Rik   0610005C13Rik   Gene Expression
+0610006L08Rik   0610006L08Rik   Gene Expression
+0610009B22Rik   0610009B22Rik   Gene Expression
+0610009E02Rik   0610009E02Rik   Gene Expression
+...
     │       ├── [ 13M May  7 00:35]  matrix.mtx.gz
     │       └── [377K May  9 18:43]  translate.csv
+13236,TGTGTTCGCTTCGGAATAGGACGTTCA
+19637,TGTGTTCGCTTATCCGAGTGTTGATGA
+...
     └── [ 24M May  7 00:33]  U0027_016_BeadBarcodes.txt
 
 5 directories, 12 files
