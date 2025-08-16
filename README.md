@@ -96,7 +96,14 @@
 | **Mitochondrial RNA Content**   | The percentage of reads that map to the mitochondrial genome.                                                                        | (Number of reads mapping to mitochondrial genes / Total reads for a nucleus) * 100%.                                                                           | Typically < 5% for snRNA-seq.                                                     | In snRNA-seq, high mitochondrial RNA is often indicative of cytoplasmic contamination due to incomplete cell lysis or damage to the nuclear membrane. |
 | **Doublet Rate**                | The percentage of "cells" that are actually two or more nuclei encapsulated in the same droplet.                                     | Estimated computationally based on gene expression profiles or experimentally through sample mixing.                                                           | < 1% per 1,000 cells loaded.                                                      | The concentration of nuclei loaded into the microfluidic device.                                                                                      |
 
-### Section 3: Slide-tag: Adding Spatial Coordinates to Single-Nucleus Data
+Of course. Integrating that information into the main mechanism description is a great idea for improving the flow and
+clarity. The process of creating two libraries is a crucial and fascinating part of the technique.
+
+Here is the revised section with the information incorporated into the main bulleted list under "The Mechanism."
+
+***
+
+### Section 3: Takara Bio Trekker / Slide-tags: Adding Spatial Coordinates to Single-Nucleus Data
 
 * **Core Principle:** This method tags individual cell nuclei with spatial barcodes *while they are still in an intact
   tissue slice*. Instead of capturing molecules onto a surface, it releases barcodes from a surface up into the tissue,
@@ -104,63 +111,34 @@
 
 * **The Mechanism**
     1. **The Barcoded Array:** The technology uses a glass slide coated with a dense, random monolayer of 10-micron
-       DNA-barcoded beads. The massive diversity of unique spatial barcodes on these beads is generated using a chemical
-       process called **split-pool combinatorial synthesis**. This chemical process involves repeatedly splitting the
-       entire pool of beads, adding a specific DNA base to each subgroup, and then pooling them back together. This
-       results in an exponential increase in unique barcode sequences with each cycle. The physical (x, y) coordinate of
-       every unique barcode sequence on the bead array is determined beforehand by performing an in situ sequencing
-       reaction directly on the slide, creating a definitive digital map.
+       DNA-barcoded beads. The massive diversity of unique **spatial barcodes** is generated using split-pool
+       combinatorial synthesis. This chemical process involves repeatedly splitting the entire pool of beads, adding a
+       specific DNA base to each subgroup, and then pooling them back together. This results in an exponential increase
+       in unique barcode sequences with each cycle. The physical (x, y) coordinate of every unique barcode sequence on
+       this array is determined beforehand by performing an *in situ* sequencing reaction directly on the slide,
+       creating a definitive digital map.
     2. **Spatial Tagging in Tissue:** A fresh-frozen tissue slice (typically 20 µm thick) is placed on the slide. UV
-       light is used to cleave linkers on the beads, releasing the spatial barcodes to diffuse into the tissue and tag
-       the biomolecules within the nuclei. This upstream tagging step adds only 10-60 minutes to the workflow.
-    3. **Standard Workflow Integration:** After tagging, the tissue is dissociated into a single-nucleus suspension.
-       This suspension is then used as a standard input for droplet-based platforms (e.g., 10x Genomics), where a
-       second, single-cell barcode is added.
-    4. **Calculating Position:** The physical (x, y) coordinate of every unique barcode on the slide is pre-mapped. A
-       nucleus in the tissue absorbs the highest concentration of barcodes from the bead directly beneath it, but also a
-       decreasing amount from neighboring beads, following an approximate Gaussian diffusion profile. By analyzing the
-       specific ratio of different spatial barcodes captured by a single nucleus, its original location can be
-       computationally reconstructed.
-
-#### How Two Separate Libraries Are Created
-
-* **Step 1: Encapsulation in a Droplet**
-    * A single, spatially-tagged nucleus is encapsulated in a water-in-oil droplet.
-    * Inside that same droplet is a single **10x Genomics gel bead**. This bead is critical. It is covered in its own
-      DNA oligonucleotides, each containing:
-        * A **Cell Barcode (CB):** Identical for all oligos on a single bead, but unique to that bead. These are created
-          using split-pool combinatorial synthesis. This is the "address label" that links everything from this droplet
-          back to one original nucleus.
-        * A **Unique Molecular Identifier (UMI):** A short random sequence that is different for each oligo on the bead.
-          This helps count individual starting molecules to avoid PCR bias.
-        * A **Primer sequence** (e.g., a poly(T) sequence to capture mRNA).
-
-* **Step 2: Lysis and Reverse Transcription in the Droplet**
-    * The gel bead dissolves, and the nucleus is lysed (broken open) inside the droplet, releasing all its contents.
-    * Now, floating inside the droplet are:
-        1. The nucleus's **mRNA molecules** (which have poly-A tails).
-        2. The **Trekker spatial barcode oligos** that the nucleus absorbed.
-        3. The oligos from the 10x gel bead (with the CB and UMI).
-    * Reverse transcription now happens, creating two different types of cDNA molecules **in parallel**:
-        * **Gene Expression (GEX) cDNA:** The poly(T) primer on the 10x oligo binds to the poly(A) tail of an mRNA
-          molecule. This creates a long cDNA molecule containing the **[Gene Sequence] + [UMI] + [Cell Barcode]**.
-        * **Spatial Barcode (SB) cDNA:** The Trekker spatial barcode oligo has its own specific, known sequence. A
-          different primer on the 10x gel bead (or added to the mix) is designed to bind to this specific sequence. This
-          creates a very short cDNA molecule containing the **[Spatial Barcode Sequence] + [UMI] + [Cell Barcode]**.
-
-* **Step 3: Breaking the Droplets and Physical Separation**
-    * After reverse transcription, all the droplets are broken, and the newly created cDNA from all nuclei is pooled
-      together.
-    * This pool contains a mix of long GEX cDNA and short SB cDNA. They are physically separated into two tubes using
-      standard molecular biology techniques:
-        * **Size Selection:** The most common method is using SPRI beads (Solid Phase Reversible Immobilization). By
-          changing the concentration of the beads and buffer, you can selectively precipitate DNA fragments of different
-          sizes. One concentration is used to isolate the long GEX cDNA, and another is used to isolate the short SB
-          cDNA.
-        * **Specific PCR Amplification:** Following size selection, each pool of cDNA is amplified using different sets
-          of primers. One primer set is designed to only amplify the GEX cDNA, and a completely different primer set is
-          designed to only amplify the SB cDNA. This creates the final two, physically separate libraries ready for
-          sequencing.
+       light cleaves linkers on the beads, releasing the spatial barcodes to diffuse into the tissue and tag the nuclei.
+       This upstream tagging step adds only 10-60 minutes to the workflow.
+    3. **Dual Library Generation in Droplets:** After tagging, the tissue is dissociated into a single-nucleus
+       suspension and processed using a droplet-based platform (e.g., 10x Genomics).
+        * **Encapsulation:** A single, spatially-tagged nucleus is encapsulated in a droplet with a single 10x Genomics
+          gel bead. This bead releases thousands of its own oligonucleotides, each containing a **Cell Barcode (CB)**
+          —which acts as a unique address label for that specific nucleus—a Unique Molecular Identifier (UMI), and
+          primers.
+        * **Parallel cDNA Synthesis:** Inside the droplet, the nucleus is lysed. Reverse transcription then creates two
+          different types of cDNA molecules in parallel, both of which are now linked to the same **Cell Barcode**:
+            * **Gene Expression (GEX) cDNA:** The nucleus's mRNA is captured, creating a long cDNA molecule structured
+              as: **[Gene Sequence] + [UMI] + [Cell Barcode]**.
+            * **Spatial Barcode (SB) cDNA:** The Trekker spatial barcodes are captured, creating a separate and much
+              shorter cDNA molecule structured as: **[Spatial Barcode] + [UMI] + [Cell Barcode]**.
+        * **Physical Separation:** After the droplets are broken, the two types of cDNA are physically separated from
+          the pooled solution, typically based on their significant size difference. They are then amplified into two
+          distinct sequencing libraries: a GEX library and an SB library.
+    4. **Computational Position Reconstruction:** By analyzing the sequencing data from the SB library, the specific
+       ratio of different spatial barcodes associated with a single Cell Barcode is determined. This ratio, when
+       compared against the pre-mapped coordinates of the beads, allows the original (x, y) position of the nucleus to
+       be calculated with high precision.
 
 #### Why Sequencing Depth is Different
 
