@@ -69,7 +69,8 @@
             * **Cell Barcode:** Uniquely identifies the nucleus in that droplet.
             * **Unique Molecular Identifier (UMI):** Uniquely identifies each individual mRNA molecule captured.
     4. **Library Preparation and Sequencing:**
-        * After the reactions in the droplets [3], the emulsion is broken, and the now-barcoded cDNA is pooled. Adapters are
+        * After the reactions in the droplets [3], the emulsion is broken, and the now-barcoded cDNA is pooled. Adapters
+          are
           added to this cDNA to make it compatible with an NGS machine. This final collection of molecules is the "
           library."
         * This library is loaded onto an NGS sequencer, which reads the sequence of the mRNA fragment as well as the
@@ -85,44 +86,53 @@
     * **Mitochondrial RNA Content:** In snRNA-seq, this percentage should be very low. A high value can indicate
       contamination from the cytoplasm due to ruptured nuclei.
 
-
-| **KPI** | **What it Measures** | **How it's Calculated** | **Typical High-Quality Range** | **Factors Influencing the Metric** |
-| :--- | :--- | :--- | :--- | :--- |
-| **Number of Nuclei Captured** | The total number of individual nuclei for which data is obtained. | The number of unique cell barcodes with a sufficient number of reads. | Thousands to tens of thousands, depending on the platform and experimental goals. | Cell concentration, microfluidic device performance, and downstream filtering criteria. |
-| **Median Genes per Nucleus** | The median number of distinct genes detected in a single nucleus. This reflects the sensitivity of the assay. | For each nucleus (cell barcode), count the number of genes with at least one read. Then, find the median of these counts across all nuclei. | 500 - 5,000+ (highly dependent on cell type and sequencing depth). | RNA quality, reverse transcription efficiency, and sequencing depth. |
-| **Median UMIs per Nucleus** | The median number of unique mRNA molecules detected per nucleus. This is a measure of the library complexity and capture efficiency. | For each nucleus, count the number of unique UMIs. Then, find the median of these counts across all nuclei. | 1,000 - 20,000+ (highly dependent on cell type and sequencing depth). | RNA content of the nucleus, bead capture efficiency, and PCR amplification cycles. |
-| **Fraction of Reads in Nuclei** | The percentage of sequencing reads that are associated with valid cell barcodes. | (Total reads with valid cell barcodes / Total sequencing reads) * 100%. | > 50% | Quality of the single-nucleus suspension, efficiency of droplet encapsulation, and accuracy of barcode identification. |
-| **Sequencing Saturation** | The extent to which the sequencing depth has captured the complexity of the library. | 1 - (Number of unique UMIs / Total reads for a given cell barcode). A higher value indicates that further sequencing is unlikely to detect many new molecules. | > 30-50%, depending on the desired level of gene detection. | Total number of sequencing reads relative to the complexity of the cDNA library. |
-| **Mitochondrial RNA Content** | The percentage of reads that map to the mitochondrial genome. | (Number of reads mapping to mitochondrial genes / Total reads for a nucleus) * 100%. | Typically < 5% for snRNA-seq. | In snRNA-seq, high mitochondrial RNA is often indicative of cytoplasmic contamination due to incomplete cell lysis or damage to the nuclear membrane. |
-| **Doublet Rate** | The percentage of "cells" that are actually two or more nuclei encapsulated in the same droplet. | Estimated computationally based on gene expression profiles or experimentally through sample mixing. | < 1% per 1,000 cells loaded. | The concentration of nuclei loaded into the microfluidic device. |
+| **KPI**                         | **What it Measures**                                                                                                                 | **How it's Calculated**                                                                                                                                        | **Typical High-Quality Range**                                                    | **Factors Influencing the Metric**                                                                                                                    |
+|:--------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------|:----------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Number of Nuclei Captured**   | The total number of individual nuclei for which data is obtained.                                                                    | The number of unique cell barcodes with a sufficient number of reads.                                                                                          | Thousands to tens of thousands, depending on the platform and experimental goals. | Cell concentration, microfluidic device performance, and downstream filtering criteria.                                                               |
+| **Median Genes per Nucleus**    | The median number of distinct genes detected in a single nucleus. This reflects the sensitivity of the assay.                        | For each nucleus (cell barcode), count the number of genes with at least one read. Then, find the median of these counts across all nuclei.                    | 500 - 5,000+ (highly dependent on cell type and sequencing depth).                | RNA quality, reverse transcription efficiency, and sequencing depth.                                                                                  |
+| **Median UMIs per Nucleus**     | The median number of unique mRNA molecules detected per nucleus. This is a measure of the library complexity and capture efficiency. | For each nucleus, count the number of unique UMIs. Then, find the median of these counts across all nuclei.                                                    | 1,000 - 20,000+ (highly dependent on cell type and sequencing depth).             | RNA content of the nucleus, bead capture efficiency, and PCR amplification cycles.                                                                    |
+| **Fraction of Reads in Nuclei** | The percentage of sequencing reads that are associated with valid cell barcodes.                                                     | (Total reads with valid cell barcodes / Total sequencing reads) * 100%.                                                                                        | > 50%                                                                             | Quality of the single-nucleus suspension, efficiency of droplet encapsulation, and accuracy of barcode identification.                                |
+| **Sequencing Saturation**       | The extent to which the sequencing depth has captured the complexity of the library.                                                 | 1 - (Number of unique UMIs / Total reads for a given cell barcode). A higher value indicates that further sequencing is unlikely to detect many new molecules. | > 30-50%, depending on the desired level of gene detection.                       | Total number of sequencing reads relative to the complexity of the cDNA library.                                                                      |
+| **Mitochondrial RNA Content**   | The percentage of reads that map to the mitochondrial genome.                                                                        | (Number of reads mapping to mitochondrial genes / Total reads for a nucleus) * 100%.                                                                           | Typically < 5% for snRNA-seq.                                                     | In snRNA-seq, high mitochondrial RNA is often indicative of cytoplasmic contamination due to incomplete cell lysis or damage to the nuclear membrane. |
+| **Doublet Rate**                | The percentage of "cells" that are actually two or more nuclei encapsulated in the same droplet.                                     | Estimated computationally based on gene expression profiles or experimentally through sample mixing.                                                           | < 1% per 1,000 cells loaded.                                                      | The concentration of nuclei loaded into the microfluidic device.                                                                                      |
 
 ### Section 3: Slide-tag: Adding Spatial Coordinates to Single-Nucleus Data
 
-* **Primary Goal:** To determine the original (x,y) location within a tissue slice for each nucleus being analyzed. This
-  transforms a dissociated list of cells into a spatially resolved map.
+* **Core Principle:** This method tags individual cell nuclei with spatial barcodes *while they are still in an intact
+  tissue slice*. Instead of capturing molecules onto a surface, it releases barcodes from a surface up into the tissue,
+  allowing for high-quality single-cell data while retaining the original spatial coordinates.
 
 * **The Mechanism**
-    1. **Spatial Barcoding *in situ*:**
-        * A tissue slice is placed on a slide that has a grid of spots, where each spot contains oligonucleotides with a
-          unique spatial barcode.
-        * The tissue is permeabilized, allowing these spatial barcodes to diffuse in and tag the RNA within the cells
-          *while they are still in place*.
-    2. **Nucleus Isolation and Workflow Integration:**
-        * After this *in situ* tagging, the tissue is dissociated into a single-nucleus suspension.
-        * This pool of now spatially-tagged nuclei is then processed using a standard snRNA-seq workflow (e.g., 10x
-          Genomics), where a second, single-cell barcode is added.
-    3. **Data Integration:**
-        * During NGS sequencing, the machine reads three pieces of information for each molecule: the mRNA sequence, the
-          spatial barcode, and the single-cell barcode.
-        * This dual-barcode system allows researchers to generate a high-quality gene expression profile for each
-          nucleus and then use the spatial barcode to map that specific nucleus back to its original location in the
-          tissue.
+    1. **The Barcoded Array:** The technology uses a glass slide coated with a dense, random monolayer of 10-micron
+       DNA-barcoded beads. The massive diversity of unique spatial barcodes on these beads is generated using a chemical
+       process called **split-pool combinatorial synthesis**.
+    2. **Spatial Tagging in Tissue:** A fresh-frozen tissue slice (typically 20 µm thick) is placed on the slide. UV
+       light is used to cleave linkers on the beads, releasing the spatial barcodes to diffuse into the tissue and tag
+       the biomolecules within the nuclei. This upstream tagging step adds only 10-60 minutes to the workflow.
+    3. **Standard Workflow Integration:** After tagging, the tissue is dissociated into a single-nucleus suspension.
+       This suspension is then used as a standard input for droplet-based platforms (e.g., 10x Genomics), where a
+       second, single-cell barcode is added.
+    4. **Calculating Position:** The physical (x, y) coordinate of every unique barcode on the slide is pre-mapped. A
+       nucleus in the tissue absorbs the highest concentration of barcodes from the bead directly beneath it, but also a
+       decreasing amount from neighboring beads, following an approximate Gaussian diffusion profile. By analyzing the
+       specific ratio of different spatial barcodes captured by a single nucleus, its original location can be
+       computationally reconstructed.
 
-* **Key Advantages and Features**
-    * **True Single-Cell Resolution:** Provides gene expression data from individual nuclei, not from groups of cells.
-    * **High-Quality Data:** The core gene expression data is of the same high quality as standard snRNA-seq.
-    * **Multimodal Compatibility:** The spatially tagged nuclei can be used as input for a variety of other single-cell
-      assays that measure different aspects of cell biology.
+* **Performance and Key Metrics**
+    * **Spatial Precision:** The reconstruction method achieves a high spatial localization accuracy, estimated to be
+      **~3.5 µm**, enabling sub-cellular resolution.
+    * **Data Fidelity:** The process does not degrade the quality of the gene expression data. The profiles are shown to
+      be **indistinguishable from standard snRNA-seq**, with correlations (r > 0.95) for cell types, UMIs per cell, and
+      gene expression levels.
+    * **Sensitivity & Recovery:** The method maintains high sensitivity, recovering **2,000 to 10,000 UMIs per nucleus
+      **. The overall efficiency of capturing and assigning a high-quality spatial position is around **12-15%** of the
+      total nuclei in the tissue section (a ~25-30% recovery of nuclei, of which about 50% are spatially assigned).
+    * **Sequencing Efficiency:** The spatial information is inexpensive to sequence. The spatial barcode library
+      requires a very low sequencing depth (**1,000-5,000 reads per nucleus**) compared to the gene expression library (
+      **20,000-50,000 reads per nucleus**).
+    * **Multi-omic Compatibility:** The upstream tagging process makes the method compatible with virtually any
+      single-nucleus assay, enabling simultaneous spatial profiling of the transcriptome (snRNA-seq), chromatin
+      accessibility (snATAC-seq), and immune receptors from the same tissue section.
 
 ## References
 
