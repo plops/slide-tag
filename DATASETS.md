@@ -43,7 +43,7 @@ available to guide users through the analysis process on this platform.
     *   **Bead Barcode Information:** The `U0027_016_BeadBarcodes.txt` file, which contains the sequences of the spatial barcodes on the slide.
     *   **Cell Ranger Output:** The directory `TrekkerU_RATAC_MouseKidney1_scRNAseqOut` contains the results of initial single-cell analysis, including files that define the valid cell barcodes.
 
-
+```
 └── [4.0K May  7 00:36]  TrekkerU_RATAC_ExampleInput_MouseKidney1
     ├── [895M May  7 00:34]  TrekkerU_RATAC_MouseKidney1_R1_001.fastq.gz
     ├── [710M May  7 00:34]  TrekkerU_RATAC_MouseKidney1_R2_001.fastq.gz
