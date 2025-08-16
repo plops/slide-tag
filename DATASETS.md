@@ -219,6 +219,35 @@ original (x, y) coordinates in the brain tissue slice.
 Here is a breakdown of what is contained in each file. The files in the main directory represent the final,
 quality-controlled output, where only nuclei that could be confidently positioned are included.
 
+```
+├── [150M Aug 15 22:47]  Mouse_Brain_TrekkerR_ConfPositioned_anndata_merged.h5ad
+├── [1.2G Aug 15 22:47]  Mouse_Brain_TrekkerR_ConfPositioned_seurat_spatial_merged.rds
+├── [2.6M Aug 15 22:47]  Mouse_Brain_TrekkerR_Location_ConfPositionedNuclei_merged.csv
+├── [824M Aug 15 22:47]  Mouse_Brain_TrekkerR_MoleculesPer_ConfPositionedNuclei_merged.mtx
+├── [ 14M Aug 15 22:47]  Mouse_Brain_TrekkerR_Trekker_Report_merged.html
+├── [1.8M Aug 15 22:47]  Mouse_Brain_TrekkerR_barcodes_ConfPositionedNuclei_merged.tsv
+├── [234K Aug 15 22:47]  Mouse_Brain_TrekkerR_genes_ConfPositionedNuclei_merged.tsv
+├── [1.0K Aug 15 22:47]  Mouse_Brain_TrekkerR_summary_metrics_merged.csv
+├── [770K Aug 15 22:47]  Mouse_Brain_TrekkerR_variable_features_clusters_merged.csv
+├── [ 11K Aug 15 22:47]  Mouse_Brain_TrekkerR_variable_features_spatial_moransi_merged.txt
+└── [4.0K Aug 15 22:47]  intermediates
+    ├── [3.4M Aug 15 22:47]  Mouse_Brain_TrekkerR_Location_PositionedNuclei_merged.csv
+    ├── [4.7M Aug 15 22:47]  Mouse_Brain_TrekkerR_Location_merged.csv
+    ├── [1.1G Aug 15 22:47]  Mouse_Brain_TrekkerR_MoleculesPer_PositionedNuclei_merged.mtx
+    ├── [1.6G Aug 15 22:47]  Mouse_Brain_TrekkerR_MoleculesPer_merged.mtx
+    ├── [196M Aug 15 22:46]  Mouse_Brain_TrekkerR_Positioned_anndata_merged.h5ad
+    ├── [1.6G Aug 15 22:46]  Mouse_Brain_TrekkerR_Positioned_seurat_spatial_merged.rds
+    ├── [277M Aug 15 22:46]  Mouse_Brain_TrekkerR_anndata_merged.h5ad
+    ├── [2.4M Aug 15 22:47]  Mouse_Brain_TrekkerR_barcodes_PositionedNuclei_merged.tsv
+    ├── [3.6M Aug 15 22:47]  Mouse_Brain_TrekkerR_barcodes_merged.tsv
+    ├── [234K Aug 15 22:47]  Mouse_Brain_TrekkerR_genes_PositionedNuclei_merged.tsv
+    ├── [234K Aug 15 22:47]  Mouse_Brain_TrekkerR_genes_merged.tsv
+    └── [2.3G Aug 15 22:46]  Mouse_Brain_TrekkerR_seurat_spatial_merged.rds
+
+2 directories, 22 files
+```
+
+
 ### Primary Results (Ready for Analysis):
 
 * **`Mouse_Brain_TrekkerR_ConfPositioned_anndata_merged.h5ad`**: This is an AnnData file for use in Python with
