@@ -2,10 +2,13 @@
 name = "brain-analysis"
 version = "0.1.0"
 description = "A project to analyze mouse brain spatial transcriptomics data."
+requires-python = ">=3.10"
 dependencies = [
     "anndata==0.10.7",
     "scanpy==1.10.2",
-    "h5py"
+    "h5py",
+    "matplotlib",
+    "scikit-learn"
 ]
 
 [build-system]
