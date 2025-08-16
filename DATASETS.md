@@ -32,10 +32,22 @@ LatchBio.[9][10] This platform provides a user-friendly interface for processing
 which may be beneficial for researchers with limited bioinformatics expertise.[1][10] A comprehensive user manual is
 available to guide users through the analysis process on this platform.
 
+## References
 
-### Trekker Mouse Kidney Example
+1. [takarabio.com](https://www.takarabio.com/learning-centers/spatial-omics/datasets-request)
+2. [takarabio.com](https://www.takarabio.com/learning-centers/spatial-omics/trekker-resources/trekker-faqs)
+3. [github.com](https://github.com/broadchenf/Slide-tags)
+4. [curiobioscience.com](https://curiobioscience.com/press/curio-bioscience-launches-trekker-single-cell-spatial-mapping-kit/)
+5. [broadinstitute.org](https://www.broadinstitute.org/news/new-method-tags-cells-location-coordinates-single-cell-studies)
+6. [bridgeinformatics.com](https://bridgeinformatics.com/breakthrough-high-resolution-spatial-multi-omics-slide-tags-unlock-single-cell-analysis/)
+7. [cbirt.net](https://cbirt.net/broad-scientists-introduce-slide-tags-a-novel-method-for-mapping-cells-in-single-cell-studies/)
+8. [nih.gov](https://pubmed.ncbi.nlm.nih.gov/38093010/)
+9. [latch.bio](https://blog.latch.bio/p/a-sneak-peak-into-new-spatial-analysis)
+10. [takarabio.com](https://www.takarabio.com/documents/User%20Manual/Cloud/Cloud%20Analysis%20of%20Seeker%20and%20Trekker%20Data%20User%20Manual.pdf)
 
-#### Input Data
+# Trekker Mouse Kidney Example
+
+## Input Data
 
 The pipeline requires several input files:
 
@@ -114,7 +126,7 @@ GL456233.2:206157-206441        GL456233.2:206157-206441        Peaks
 5 directories, 12 files
 ```
 
-#### Output of the Processing
+## Output of the Processing
 
 ```
 └── [4.0K May 12 20:34]  trekker_TrekkerU_RATAC_MouseKidney1
@@ -241,7 +253,7 @@ together form the filtered gene expression count matrix, containing only the cel
 *   **Final Output:** The primary output is a table that contains the unique identifier for each cell nucleus and its corresponding spatial coordinates in the tissue. This allows for the visualization and analysis of gene expression in a spatial context. The pipeline also generates various quality control plots and summary statistics at each stage.
 
 
-#### broadchenf/Slide-tags
+## broadchenf/Slide-tags
 
 ```
 ├── [1.3K]  README.md
@@ -260,15 +272,3 @@ together form the filtered gene expression count matrix, containing only the cel
     4.  **Spatial Mapping of Nuclei (`spatial_positioning.R`):** The final step uses a clustering algorithm called DBSCAN to assign a precise (x, y) coordinate to each nucleus based on the cloud of spatial barcodes associated with it. This script optimizes the clustering parameters to achieve the highest proportion of accurately positioned cells.
 
 
-# References
-
-1. [takarabio.com](https://www.takarabio.com/learning-centers/spatial-omics/datasets-request)
-2. [takarabio.com](https://www.takarabio.com/learning-centers/spatial-omics/trekker-resources/trekker-faqs)
-3. [github.com](https://github.com/broadchenf/Slide-tags)
-4. [curiobioscience.com](https://curiobioscience.com/press/curio-bioscience-launches-trekker-single-cell-spatial-mapping-kit/)
-5. [broadinstitute.org](https://www.broadinstitute.org/news/new-method-tags-cells-location-coordinates-single-cell-studies)
-6. [bridgeinformatics.com](https://bridgeinformatics.com/breakthrough-high-resolution-spatial-multi-omics-slide-tags-unlock-single-cell-analysis/)
-7. [cbirt.net](https://cbirt.net/broad-scientists-introduce-slide-tags-a-novel-method-for-mapping-cells-in-single-cell-studies/)
-8. [nih.gov](https://pubmed.ncbi.nlm.nih.gov/38093010/)
-9. [latch.bio](https://blog.latch.bio/p/a-sneak-peak-into-new-spatial-analysis)
-10. [takarabio.com](https://www.takarabio.com/documents/User%20Manual/Cloud/Cloud%20Analysis%20of%20Seeker%20and%20Trekker%20Data%20User%20Manual.pdf)
