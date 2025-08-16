@@ -60,7 +60,9 @@
     3. **mRNA Capture and Molecular Barcoding:**
         * Inside each droplet, the nucleus is lysed.
         * The bead is coated with DNA oligonucleotides that act as specific capture molecules.
-        * **Capture Target:** Most mRNA molecules have a "poly-A tail" (a string of Adenine bases).
+        * **Capture Target:** Most mRNA molecules in eukaryotes (like humans) have a "poly-A tail" (a string of Adenine
+          bases). This distinguishes it from other types of RNA (like ribosomal RNA (rRNA) or transfer RNA (tRNA), which
+          are much more abundant in a cell).
         * **Capture Hook:** Each oligo has a "poly(dT) tail" (a string of Thymine bases) that specifically binds to the
           mRNA's poly-A tail.
         * **Barcodes:** Each oligo also contains two crucial identifiers:
