@@ -96,13 +96,6 @@
 | **Mitochondrial RNA Content**   | The percentage of reads that map to the mitochondrial genome.                                                                        | (Number of reads mapping to mitochondrial genes / Total reads for a nucleus) * 100%.                                                                           | Typically < 5% for snRNA-seq.                                                     | In snRNA-seq, high mitochondrial RNA is often indicative of cytoplasmic contamination due to incomplete cell lysis or damage to the nuclear membrane. |
 | **Doublet Rate**                | The percentage of "cells" that are actually two or more nuclei encapsulated in the same droplet.                                     | Estimated computationally based on gene expression profiles or experimentally through sample mixing.                                                           | < 1% per 1,000 cells loaded.                                                      | The concentration of nuclei loaded into the microfluidic device.                                                                                      |
 
-Of course. Integrating that information into the main mechanism description is a great idea for improving the flow and
-clarity. The process of creating two libraries is a crucial and fascinating part of the technique.
-
-Here is the revised section with the information incorporated into the main bulleted list under "The Mechanism."
-
-***
-
 ### Section 3: Takara Bio Trekker / Slide-tags: Adding Spatial Coordinates to Single-Nucleus Data
 
 * **Core Principle:** This method tags individual cell nuclei with spatial barcodes *while they are still in an intact
@@ -112,11 +105,9 @@ Here is the revised section with the information incorporated into the main bull
 * **The Mechanism**
     1. **The Barcoded Array:** The technology uses a glass slide coated with a dense, random monolayer of 10-micron
        DNA-barcoded beads. The massive diversity of unique **spatial barcodes** is generated using split-pool
-       combinatorial synthesis. This chemical process involves repeatedly splitting the entire pool of beads, adding a
-       specific DNA base to each subgroup, and then pooling them back together. This results in an exponential increase
-       in unique barcode sequences with each cycle. The physical (x, y) coordinate of every unique barcode sequence on
-       this array is determined beforehand by performing an *in situ* sequencing reaction directly on the slide,
-       creating a definitive digital map.
+       combinatorial synthesis. The physical (x, y) coordinate of every unique barcode sequence on this array is
+       determined beforehand by performing an *in situ* sequencing reaction directly on the slide, creating a definitive
+       digital map.
     2. **Spatial Tagging in Tissue:** A fresh-frozen tissue slice (typically 20 µm thick) is placed on the slide. UV
        light cleaves linkers on the beads, releasing the spatial barcodes to diffuse into the tissue and tag the nuclei.
        This upstream tagging step adds only 10-60 minutes to the workflow.
@@ -140,38 +131,19 @@ Here is the revised section with the information incorporated into the main bull
        compared against the pre-mapped coordinates of the beads, allows the original (x, y) position of the nucleus to
        be calculated with high precision.
 
-#### Why Sequencing Depth is Different
-
-* **Gene Expression Library (Needs High Depth: 20,000-50,000 reads/nucleus):**
-    * The goal here is to comprehensively profile the entire transcriptome. A single nucleus contains thousands of
-      different types of mRNA molecules at varying levels of abundance (from very rare to very common).
-    * You need to sequence very deeply to have a high probability of capturing and counting not just the abundant genes,
-      but also the rare regulatory genes that might define the cell's state. It's a complex measurement problem.
-
-* **Spatial Barcode Library (Needs Low Depth: 1,000-5,000 reads/nucleus):**
-    * The goal here is much simpler: identify which few dozen spatial barcodes are present in the nucleus and determine
-      their relative abundance (their ratio).
-    * You only need enough sequencing reads to confidently identify these barcodes and count their UMIs. Once you have
-      read each unique spatial barcode UMI a few times, sequencing it more provides no new information. It's a simple
-      identification and counting problem, which is why it is "inexpensive" in terms of sequencing cost.
-
-#### Performance and Key Metrics
-
-    * **Spatial Precision:** The reconstruction method achieves a high spatial localization accuracy, estimated to be
-      **~3.5 µm**, enabling sub-cellular resolution.
-    * **Data Fidelity:** The process does not degrade the quality of the gene expression data. The profiles are shown to
-      be **indistinguishable from standard snRNA-seq**, with correlations (r > 0.95) for cell types, UMIs per cell, and
-      gene expression levels.
-    * **Sensitivity & Recovery:** The method maintains high sensitivity, recovering **2,000 to 10,000 UMIs per nucleus
-      **.
-      The overall efficiency of capturing and assigning a high-quality spatial position is around **12-15%** of the
-      total nuclei in the tissue section (a ~25-30% recovery of nuclei, of which about 50% are spatially assigned).
-    * **Sequencing Efficiency:** The spatial information is inexpensive to sequence. The spatial barcode library
-      requires a very low sequencing depth (**1,000-5,000 reads per nucleus**) compared to the gene expression library (
-      **20,000-50,000 reads per nucleus**).
-    * **Multi-omic Compatibility:** The upstream tagging process makes the method compatible with virtually any
-      single-nucleus assay, enabling simultaneous spatial profiling of the transcriptome (snRNA-seq), chromatin
-      accessibility (snATAC-seq), and immune receptors from the same tissue section.
+* **Performance and Sequencing Efficiency**
+    * **Spatial Precision:** The triangulation method achieves a high spatial localization accuracy, estimated to be **~
+      3.5 µm**.
+    * **Sequencing Strategy:** The two libraries are sequenced to different "depths" (total number of reads) because
+      they solve problems of different complexity. A "read" is a short DNA sequence of 50-150 base pairs generated by
+      the sequencing machine.
+        * **Gene Expression Library (High Depth):** Requires **20,000-50,000 reads per nucleus**. This high depth is
+          necessary to comprehensively sample the thousands of different mRNAs in a cell, many of which are very rare
+          and require a large number of reads to be reliably detected and counted.
+        * **Spatial Barcode Library (Low Depth):** Requires only **1,000-5,000 reads per nucleus**. This is because the
+          goal is much simpler: to identify the handful of known spatial barcodes a nucleus has absorbed. A small number
+          of reads is sufficient to confidently recognize these short barcode sequences and determine their relative
+          ratios.
 
 ## References
 
