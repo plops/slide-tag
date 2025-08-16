@@ -105,7 +105,11 @@
 * **The Mechanism**
     1. **The Barcoded Array:** The technology uses a glass slide coated with a dense, random monolayer of 10-micron
        DNA-barcoded beads. The massive diversity of unique spatial barcodes on these beads is generated using a chemical
-       process called **split-pool combinatorial synthesis**.
+       process called **split-pool combinatorial synthesis**. This chemical process involves repeatedly splitting the
+       entire pool of beads, adding a specific DNA base to each subgroup, and then pooling them back together. This
+       results in an exponential increase in unique barcode sequences with each cycle. The physical (x, y) coordinate of
+       every unique barcode sequence on the bead array is determined beforehand by performing an in situ sequencing
+       reaction directly on the slide, creating a definitive digital map.
     2. **Spatial Tagging in Tissue:** A fresh-frozen tissue slice (typically 20 µm thick) is placed on the slide. UV
        light is used to cleave linkers on the beads, releasing the spatial barcodes to diffuse into the tissue and tag
        the biomolecules within the nuclei. This upstream tagging step adds only 10-60 minutes to the workflow.
@@ -125,7 +129,8 @@
       be **indistinguishable from standard snRNA-seq**, with correlations (r > 0.95) for cell types, UMIs per cell, and
       gene expression levels.
     * **Sensitivity & Recovery:** The method maintains high sensitivity, recovering **2,000 to 10,000 UMIs per nucleus
-      **. The overall efficiency of capturing and assigning a high-quality spatial position is around **12-15%** of the
+      **.
+      The overall efficiency of capturing and assigning a high-quality spatial position is around **12-15%** of the
       total nuclei in the tissue section (a ~25-30% recovery of nuclei, of which about 50% are spatially assigned).
     * **Sequencing Efficiency:** The spatial information is inexpensive to sequence. The spatial barcode library
       requires a very low sequencing depth (**1,000-5,000 reads per nucleus**) compared to the gene expression library (
