@@ -187,11 +187,43 @@ GL456233.2:206157-206441        GL456233.2:206157-206441        Peaks
 
     *   **Final Processed Data (`output/`):** This is the most critical directory, containing the primary results ready for biological interpretation.
         *   **Spatial Coordinates:** The file `TrekkerU_RATAC_MouseKidney1_Location_ConfPositionedNuclei.csv` is a key output, providing the final calculated (x, y) coordinates for each confidently mapped cell barcode.
-        *   **Gene Expression Matrix:** The files `TrekkerU_RATAC_MouseKidney1_MoleculesPer_ConfPositionedNuclei.mtx`, `...barcodes_ConfPositionedNuclei.tsv`, and `...genes_ConfPositionedNuclei.tsv` together form the filtered gene expression count matrix, containing only the cells that were successfully placed in space.
+```
+,SPATIAL_1,SPATIAL_2
+TGTGTTCGCTCACACTTATCCATTCAT,4627.2793,-3301.5116
+TGTGTTCGCTAGTTCAATGGTCCGACT,7811.34746,-6443.133325
+...
+```
+        *   **Gene Expression Matrix:** The files `TrekkerU_RATAC_MouseKidney1_MoleculesPer_ConfPositionedNuclei.mtx`, with contents
+```
+%%MatrixMarket matrix coordinate integer general
+27355 5785 2675218
+187 1 1
+544 1 1
+1238 1 1
+...
+```
+`...barcodes_ConfPositionedNuclei.tsv`, with contents
+```
+TGTGTTCGCTCACACTTATCCATTCAT
+TGTGTTCGCTAGTTCAATGGTCCGACT
+...
+```
+
+
+and `...genes_ConfPositionedNuclei.tsv`
+```
+0610005C13Rik
+0610006L08Rik
+0610009B22Rik
+0610009E02Rik
+...
+```
+together form the filtered gene expression count matrix, containing only the cells that were successfully placed in space.
+
         *   **Integrated Analysis Objects:** The pipeline conveniently provides the data in standard formats used by popular single-cell analysis toolkits:
             *   `...ConfPositioned_seurat_spatial.rds`: An R object for the Seurat package, with gene expression and spatial data integrated.
             *   `...ConfPositioned_anndata_matched.h5ad`: A Python AnnData object for use with packages like Scanpy and Squidpy.
-        *   **HTML Report:** The `...Trekker_Report.html` file is a user-friendly summary of the entire analysis, likely containing key metrics and visualizations of the results.
+        *   **HTML Report:** The `...Trekker_Report.html` file is a user-friendly summary of the entire analysis, containing key metrics and visualizations of the results.
 
     *   **Intermediate Files and Quality Control (`misc/`):** This directory contains the outputs from the intermediate steps of the pipeline, which are crucial for quality control and troubleshooting.
         *   `matching_result_...csv`: Shows the mapping between the spatial barcodes observed in the sequencing data and the official barcodes on the bead array.
