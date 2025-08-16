@@ -124,11 +124,8 @@
     * **Multimodal Compatibility:** The spatially tagged nuclei can be used as input for a variety of other single-cell
       assays that measure different aspects of cell biology.
 
-# References
+## References
 
-[1] https://youtu.be/rd2G3yjWszQ?t=385 youtube video with some visualizations of slide-tag measurements using a
-commercial
-kit
-[2] https://www.nature.com/articles/s41586-023-06837-4 slide-tag paper
-[3] https://www.youtube.com/watch?v=SURGNo44wmU Animation showing reverse transcriptase converting messenger RNA (mRNA)
-into complimentary DNA (cDNA).
+1. [YouTube video with some visualizations of slide-tag measurements using a commercial kit](https://youtu.be/rd2G3yjWszQ?t=385)
+2. [Slide-tag paper (Nature)](https://www.nature.com/articles/s41586-023-06837-4)
+3. [Animation showing reverse transcriptase converting messenger RNA (mRNA) into complementary DNA (cDNA)](https://www.youtube.com/watch?v=SURGNo44wmU)
