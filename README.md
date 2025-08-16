@@ -122,7 +122,63 @@
        specific ratio of different spatial barcodes captured by a single nucleus, its original location can be
        computationally reconstructed.
 
-* **Performance and Key Metrics**
+#### How Two Separate Libraries Are Created
+
+* **Step 1: Encapsulation in a Droplet**
+    * A single, spatially-tagged nucleus is encapsulated in a water-in-oil droplet.
+    * Inside that same droplet is a single **10x Genomics gel bead**. This bead is critical. It is covered in its own
+      DNA oligonucleotides, each containing:
+        * A **Cell Barcode (CB):** Identical for all oligos on a single bead, but unique to that bead. These are created
+          using split-pool combinatorial synthesis. This is the "address label" that links everything from this droplet
+          back to one original nucleus.
+        * A **Unique Molecular Identifier (UMI):** A short random sequence that is different for each oligo on the bead.
+          This helps count individual starting molecules to avoid PCR bias.
+        * A **Primer sequence** (e.g., a poly(T) sequence to capture mRNA).
+
+* **Step 2: Lysis and Reverse Transcription in the Droplet**
+    * The gel bead dissolves, and the nucleus is lysed (broken open) inside the droplet, releasing all its contents.
+    * Now, floating inside the droplet are:
+        1. The nucleus's **mRNA molecules** (which have poly-A tails).
+        2. The **Trekker spatial barcode oligos** that the nucleus absorbed.
+        3. The oligos from the 10x gel bead (with the CB and UMI).
+    * Reverse transcription now happens, creating two different types of cDNA molecules **in parallel**:
+        * **Gene Expression (GEX) cDNA:** The poly(T) primer on the 10x oligo binds to the poly(A) tail of an mRNA
+          molecule. This creates a long cDNA molecule containing the **[Gene Sequence] + [UMI] + [Cell Barcode]**.
+        * **Spatial Barcode (SB) cDNA:** The Trekker spatial barcode oligo has its own specific, known sequence. A
+          different primer on the 10x gel bead (or added to the mix) is designed to bind to this specific sequence. This
+          creates a very short cDNA molecule containing the **[Spatial Barcode Sequence] + [UMI] + [Cell Barcode]**.
+
+* **Step 3: Breaking the Droplets and Physical Separation**
+    * After reverse transcription, all the droplets are broken, and the newly created cDNA from all nuclei is pooled
+      together.
+    * This pool contains a mix of long GEX cDNA and short SB cDNA. They are physically separated into two tubes using
+      standard molecular biology techniques:
+        * **Size Selection:** The most common method is using SPRI beads (Solid Phase Reversible Immobilization). By
+          changing the concentration of the beads and buffer, you can selectively precipitate DNA fragments of different
+          sizes. One concentration is used to isolate the long GEX cDNA, and another is used to isolate the short SB
+          cDNA.
+        * **Specific PCR Amplification:** Following size selection, each pool of cDNA is amplified using different sets
+          of primers. One primer set is designed to only amplify the GEX cDNA, and a completely different primer set is
+          designed to only amplify the SB cDNA. This creates the final two, physically separate libraries ready for
+          sequencing.
+
+#### Why Sequencing Depth is Different
+
+* **Gene Expression Library (Needs High Depth: 20,000-50,000 reads/nucleus):**
+    * The goal here is to comprehensively profile the entire transcriptome. A single nucleus contains thousands of
+      different types of mRNA molecules at varying levels of abundance (from very rare to very common).
+    * You need to sequence very deeply to have a high probability of capturing and counting not just the abundant genes,
+      but also the rare regulatory genes that might define the cell's state. It's a complex measurement problem.
+
+* **Spatial Barcode Library (Needs Low Depth: 1,000-5,000 reads/nucleus):**
+    * The goal here is much simpler: identify which few dozen spatial barcodes are present in the nucleus and determine
+      their relative abundance (their ratio).
+    * You only need enough sequencing reads to confidently identify these barcodes and count their UMIs. Once you have
+      read each unique spatial barcode UMI a few times, sequencing it more provides no new information. It's a simple
+      identification and counting problem, which is why it is "inexpensive" in terms of sequencing cost.
+
+#### Performance and Key Metrics
+
     * **Spatial Precision:** The reconstruction method achieves a high spatial localization accuracy, estimated to be
       **~3.5 µm**, enabling sub-cellular resolution.
     * **Data Fidelity:** The process does not degrade the quality of the gene expression data. The profiles are shown to
