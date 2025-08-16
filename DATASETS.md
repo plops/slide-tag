@@ -197,10 +197,17 @@ GL456233.2:206157-206441        GL456233.2:206157-206441        Peaks
 
 ```
 
-*   **Breakdown of the Output Directory:** The output is well-organized into distinct categories:
+###  **Breakdown of the Output Directory:**
 
-    *   **Final Processed Data (`output/`):** This is the most critical directory, containing the primary results ready for biological interpretation.
-        *   **Spatial Coordinates:** The file `TrekkerU_RATAC_MouseKidney1_Location_ConfPositionedNuclei.csv` is a key output, providing the final calculated (x, y) coordinates for each confidently mapped cell barcode.
+The output is well-organized into distinct categories:
+#### **Final Processed Data (`output/`):** 
+
+This is the most critical directory, containing the primary results ready for biological interpretation.
+
+#####   **Spatial Coordinates:**
+
+
+The file `TrekkerU_RATAC_MouseKidney1_Location_ConfPositionedNuclei.csv` is a key output, providing the final calculated (x, y) coordinates for each confidently mapped cell barcode.
 ```
 ,SPATIAL_1,SPATIAL_2
 TGTGTTCGCTCACACTTATCCATTCAT,4627.2793,-3301.5116
@@ -208,7 +215,9 @@ TGTGTTCGCTAGTTCAATGGTCCGACT,7811.34746,-6443.133325
 ...
 ```
 
-*   **Gene Expression Matrix:** The files `TrekkerU_RATAC_MouseKidney1_MoleculesPer_ConfPositionedNuclei.mtx`, with contents
+##### **Gene Expression Matrix:**
+
+The files `TrekkerU_RATAC_MouseKidney1_MoleculesPer_ConfPositionedNuclei.mtx`, with contents
 
 ```
 %%MatrixMarket matrix coordinate integer general
@@ -236,25 +245,37 @@ and `...genes_ConfPositionedNuclei.tsv`
 ```
 together form the filtered gene expression count matrix, containing only the cells that were successfully placed in space.
 
-        *   **Integrated Analysis Objects:** The pipeline conveniently provides the data in standard formats used by popular single-cell analysis toolkits:
+##### **Integrated Analysis Objects:**
+
+The pipeline conveniently provides the data in standard formats used by popular single-cell analysis toolkits:
+
             *   `...ConfPositioned_seurat_spatial.rds`: An R object for the Seurat package, with gene expression and spatial data integrated.
             *   `...ConfPositioned_anndata_matched.h5ad`: A Python AnnData object for use with packages like Scanpy and Squidpy.
-        *   **HTML Report:** The `...Trekker_Report.html` file is a user-friendly summary of the entire analysis, containing key metrics and visualizations of the results.
 
-    *   **Intermediate Files and Quality Control (`misc/`):** This directory contains the outputs from the intermediate steps of the pipeline, which are crucial for quality control and troubleshooting.
+##### **HTML Report:** 
+
+The `...Trekker_Report.html` file is a user-friendly summary of the entire analysis, containing key metrics and visualizations of the results.
+
+#### **Intermediate Files and Quality Control (`misc/`):** 
+
+This directory contains the outputs from the intermediate steps of the pipeline, which are crucial for quality control and troubleshooting.
+
         *   `matching_result_...csv`: Shows the mapping between the spatial barcodes observed in the sequencing data and the official barcodes on the bead array.
         *   `df_whitelist_...txt`: A table that links the cell barcodes to the spatial barcodes they are associated with.
         *   `matcher_summary_...txt`: Provides high-level statistics on the barcode matching efficiency.
 
-    *   **Visual Quality Control (`output/cell_bc_plots/`):** This directory provides direct visual evidence of the spatial positioning process.
+####   **Visual Quality Control (`output/cell_bc_plots/`):** 
+
+This directory provides direct visual evidence of the spatial positioning process.
         *   It contains JPEG images for individual cells, showing the spatial distribution of the barcode reads associated with them.
         *   The subdirectories (`cells_1_coordinates_assigned`, `cells_2_coordinates_assigned`, etc.) categorize cells by the number of distinct spatial clusters found, which helps in assessing the quality of the spatial localization. A cell with one clear cluster is ideally positioned.
 
-    *   **Summary Metrics and Plots (`output/` and `output/plots/`):**
+#### **Summary Metrics and Plots (`output/` and `output/plots/`):**
+
         *   The `...summary_metrics.csv` file provides a quantitative summary of the DBSCAN clustering performance, including the number of cells mapped and signal-to-noise ratios.
         *   The `plots` subdirectory contains figures summarizing the optimization of the DBSCAN clustering parameters (e.g., `summary_minPts.csv`).
 
-*   **Final Output:** The primary output is a table that contains the unique identifier for each cell nucleus and its corresponding spatial coordinates in the tissue. This allows for the visualization and analysis of gene expression in a spatial context. The pipeline also generates various quality control plots and summary statistics at each stage.
+#### **Final Output:** The primary output is a table that contains the unique identifier for each cell nucleus and its corresponding spatial coordinates in the tissue. This allows for the visualization and analysis of gene expression in a spatial context. The pipeline also generates various quality control plots and summary statistics at each stage.
 
 
 Of course. Here is a revised and more detailed explanation of the processing workflow, focusing on the specific points you raised.
