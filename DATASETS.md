@@ -14,9 +14,36 @@ These example datasets allow researchers to explore the capabilities of the Trek
 pipelines without having to generate their own data initially.[1] The Trekker system is designed to be species-agnostic
 and compatible with various single-cell platforms like the 10x Genomics Chromium and BD Rhapsody systems.[1][2]
 
-### Trekker Mouse Kidney raw sequencing data 
 
-```
+## Source Code:
+
+The computational pipeline for assigning spatial coordinates to the single-nucleus sequencing data is available on
+GitHub under the repository "broadchenf/Slide-tags".[3] This repository contains the necessary scripts to process the
+spatial barcode library sequencing data and assign coordinates to the profiled nuclei.[3] The pipeline is designed to
+work with demultiplexed FASTQ files from the spatial barcode library and gene expression data that has been processed
+through standard tools like Cell Ranger.[3]
+The Slide-tags technology, which the Trekker kit is based on, was developed at the Broad Institute of MIT and
+Harvard.[4] The method involves tagging nuclei in intact tissue sections with spatial barcodes, which are then used to
+reconstruct the original location of each nucleus after single-nucleus sequencing.[5][6][7] This approach allows for the
+integration of spatial information with a variety of single-cell assays, including transcriptomics and
+epigenomics.[6][8]
+For those looking to analyze the data, Takara Bio offers a cloud-based analysis platform in collaboration with
+LatchBio.[9][10] This platform provides a user-friendly interface for processing raw data and visualizing the results,
+which may be beneficial for researchers with limited bioinformatics expertise.[1][10] A comprehensive user manual is
+available to guide users through the analysis process on this platform.
+
+
+### Trekker Mouse Kidney Example
+
+#### Raw sequencing data input
+
+
+*   **Input Data:** The pipeline requires several input files:
+    *   **Raw Sequencing Reads (FASTQ files):** Specifically, `TrekkerU_RATAC_MouseKidney1_R1_001.fastq.gz` and `TrekkerU_RATAC_MouseKidney1_R2_001.fastq.gz` which contain the genetic and barcode information.
+    *   **Bead Barcode Information:** The `U0027_016_BeadBarcodes.txt` file, which contains the sequences of the spatial barcodes on the slide.
+    *   **Cell Ranger Output:** The directory `TrekkerU_RATAC_MouseKidney1_scRNAseqOut` contains the results of initial single-cell analysis, including files that define the valid cell barcodes.
+
+
 └── [4.0K May  7 00:36]  TrekkerU_RATAC_ExampleInput_MouseKidney1
     ├── [895M May  7 00:34]  TrekkerU_RATAC_MouseKidney1_R1_001.fastq.gz
     ├── [710M May  7 00:34]  TrekkerU_RATAC_MouseKidney1_R2_001.fastq.gz
@@ -36,22 +63,120 @@ and compatible with various single-cell platforms like the 10x Genomics Chromium
 
 5 directories, 12 files
 ```
-## Source Code:
 
-The computational pipeline for assigning spatial coordinates to the single-nucleus sequencing data is available on
-GitHub under the repository "broadchenf/Slide-tags".[3] This repository contains the necessary scripts to process the
-spatial barcode library sequencing data and assign coordinates to the profiled nuclei.[3] The pipeline is designed to
-work with demultiplexed FASTQ files from the spatial barcode library and gene expression data that has been processed
-through standard tools like Cell Ranger.[3]
-The Slide-tags technology, which the Trekker kit is based on, was developed at the Broad Institute of MIT and
-Harvard.[4] The method involves tagging nuclei in intact tissue sections with spatial barcodes, which are then used to
-reconstruct the original location of each nucleus after single-nucleus sequencing.[5][6][7] This approach allows for the
-integration of spatial information with a variety of single-cell assays, including transcriptomics and
-epigenomics.[6][8]
-For those looking to analyze the data, Takara Bio offers a cloud-based analysis platform in collaboration with
-LatchBio.[9][10] This platform provides a user-friendly interface for processing raw data and visualizing the results,
-which may be beneficial for researchers with limited bioinformatics expertise.[1][10] A comprehensive user manual is
-available to guide users through the analysis process on this platform.
+#### Output of the Processing
+
+```
+└── [4.0K May 12 20:34]  trekker_TrekkerU_RATAC_MouseKidney1
+    ├── [4.0K May  7 00:13]  misc
+    │   ├── [287K May  7 00:13]  TrekkerU_RATAC_MouseKidney1_barcodes_perPublicFxn.tsv
+    │   ├── [  70 May  7 00:13]  TrekkerU_RATAC_MouseKidney1_mismatchfreq.csv
+    │   ├── [ 125 May  7 00:13]  TrekkerU_RATAC_MouseKidney1_properreads_matched_to_spatial_whitelist.csv
+    │   ├── [328K May  7 00:13]  TrekkerU_RATAC_MouseKidney1_reads_perMatchedCB.txt
+    │   ├── [ 80M May  7 00:13]  TrekkerU_RATAC_MouseKidney1_reads_perMatchedCB_SB.txt
+    │   ├── [  70 May  7 00:13]  TrekkerU_RATAC_MouseKidney1_summary_position_conf.txt
+    │   ├── [  65 May  7 00:13]  TrekkerU_RATAC_MouseKidney1_summary_position_conf_consolidated.txt
+    │   ├── [4.0K May  7 00:13]  U0027_016
+    │   │   ├── [ 22M May  7 00:13]  BeadBarcodes.txt
+    │   │   └── [ 12M May  7 00:13]  BeadLocations.txt
+    │   ├── [ 80M May  7 00:13]  df_whitelist_TrekkerU_RATAC_MouseKidney1.txt
+    │   ├── [ 174 May  7 00:13]  matcher_summary_TrekkerU_RATAC_MouseKidney1.txt
+    │   ├── [ 32M May  7 00:13]  matching_result_TrekkerU_RATAC_MouseKidney1.csv
+    │   └── [ 16M May  7 00:13]  reads_per_SB_TrekkerU_RATAC_MouseKidney1.txt
+    └── [4.0K May 12 20:02]  output
+        ├── [ 10M May  7 00:13]  TrekkerU_RATAC_MouseKidney1_ConfPositioned_anndata_matched.h5ad
+        ├── [347M May 12 20:28]  TrekkerU_RATAC_MouseKidney1_ConfPositioned_seurat_spatial.rds
+        ├── [293K May  7 00:13]  TrekkerU_RATAC_MouseKidney1_Location_ConfPositionedNuclei.csv
+        ├── [ 32M May  7 00:13]  TrekkerU_RATAC_MouseKidney1_MoleculesPer_ConfPositionedNuclei.mtx
+        ├── [ 12M May  7 00:13]  TrekkerU_RATAC_MouseKidney1_Trekker_Report.html
+        ├── [158K May  7 00:13]  TrekkerU_RATAC_MouseKidney1_barcodes_ConfPositionedNuclei.tsv
+        ├── [209K May  7 00:13]  TrekkerU_RATAC_MouseKidney1_genes_ConfPositionedNuclei.tsv
+        ├── [2.3K May  7 00:13]  TrekkerU_RATAC_MouseKidney1_summary_metrics.csv
+        ├── [ 74K May  7 00:13]  TrekkerU_RATAC_MouseKidney1_variable_features_clusters.csv
+        ├── [ 11K May  7 00:13]  TrekkerU_RATAC_MouseKidney1_variable_features_spatial_moransi.txt
+        ├── [4.0K May  7 00:13]  cell_bc_plots
+        │   ├── [4.0K May  7 00:13]  cells_0_coordinates_assigned
+        │   │   ├── [451K May  7 00:13]  ACGGATGGTGCTGTGTAGGCTCGTTAC.jpeg
+    ...
+        │   │   └── [441K May  7 00:13]  TGGTTCCTCTTACAGCGTACGAACGCA.jpeg
+        │   ├── [4.0K May  7 00:13]  cells_1_coordinates_assigned
+        │   │   ├── [446K May  7 00:13]  AGCGGCCAGTTGGTTAATTATTGCGCA.jpeg
+   ...
+        │   │   └── [454K May  7 00:13]  TCCTGGATTACCATCATAAGCTTGGAC.jpeg
+        │   ├── [4.0K May  7 00:13]  cells_2_coordinates_assigned
+        │   │   ├── [449K May  7 00:13]  ACTCGACCTTTATCCTGTGATCTGCAT.jpeg
+ ....
+        │   │   └── [479K May  7 00:13]  TGTGTTCGCGCGAGCCTTATAGGTCTA.jpeg
+        │   └── [4.0K May  7 00:13]  cells_3_coordinates_assigned
+        │       ├── [467K May  7 00:13]  AGAGATGTTGATTCCAGTGTGCTTGCA.jpeg
+  ...
+        │       └── [458K May  7 00:13]  TGGTTGTCCGCTCCGCTGATCAACGTC.jpeg
+        ├── [1.2M May  7 00:13]  coords_TrekkerU_RATAC_MouseKidney1.txt
+        ├── [4.0K May  7 00:13]  intermediates
+        │   ├── [449K May  7 00:13]  TrekkerU_RATAC_MouseKidney1_Location.csv
+        │   ├── [320K May  7 00:13]  TrekkerU_RATAC_MouseKidney1_Location_PositionedNuclei.csv
+        │   ├── [ 55M May  7 00:13]  TrekkerU_RATAC_MouseKidney1_MoleculesPer.mtx
+        │   ├── [ 36M May  7 00:13]  TrekkerU_RATAC_MouseKidney1_MoleculesPer_PositionedNuclei.mtx
+        │   ├── [ 11M May  7 00:13]  TrekkerU_RATAC_MouseKidney1_Positioned_anndata_matched.h5ad
+        │   ├── [370M May 12 20:28]  TrekkerU_RATAC_MouseKidney1_Positioned_seurat_spatial.rds
+        │   ├── [ 16M May  7 00:13]  TrekkerU_RATAC_MouseKidney1_anndata_matched.h5ad
+        │   ├── [286K May  7 00:13]  TrekkerU_RATAC_MouseKidney1_barcodes.tsv
+        │   ├── [173K May  7 00:13]  TrekkerU_RATAC_MouseKidney1_barcodes_PositionedNuclei.tsv
+        │   ├── [209K May  7 00:13]  TrekkerU_RATAC_MouseKidney1_genes.tsv
+        │   ├── [209K May  7 00:13]  TrekkerU_RATAC_MouseKidney1_genes_PositionedNuclei.tsv
+        │   └── [533M May 12 20:27]  TrekkerU_RATAC_MouseKidney1_seurat_spatial.rds
+        └── [4.0K May  7 00:13]  plots
+            ├── [ 864 May  7 00:13]  summary_metrics.csv
+            └── [ 254 May  7 00:13]  summary_minPts.csv
+
+12 directories, 238 files
+
+```
+
+*   **Breakdown of the Output Directory:** The output is well-organized into distinct categories:
+
+    *   **Final Processed Data (`output/`):** This is the most critical directory, containing the primary results ready for biological interpretation.
+        *   **Spatial Coordinates:** The file `TrekkerU_RATAC_MouseKidney1_Location_ConfPositionedNuclei.csv` is a key output, providing the final calculated (x, y) coordinates for each confidently mapped cell barcode.
+        *   **Gene Expression Matrix:** The files `TrekkerU_RATAC_MouseKidney1_MoleculesPer_ConfPositionedNuclei.mtx`, `...barcodes_ConfPositionedNuclei.tsv`, and `...genes_ConfPositionedNuclei.tsv` together form the filtered gene expression count matrix, containing only the cells that were successfully placed in space.
+        *   **Integrated Analysis Objects:** The pipeline conveniently provides the data in standard formats used by popular single-cell analysis toolkits:
+            *   `...ConfPositioned_seurat_spatial.rds`: An R object for the Seurat package, with gene expression and spatial data integrated.
+            *   `...ConfPositioned_anndata_matched.h5ad`: A Python AnnData object for use with packages like Scanpy and Squidpy.
+        *   **HTML Report:** The `...Trekker_Report.html` file is a user-friendly summary of the entire analysis, likely containing key metrics and visualizations of the results.
+
+    *   **Intermediate Files and Quality Control (`misc/`):** This directory contains the outputs from the intermediate steps of the pipeline, which are crucial for quality control and troubleshooting.
+        *   `matching_result_...csv`: Shows the mapping between the spatial barcodes observed in the sequencing data and the official barcodes on the bead array.
+        *   `df_whitelist_...txt`: A table that links the cell barcodes to the spatial barcodes they are associated with.
+        *   `matcher_summary_...txt`: Provides high-level statistics on the barcode matching efficiency.
+
+    *   **Visual Quality Control (`output/cell_bc_plots/`):** This directory provides direct visual evidence of the spatial positioning process.
+        *   It contains JPEG images for individual cells, showing the spatial distribution of the barcode reads associated with them.
+        *   The subdirectories (`cells_1_coordinates_assigned`, `cells_2_coordinates_assigned`, etc.) categorize cells by the number of distinct spatial clusters found, which helps in assessing the quality of the spatial localization. A cell with one clear cluster is ideally positioned.
+
+    *   **Summary Metrics and Plots (`output/` and `output/plots/`):**
+        *   The `...summary_metrics.csv` file provides a quantitative summary of the DBSCAN clustering performance, including the number of cells mapped and signal-to-noise ratios.
+        *   The `plots` subdirectory contains figures summarizing the optimization of the DBSCAN clustering parameters (e.g., `summary_minPts.csv`).
+
+*   **Final Output:** The primary output is a table that contains the unique identifier for each cell nucleus and its corresponding spatial coordinates in the tissue. This allows for the visualization and analysis of gene expression in a spatial context. The pipeline also generates various quality control plots and summary statistics at each stage.
+
+
+#### broadchenf/Slide-tags
+
+```
+├── [1.3K]  README.md
+├── [6.3K]  bead_matching.py
+├── [7.7K]  cell_barcode_matcher.R
+├── [2.2K]  sb_processing.sh
+└── [ 33K]  spatial_positioning.R
+
+1 directory, 5 files
+```
+
+*   **Processing Workflow:** The pipeline consists of four main steps, executed by a combination of shell, R, and Python scripts:
+    1.  **FASTQ Processing (`sb_processing.sh`):** This initial step filters the raw sequencing data to find reads that contain the spatial barcode sequence and then downsamples the data to a manageable size.
+    2.  **Matching Spatial and Cell Barcodes (`cell_barcode_matcher.R`):** This script takes the processed sequencing reads and matches the spatial barcodes to the cell barcodes identified by the Cell Ranger software. It uses a whitelist of known 10x Genomics cell barcodes (`3M-february-2018.txt`) to ensure accuracy.
+    3.  **Assigning Coordinates to Spatial Barcodes (`bead_matching.py`):** This script matches the spatial barcode sequences from the sequencing data to the known spatial barcode coordinates from the bead map. It employs both exact and "fuzzy" matching to account for potential sequencing errors.
+    4.  **Spatial Mapping of Nuclei (`spatial_positioning.R`):** The final step uses a clustering algorithm called DBSCAN to assign a precise (x, y) coordinate to each nucleus based on the cloud of spatial barcodes associated with it. This script optimizes the clustering parameters to achieve the highest proportion of accurately positioned cells.
+
 
 # References
 
