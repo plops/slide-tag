@@ -1,4 +1,5 @@
-[ this is a summary of a conversation with AI (gemini 2.5 pro) ]
+![Rendering of cell classes of mouse brain](https://raw.githubusercontent.com/plops/slide-tag/main/img/plot-or8.png)
+
 
 In the realm of modern genomics, the ability to understand not just what genes are active but precisely *where* they are
 active within a complex tissue is a significant frontier. This article breaks down a powerful technological trio that,
@@ -174,3 +175,6 @@ output data and the raw processing required for the slide-tag method.
 1. [YouTube video with some visualizations of slide-tag measurements using a commercial kit](https://youtu.be/rd2G3yjWszQ?t=385)
 2. [Slide-tag paper (Nature)](https://www.nature.com/articles/s41586-023-06837-4)
 3. [Animation showing reverse transcriptase converting messenger RNA (mRNA) into complementary DNA (cDNA)](https://www.youtube.com/watch?v=SURGNo44wmU)
+
+
+[ this is a summary of a conversation with AI (gemini 2.5 pro) ]
