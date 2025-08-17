@@ -1,4 +1,5 @@
-[ Dieser Text wurde mit Hilfe von KI erstellt ]
+![Darstellung der Zelltypen in einem Maushirn](https://raw.githubusercontent.com/plops/slide-tag/main/img/plot-or8.png)
+
 
 Im Bereich der modernen Genomik ist die Fähigkeit, nicht nur zu verstehen, welche Gene aktiv sind, sondern auch genau
 *wo* sie innerhalb eines komplexen Gewebes aktiv sind, eine bedeutende neue Grenze. Dieser Artikel beschreibt ein
@@ -184,3 +185,5 @@ verknüpft.
 1. [YouTube-Video mit einigen Visualisierungen von Slide-tag-Messungen unter Verwendung eines kommerziellen Kits](https://youtu.be/rd2G3yjWszQ?t=385)
 2. [Slide-tag-Paper (Nature)](https://www.nature.com/articles/s41586-023-06837-4)
 3. [Animation, die die reverse Transkriptase zeigt](https://www.youtube.com/watch?v=SURGNo44wmU)
+
+[ Dieser Text wurde mit Hilfe von KI erstellt ]
