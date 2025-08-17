@@ -175,7 +175,7 @@ function to use the coordinates from `obsm['spatial']` and apply colors based on
 
 # Appendix
 
-## On the `SCTransform`
+## On the `SCTransform` (single cell transform)
 
 Biological heterogeneity in single-cell RNA-seq data is often confounded by technical factors
 including sequencing depth. The number of molecules detected in each cell can vary significantly between cells, even
