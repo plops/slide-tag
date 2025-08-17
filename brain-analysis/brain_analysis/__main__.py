@@ -2,6 +2,12 @@ import anndata as ad
 import scanpy as sc
 import sys
 import os
+import matplotlib
+matplotlib.use('Qt5Agg')  # Qt5Agg TkAgg
+import matplotlib.pyplot as plt
+
+# enable interactive plotting
+plt.ion()
 
 # def main():
 """
@@ -81,5 +87,11 @@ except Exception as e:
     print(f"An unexpected error occurred: {e}", file=sys.stderr)
     sys.exit(1)
 
+
 # if __name__ == "__main__":
 #     main()
+
+
+ps = adata.obsm['X_spatial']
+# reduce size so that markers don't overlap
+plt.scatter(ps[:, 0], ps[:, 1], s=2, alpha=.8)

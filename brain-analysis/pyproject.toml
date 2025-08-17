@@ -8,7 +8,8 @@ dependencies = [
     "scanpy==1.10.2",
     "h5py",
     "matplotlib",
-    "scikit-learn"
+    "scikit-learn",
+    "pyqt5"
 ]
 
 [build-system]
