@@ -9,7 +9,8 @@ dependencies = [
     "h5py",
     "matplotlib",
     "scikit-learn",
-    "pyqt5"
+    "pyqt5",
+    "scipy"
 ]
 
 [build-system]

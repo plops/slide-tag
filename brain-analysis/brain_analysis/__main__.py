@@ -5,6 +5,7 @@ import os
 import matplotlib
 matplotlib.use('Qt5Agg')  # Qt5Agg TkAgg
 import matplotlib.pyplot as plt
+from scipy.spatial import Voronoi, voronoi_plot_2d
 
 # enable interactive plotting
 plt.ion()
@@ -91,7 +92,12 @@ except Exception as e:
 # if __name__ == "__main__":
 #     main()
 
-
+# load nucleus positions
 ps = adata.obsm['X_spatial']
 # reduce size so that markers don't overlap
-plt.scatter(ps[:, 0], ps[:, 1], s=2, alpha=.8)
+# plt.scatter(ps[:, 0], ps[:, 1], s=2, alpha=.8)
+
+# the plot is a lot of white with some dots now
+# i want to simulate cells. use delaunay (or something like that) to fill the canvas
+vo = Voronoi(ps)
+voronoi_plot_2d(vo)
