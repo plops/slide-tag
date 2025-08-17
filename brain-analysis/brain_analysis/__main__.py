@@ -1,5 +1,6 @@
 import anndata as ad
 import scanpy as sc
+import numpy as np
 import sys
 import os
 import matplotlib
@@ -93,9 +94,31 @@ except Exception as e:
 #     main()
 
 # load nucleus positions
-ps = adata.obsm['X_spatial']
+ps0 = adata.obsm['X_spatial'] # array([[ 4756.8087    , -6268.35166667], [ 8550.105     , -7147.409     ], ... ]]) shape=(31209, 2)
+
+
+
+
+# rotate points by -100 degrees around the point 6700,-5380
+
+# Center of rotation
+cx, cy = 6700, -5380
+theta = np.deg2rad(-127)  # Convert degrees to radians
+
+# Rotation matrix
+R = np.array([
+    [np.cos(theta), -np.sin(theta)],
+    [np.sin(theta),  np.cos(theta)]
+])
+
+# Translate, rotate, and translate back
+ps_centered = ps0 - np.array([cx, cy])
+ps_rotated = ps_centered @ R.T
+ps = ps_rotated  + np.array([cx, cy])
+
+
 # reduce size so that markers don't overlap
-# plt.scatter(ps[:, 0], ps[:, 1], s=2, alpha=.8)
+plt.scatter(ps[:, 0], ps[:, 1], s=2, alpha=.8)
 
 # the plot is a lot of white with some dots now
 # i want to simulate cells. use delaunay (or something like that) to fill the canvas
