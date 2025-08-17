@@ -118,7 +118,25 @@ ps = ps_rotated  + np.array([cx, cy])
 
 
 # reduce size so that markers don't overlap
-plt.scatter(ps[:, 0], ps[:, 1], s=2, alpha=.8)
+# plt.scatter(ps[:, 0], ps[:, 1], s=2, alpha=.8)
+
+# find and set plot limits using 1 and 99 percentile of the points
+# Calculate 10th and 90th percentiles for x and y
+lo_perc = 1
+hi_perc = 99
+x_min, x_max = np.percentile(ps[:, 0], [lo_perc, hi_perc])
+y_min, y_max = np.percentile(ps[:, 1], [lo_perc, hi_perc])
+
+# Expand ranges by 10%
+x_range = x_max - x_min
+y_range = y_max - y_min
+
+range_inc = .1/2
+x_min_exp = x_min - range_inc * x_range
+x_max_exp = x_max + range_inc * x_range
+y_min_exp = y_min - range_inc * y_range
+y_max_exp = y_max + range_inc * y_range
+
 
 # the plot is a lot of white with some dots now
 # i want to simulate cells. use delaunay (or something like that) to fill the canvas
@@ -131,3 +149,7 @@ for j in range(len(ps)):
     if not -1 in region:
         polygon = [vo.vertices[i] for i in region]
         plt.fill(*zip(*polygon), cluster_color[point_cluster[j]])
+
+
+plt.xlim(x_min_exp, x_max_exp)
+plt.ylim(y_min_exp, y_max_exp)
