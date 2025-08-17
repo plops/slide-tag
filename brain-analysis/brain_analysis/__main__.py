@@ -131,7 +131,7 @@ y_min, y_max = np.percentile(ps[:, 1], [lo_perc, hi_perc])
 x_range = x_max - x_min
 y_range = y_max - y_min
 
-range_inc = .1/2
+range_inc = .2/2
 x_min_exp = x_min - range_inc * x_range
 x_max_exp = x_max + range_inc * x_range
 y_min_exp = y_min - range_inc * y_range
@@ -141,15 +141,46 @@ y_max_exp = y_max + range_inc * y_range
 # the plot is a lot of white with some dots now
 # i want to simulate cells. use delaunay (or something like that) to fill the canvas
 vo = Voronoi(ps)
+
+
+def polygon_area(poly):
+    x, y = zip(*poly)
+    return 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
+
+# create a histogram of polygon areas in voronoi (bins and both scales logarithmic)
+
+areas = []
+for j in range(len(ps)):
+    region = vo.regions[vo.point_region[j]]
+    if not -1 in region and len(region) > 0:
+        polygon = [vo.vertices[i] for i in region]
+        area = polygon_area(polygon)
+        areas.append(area)
+
+# plt.figure()
+# bins = np.logspace(np.log10(min(areas)), np.log10(max(areas)), 200)
+# plt.hist(areas, bins=bins, log=True)
+# plt.xlabel("Polygon Area")
+# plt.xscale('log')
+# plt.ylabel("Count")
+# plt.title("Histogram of Voronoi Polygon Areas")
+
+# area>3e4 seems to be a weird group (the periphery, ony two voronoi cells inside are bigger)
+
+
 voronoi_plot_2d(vo, show_points=False, show_vertices=False)
 point_cluster = adata.obs['seurat_clusters'].values.astype('int') # array([1, 2, 1, ..., 5 ... ) len=31209
 cluster_color  = adata.uns['seurat_clusters_colors'] # ['#1f77b4', '#ff7f0e'... ] len=19
+
 for j in range(len(ps)):
     region = vo.regions[vo.point_region[j]]
     if not -1 in region:
         polygon = [vo.vertices[i] for i in region]
-        plt.fill(*zip(*polygon), cluster_color[point_cluster[j]])
+        if polygon_area(polygon) <= 3e4:
+            plt.fill(*zip(*polygon), cluster_color[point_cluster[j]])
 
 
 plt.xlim(x_min_exp, x_max_exp)
 plt.ylim(y_min_exp, y_max_exp)
+#  enforce equal scale on x and y axis
+plt.gca().set_aspect('equal', adjustable='box')
