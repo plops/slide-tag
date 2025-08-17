@@ -100,4 +100,11 @@ ps = adata.obsm['X_spatial']
 # the plot is a lot of white with some dots now
 # i want to simulate cells. use delaunay (or something like that) to fill the canvas
 vo = Voronoi(ps)
-voronoi_plot_2d(vo)
+voronoi_plot_2d(vo, show_points=False, show_vertices=False)
+point_cluster = adata.obs['seurat_clusters'].values.astype('int') # array([1, 2, 1, ..., 5 ... ) len=31209
+cluster_color  = adata.uns['seurat_clusters_colors'] # ['#1f77b4', '#ff7f0e'... ] len=19
+for j in range(len(ps)):
+    region = vo.regions[vo.point_region[j]]
+    if not -1 in region:
+        polygon = [vo.vertices[i] for i in region]
+        plt.fill(*zip(*polygon), cluster_color[point_cluster[j]])
