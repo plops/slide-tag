@@ -118,7 +118,6 @@ defined by gene expression, to its specific location within a broader anatomical
 
 ### Section 3: Takara Bio Trekker / Slide-tags: Adding Spatial Coordinates to Single-Nucleus Data
 
-
 * **Core Principle:** This method tags individual cell nuclei with spatial barcodes *while they are still in an intact
   tissue slice*. Instead of capturing molecules onto a surface, it releases barcodes from a surface up into the tissue,
   allowing for high-quality single-cell data while retaining the original spatial coordinates.
@@ -165,11 +164,10 @@ defined by gene expression, to its specific location within a broader anatomical
           of reads is sufficient to confidently recognize these short barcode sequences and determine their relative
           ratios.
 
-
 # Continue reading
 
-Have a look at [DATASETS.md](https://raw.githubusercontent.com/plops/slide-tag/refs/heads/main/DATASETS.md)
-to dive into the discussion of the input and output data and the raw processing required for the slide-tag method.
+Have a look at [DATASETS.md](https://github.com/plops/slide-tag/blob/main/DATASETS.md) the discussion of the input and
+output data and the raw processing required for the slide-tag method.
 
 ## References
 
