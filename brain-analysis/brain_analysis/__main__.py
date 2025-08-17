@@ -4,6 +4,7 @@ import numpy as np
 import sys
 import os
 import matplotlib
+
 matplotlib.use('Qt5Agg')  # Qt5Agg TkAgg
 import matplotlib.pyplot as plt
 from scipy.spatial import Voronoi, voronoi_plot_2d
@@ -89,15 +90,12 @@ except Exception as e:
     print(f"An unexpected error occurred: {e}", file=sys.stderr)
     sys.exit(1)
 
-
 # if __name__ == "__main__":
 #     main()
 
 # load nucleus positions
-ps0 = adata.obsm['X_spatial'] # array([[ 4756.8087    , -6268.35166667], [ 8550.105     , -7147.409     ], ... ]]) shape=(31209, 2)
-
-
-
+ps0 = adata.obsm[
+    'X_spatial']  # array([[ 4756.8087    , -6268.35166667], [ 8550.105     , -7147.409     ], ... ]]) shape=(31209, 2)
 
 # rotate points by -100 degrees around the point 6700,-5380
 
@@ -108,14 +106,13 @@ theta = np.deg2rad(-127)  # Convert degrees to radians
 # Rotation matrix
 R = np.array([
     [np.cos(theta), -np.sin(theta)],
-    [np.sin(theta),  np.cos(theta)]
+    [np.sin(theta), np.cos(theta)]
 ])
 
 # Translate, rotate, and translate back
 ps_centered = ps0 - np.array([cx, cy])
 ps_rotated = ps_centered @ R.T
-ps = ps_rotated  + np.array([cx, cy])
-
+ps = ps_rotated + np.array([cx, cy])
 
 # reduce size so that markers don't overlap
 # plt.scatter(ps[:, 0], ps[:, 1], s=2, alpha=.8)
@@ -131,12 +128,11 @@ y_min, y_max = np.percentile(ps[:, 1], [lo_perc, hi_perc])
 x_range = x_max - x_min
 y_range = y_max - y_min
 
-range_inc = .2/2
+range_inc = .2 / 2
 x_min_exp = x_min - range_inc * x_range
 x_max_exp = x_max + range_inc * x_range
 y_min_exp = y_min - range_inc * y_range
 y_max_exp = y_max + range_inc * y_range
-
 
 # the plot is a lot of white with some dots now
 # i want to simulate cells. use delaunay (or something like that) to fill the canvas
@@ -146,6 +142,7 @@ vo = Voronoi(ps)
 def polygon_area(poly):
     x, y = zip(*poly)
     return 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
+
 
 # create a histogram of polygon areas in voronoi (bins and both scales logarithmic)
 
@@ -168,9 +165,9 @@ for j in range(len(ps)):
 # area>3e4 seems to be a weird group (the periphery, ony two voronoi cells inside are bigger)
 
 
-voronoi_plot_2d(vo, show_points=False, show_vertices=False)
-point_cluster = adata.obs['seurat_clusters'].values.astype('int') # array([1, 2, 1, ..., 5 ... ) len=31209
-cluster_color  = adata.uns['seurat_clusters_colors'] # ['#1f77b4', '#ff7f0e'... ] len=19
+# voronoi_plot_2d(vo, show_points=False, show_vertices=False)
+point_cluster = adata.obs['seurat_clusters'].values.astype('int')  # array([1, 2, 1, ..., 5 ... ) len=31209
+cluster_color = adata.uns['seurat_clusters_colors']  # ['#1f77b4', '#ff7f0e'... ] len=19
 
 for j in range(len(ps)):
     region = vo.regions[vo.point_region[j]]
@@ -179,8 +176,20 @@ for j in range(len(ps)):
         if polygon_area(polygon) <= 3e4:
             plt.fill(*zip(*polygon), cluster_color[point_cluster[j]])
 
-
 plt.xlim(x_min_exp, x_max_exp)
 plt.ylim(y_min_exp, y_max_exp)
 #  enforce equal scale on x and y axis
 plt.gca().set_aspect('equal', adjustable='box')
+
+
+# show the pre-processed umap visualization
+umapfig = plt.figure(1,(17,8))
+q = sc.pl.umap(
+    adata,
+    color="seurat_clusters",
+    title="UMAP of Mouse Brain Cells by Cluster",
+    frameon=False,
+    show=False,  # This will display the plot interactively
+)
+plt.legend()
+
