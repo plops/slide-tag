@@ -1,6 +1,5 @@
 ![Rendering of cell classes of mouse brain](https://raw.githubusercontent.com/plops/slide-tag/main/img/plot-or8.png)
 
-
 In the realm of modern genomics, the ability to understand not just what genes are active but precisely *where* they are
 active within a complex tissue is a significant frontier. This article breaks down a powerful technological trio that,
 when combined, achieves this goal: it measures gene expression from thousands of individual cell nuclei and then maps
@@ -106,6 +105,9 @@ defined by gene expression, to its specific location within a broader anatomical
       the same droplet.
     * **Mitochondrial RNA Content:** In snRNA-seq, this percentage should be very low. A high value can indicate
       contamination from the cytoplasm due to ruptured nuclei.
+    * **Total Nuclei Recovery Rate:** The percentage of nuclei from the original tissue slice that are successfully
+      sequenced and spatially mapped is currently around 25% but could be improved by modifying protocol for specific
+      tissues.
 
 | **KPI**                         | **What it Measures**                                                                                                                 | **How it's Calculated**                                                                                                                                        | **Typical High-Quality Range**                                                    | **Factors Influencing the Metric**                                                                                                                    |
 |:--------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------|:----------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -116,6 +118,7 @@ defined by gene expression, to its specific location within a broader anatomical
 | **Sequencing Saturation**       | The extent to which the sequencing depth has captured the complexity of the library.                                                 | 1 - (Number of unique UMIs / Total reads for a given cell barcode). A higher value indicates that further sequencing is unlikely to detect many new molecules. | > 30-50%, depending on the desired level of gene detection.                       | Total number of sequencing reads relative to the complexity of the cDNA library.                                                                      |
 | **Mitochondrial RNA Content**   | The percentage of reads that map to the mitochondrial genome.                                                                        | (Number of reads mapping to mitochondrial genes / Total reads for a nucleus) * 100%.                                                                           | Typically < 5% for snRNA-seq.                                                     | In snRNA-seq, high mitochondrial RNA is often indicative of cytoplasmic contamination due to incomplete cell lysis or damage to the nuclear membrane. |
 | **Doublet Rate**                | The percentage of "cells" that are actually two or more nuclei encapsulated in the same droplet.                                     | Estimated computationally based on gene expression profiles or experimentally through sample mixing.                                                           | < 1% per 1,000 cells loaded.                                                      | The concentration of nuclei loaded into the microfluidic device.                                                                                      |
+| **Total Nuclei Recovery Rate**  | The percentage of nuclei from the original tissue slice that are successfully sequenced and spatially mapped.                        | Estimated by comparing the number of mapped nuclei to the expected number of cells in the tissue area.                                                         | ~10% (v1 protocol), now improved to 25-30% with v2.                               | Efficiency of tissue dissociation, nuclear isolation, and spatial barcode capture.                                                                    |
 
 ### Section 3: Takara Bio Trekker / Slide-tags: Adding Spatial Coordinates to Single-Nucleus Data
 
@@ -127,11 +130,17 @@ defined by gene expression, to its specific location within a broader anatomical
     1. **The Barcoded Array:** The technology uses a glass slide coated with a dense, random monolayer of 10-micron
        DNA-barcoded beads. The massive diversity of unique **spatial barcodes** is generated using split-pool
        combinatorial synthesis. The physical (x, y) coordinate of every unique barcode sequence on this array is
-       determined beforehand by performing an *in situ* sequencing reaction directly on the slide, creating a definitive
-       digital map.
+       can be determined beforehand by performing an *in situ* sequencing reaction directly on the slide, creating a
+       definitive
+       digital map. An alternative imaging-free method allows for its computational reconstruction. Using the sequence
+       of the local
+       barcodes captured by many individual cells, a matrix of pairwise distances between all barcodes is generated,
+       which is then used to calculate the absolute (x, y) coordinates of every bead with remarkable accuracy and
+       distances of multiple centimeters (see [4] at 1:05:03).
     2. **Spatial Tagging in Tissue:** A fresh-frozen tissue slice (typically 20 µm thick) is placed on the slide. UV
        light cleaves linkers on the beads, releasing the spatial barcodes to diffuse into the tissue and tag the nuclei.
-       This upstream tagging step adds only 10-60 minutes to the workflow.
+       The attachment is non-specifical but robust, likely through charge interactions with histone proteins.
+       The upstream tagging step adds only 10-60 minutes to the workflow.
     3. **Dual Library Generation in Droplets:** After tagging, the tissue is dissociated into a single-nucleus
        suspension and processed using a droplet-based platform (e.g., 10x Genomics).
         * **Encapsulation:** A single, spatially-tagged nucleus is encapsulated in a droplet with a single 10x Genomics
@@ -153,7 +162,8 @@ defined by gene expression, to its specific location within a broader anatomical
        be calculated with high precision.
 
 * **Performance and Sequencing Efficiency**
-    * **Spatial Precision:** The triangulation method achieves a high spatial localization accuracy, estimated to be ~3.5 µm.
+    * **Spatial Precision:** The triangulation method achieves a high spatial localization accuracy, estimated to be ~
+      3.5 µm.
     * **Sequencing Strategy:** The two libraries are sequenced to different "depths" (total number of reads) because
       they solve problems of different complexity. A "read" is a short DNA sequence of 50-150 base pairs generated by
       the sequencing machine.
