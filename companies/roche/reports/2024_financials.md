@@ -14,7 +14,7 @@ This division is the primary driver of the Group's revenue and profitability. It
 
 *   **Revenue & Profit Drivers:**
     *   **Key Growth Products:** The top four growth drivers—Vabysmo, Phesgo, Ocrevus, and Hemlibra—contributed an additional CHF 3.3 billion in sales.
-        *   **Ocrevus** (Neurology - Multiple Sclerosis): CHF 6.7 billion in sales.
+        *   **Ocrevus** (Neurology - Multiple Sclerosis): CHF 6.7 billion in sales. (See below for mechanism of action)
         *   **Hemlibra** (Haematology - Haemophilia A): CHF 4.5 billion in sales.
         *   **Vabysmo** (Ophthalmology - Severe Eye Diseases): The main growth driver, reaching CHF 3.9 billion in sales.
         *   **Phesgo** (Oncology - HER2+ Breast Cancer): CHF 1.7 billion in sales (+62% CER growth).

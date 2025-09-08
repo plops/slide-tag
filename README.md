@@ -180,6 +180,9 @@ defined by gene expression, to its specific location within a broader anatomical
 Have a look at [DATASETS.md](https://github.com/plops/slide-tag/blob/main/DATASETS.md) the discussion of the input and
 output data and the raw processing required for the slide-tag method.
 
+I started investigating companies related to this technology. Have a look at 
+[Roche](https://github.com/plops/slide-tag/blob/main/companies/roche/reports/2024_financials.md).
+
 ## References
 
 1. [YouTube video with some visualizations of slide-tag measurements using a commercial kit](https://youtu.be/rd2G3yjWszQ?t=385)
