@@ -1,4 +1,45 @@
-# **Overall Group Financial Performance (2024)**
+# Overview of Roche's Business Divisions and 2024 Financial Performance
+
+## **Roche's Core Business Divisions**
+
+Roche's primary operations are structured into two main divisions: Pharmaceuticals and Diagnostics. The company's strategy focuses on integrating the strengths of both divisions to drive innovation in healthcare.
+
+### **Pharmaceuticals Division**
+
+This division focuses on the research, development, and manufacturing of innovative medicines.
+
+*   **Top-Selling Drugs:** The leading products by sales include Ocrevus for multiple sclerosis, Hemlibra for hemophilia A, Vabysmo for severe eye diseases, and Tecentriq for cancer immunotherapy.
+*   **Oncology:** A major focus is on developing new cancer treatments. Key projects include a new breast cancer medicine, Itovebi, and expanding the applications of existing drugs like Alecensa for lung cancer.
+*   **Immunology:** This area addresses autoimmune diseases.
+*   **Neurology:** Research and development in this field are geared towards treatments for conditions like multiple sclerosis.
+*   **Ophthalmology:** This therapeutic area is dedicated to developing treatments for severe eye diseases.
+*   **Cardiovascular/Renal/Metabolism:** The company is also active in developing medicines for a range of cardiovascular and metabolic disorders.
+*   **Strategic Acquisitions:** In 2024, the division made several strategic acquisitions to enhance its pipeline, including Regor Pharmaceuticals' breast cancer program, AntlerA Therapeutics for ophthalmology, and Poseida Therapeutics for cell therapies.
+*   **New Approvals:** The division received 20 major approvals in 2024 across Europe, the US, China, and Japan for various new medicines and expanded uses of existing ones.
+
+### **Diagnostics Division**
+
+This division provides a wide array of diagnostic tests and systems that are crucial for detecting diseases and guiding treatment decisions. The division is organized into several customer areas:
+
+*   **Core Lab:** This area focuses on providing diagnostic solutions for central laboratories, including immunoassays and clinical chemistry tests. In 2024, they launched a fully automated mass spectrometry solution.
+*   **Molecular Lab:** This segment is dedicated to the detection and monitoring of pathogens, donor screening, and genomic testing.
+*   **Near Patient Care:** This area provides diagnostic solutions for decentralized settings like emergency rooms and directly to patients. A significant 2024 launch in this area is the Accu-Chek SmartGuide, a continuous glucose monitoring solution with AI-powered predictive algorithms.
+*   **Pathology Lab:** This unit develops diagnostic solutions for tissue biopsies and companion diagnostics to aid in personalized medicine.
+*   **Key Initiatives:**
+    *   **Acquisition of LumiraDx:** This acquisition in July 2024 added an innovative point-of-care technology to Roche's portfolio.
+    *   **Addressing Unmet Needs:** In 2024, the division received FDA Breakthrough Device Designations for two blood-based tests for cardiovascular disease and Alzheimer's disease.
+    *   **Infectious Diseases:** They launched a four-in-one respiratory virus assay and a new test for 12 common respiratory viruses.
+    *   **Cervical Cancer Screening:** The cobas HPV test received WHO prequalification for use with self-collected samples, which is expected to improve access to screening in low- and middle-income countries.
+
+### **Cross-Divisional Initiatives and Research**
+
+*   **Roche Innovation Center Basel:** A new R&D facility was opened in Switzerland in 2024 with a CHF 1.2 billion investment to foster interdisciplinary collaboration.
+*   **Artificial Intelligence (AI) and Machine Learning:** Roche is heavily investing in AI to revolutionize drug discovery. Their "lab in a loop" strategy uses AI to analyze data from lab experiments and clinical studies to predict new drug targets and design potential medicines.
+*   **Sustainability and Access to Healthcare:** Roche is committed to various sustainability goals, including achieving net-zero emissions by 2045. They also have numerous initiatives to expand access to healthcare in low- and middle-income countries, such as the EMPOWER program in Kenya for cancer screening.
+
+
+
+## **Overall Group Financial Performance (2024)**
 
 Roche demonstrated solid underlying growth, with Group sales reaching **CHF 60.5 billion**, a 7% increase at constant exchange rates (CER). However, IFRS net income decreased by 19% (CER) to CHF 9.2 billion, primarily due to significant goodwill impairments. Free cash flow was strong at **CHF 15.3 billion**. The company will propose its 38th consecutive dividend increase.
 
