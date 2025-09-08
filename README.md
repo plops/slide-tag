@@ -181,7 +181,7 @@ Have a look at [DATASETS.md](https://github.com/plops/slide-tag/blob/main/DATASE
 output data and the raw processing required for the slide-tag method.
 
 I started investigating companies related to this technology. Have a look at 
-[Roche](https://github.com/plops/slide-tag/blob/main/companies/roche/reports/2024_financials.md).
+[Roche](https://github.com/plops/slide-tag/blob/main/companies/roche/reports/2024.md).
 
 ## References
 
