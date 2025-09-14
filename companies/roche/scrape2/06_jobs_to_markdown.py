@@ -4,7 +4,7 @@ import json
 
 # read in the dataframe from previous step
 try:
-    df_slide = pd.read_csv('df_slide_with_ai_annotations.csv')
+    df_slide = pd.read_csv('df_with_ai_annotations.csv')
 except Exception as e:
     print(f"Failed to read jobs_with_slide_tags.csv: {e}")
     df_slide = None
