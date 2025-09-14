@@ -15,12 +15,14 @@ TIMEOUT = 15
 RETRIES = 3
 USER_AGENT = "Mozilla/5.0 (compatible; JobScraper/1.0; +https://example.org/bot)"
 
+
 def sanitize_name(url: str, index: int) -> str:
     p = urlparse(url)
     name = os.path.basename(unquote(p.path)) or f"job-{index}"
     name = re.sub(r"[^A-Za-z0-9._-]", "-", name)
     name = name[:150]
     return f"{index:04d}-{name}"
+
 
 def extract_text_from_html(html: str) -> str:
     soup = BeautifulSoup(html, "html.parser")
@@ -34,7 +36,10 @@ def extract_text_from_html(html: str) -> str:
     text = re.sub(r"\n{2,}", "\n\n", text)
     return text
 
-async def fetch(session: aiohttp.ClientSession, url: str, retries: int = RETRIES) -> str | None:
+
+async def fetch(
+    session: aiohttp.ClientSession, url: str, retries: int = RETRIES
+) -> str | None:
     for attempt in range(1, retries + 1):
         try:
             async with session.get(url, timeout=TIMEOUT) as resp:
@@ -45,13 +50,18 @@ async def fetch(session: aiohttp.ClientSession, url: str, retries: int = RETRIES
                     print(f"Warning: {url} returned status {resp.status}")
                     return None
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
-            wait = 1.5 ** attempt
-            print(f"Fetch error ({attempt}/{retries}) for {url}: {e}. Retrying in {wait:.1f}s")
+            wait = 1.5**attempt
+            print(
+                f"Fetch error ({attempt}/{retries}) for {url}: {e}. Retrying in {wait:.1f}s"
+            )
             await asyncio.sleep(wait)
     print(f"Failed to fetch {url} after {retries} attempts")
     return None
 
-async def worker(sem: asyncio.Semaphore, session: aiohttp.ClientSession, url: str, idx: int):
+
+async def worker(
+    sem: asyncio.Semaphore, session: aiohttp.ClientSession, url: str, idx: int
+):
     async with sem:
         name = sanitize_name(url, idx)
         html_path = os.path.join(OUT_HTML, name + ".html")
@@ -79,6 +89,7 @@ async def worker(sem: asyncio.Semaphore, session: aiohttp.ClientSession, url: st
 
         print(f"Saved: {url} -> {name}")
 
+
 async def main():
     if not os.path.exists(JOBS_FILE):
         print(f"File not found: {JOBS_FILE}")
@@ -95,10 +106,11 @@ async def main():
     headers = {"User-Agent": USER_AGENT, "Accept": "text/html,application/xhtml+xml"}
 
     async with aiohttp.ClientSession(timeout=timeout, headers=headers) as session:
-        tasks = [worker(sem, session, url, i+1) for i, url in enumerate(urls)]
+        tasks = [worker(sem, session, url, i + 1) for i, url in enumerate(urls)]
         start = time.time()
         await asyncio.gather(*tasks)
-        print(f"Done. Downloaded {len(urls)} items in {time.time()-start:.1f}s")
+        print(f"Done. Downloaded {len(urls)} items in {time.time() - start:.1f}s")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

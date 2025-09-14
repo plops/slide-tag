@@ -41,7 +41,8 @@ try:
     # scroll element into view and adjust for any sticky header (small negative offset)
     driver.execute_script(
         "arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});"
-        "window.scrollBy(0, -80);", ort_accordion
+        "window.scrollBy(0, -80);",
+        ort_accordion,
     )
 
     # optional short wait for any animations / reflow
@@ -88,7 +89,9 @@ except Exception:
         )
         logger.info("Cookie banner disappeared after rejecting")
     except Exception:
-        logger.exception("Could not interact with cookie banner; continuing without dismissing it")
+        logger.exception(
+            "Could not interact with cookie banner; continuing without dismissing it"
+        )
 
 
 # Enter "Schweiz" in the "Ort" filter input box with xpath //*[@id="facetInput_2"]
@@ -113,7 +116,9 @@ try:
     # ensure the element exists in the DOM first
     wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
 
-    logger.info("'Schweiz' checkbox present, attempting JS scroll+click on nearest label")
+    logger.info(
+        "'Schweiz' checkbox present, attempting JS scroll+click on nearest label"
+    )
     js_click_and_scroll = """
     const sel = arguments[0];
     const el = document.querySelector(sel);
@@ -227,6 +232,7 @@ except Exception:
 #                         <span aria-hidden="true" class="icon icon-arrow-right au-target" data-ps="af1c0deb-span-136" v-phw-setting="" au-target-id="620"></span>
 #                     </a>
 
+
 # python
 def collect_job_links_paginated(driver, wait, timeout=60, poll=0.5):
     """
@@ -292,7 +298,11 @@ def collect_job_links_paginated(driver, wait, timeout=60, poll=0.5):
             if driver.current_url != current_url:
                 break
             # or if new job links loaded (different href set), treat as success
-            new_hrefs = {e.get_attribute("href") for e in driver.find_elements(By.CSS_SELECTOR, job_selector) if e.get_attribute("href")}
+            new_hrefs = {
+                e.get_attribute("href")
+                for e in driver.find_elements(By.CSS_SELECTOR, job_selector)
+                if e.get_attribute("href")
+            }
             if not new_hrefs.issubset(links):
                 break
         else:
@@ -300,6 +310,7 @@ def collect_job_links_paginated(driver, wait, timeout=60, poll=0.5):
             break
 
     return sorted(links)
+
 
 logger.info("Collecting job links from paginated results")
 job_links = collect_job_links_paginated(driver, wait, timeout=60)

@@ -1,14 +1,13 @@
 import pandas as pd
 import sqlite3
 import os
-import base64
 import time
-import json
 from google import genai
 from google.genai import types
 from pydantic import BaseModel
 
-def filter_jobs_data(db_path='jobs_minutils.db'):
+
+def filter_jobs_data(db_path="jobs_minutils.db"):
     """
     Loads the Jobs table from a SQLite database, filters it based on specific
     criteria, and returns the resulting pandas DataFrame.
@@ -41,7 +40,7 @@ def filter_jobs_data(db_path='jobs_minutils.db'):
         return None
     finally:
         # Ensure the connection is closed
-        if 'conn' in locals() and conn:
+        if "conn" in locals() and conn:
             conn.close()
 
     # --- 3. Filtering Logic ---
@@ -53,38 +52,51 @@ def filter_jobs_data(db_path='jobs_minutils.db'):
     # Filter 1: 'job_family' is not 'Internship'
     # Using .ne() which is equivalent to !=
     initial_count = len(filtered_df)
-    filtered_df = filtered_df[filtered_df['job_family'].ne('Internship')]
-    print(f"- Excluded {initial_count - len(filtered_df)} jobs with job_family 'Internship'.")
+    filtered_df = filtered_df[filtered_df["job_family"].ne("Internship")]
+    print(
+        f"- Excluded {initial_count - len(filtered_df)} jobs with job_family 'Internship'."
+    )
 
     # Filter 2: 'job_family' does not start with 'Food'
     # The ~ operator inverts the boolean mask
     initial_count = len(filtered_df)
     # Using .str.startswith() for robust matching and handling potential missing values (na=False)
-    filtered_df = filtered_df[~filtered_df['job_family'].str.startswith('Food', na=False)]
-    print(f"- Excluded {initial_count - len(filtered_df)} jobs where job_family starts with 'Food'.")
-
+    filtered_df = filtered_df[
+        ~filtered_df["job_family"].str.startswith("Food", na=False)
+    ]
+    print(
+        f"- Excluded {initial_count - len(filtered_df)} jobs where job_family starts with 'Food'."
+    )
 
     # Filter 3: 'job_profile' does not contain 'finance' (case-insensitive)
     initial_count = len(filtered_df)
     # Using .str.contains() with case=False for case-insensitive search
     # na=False ensures that rows with a missing job_profile are kept
-    filtered_df = filtered_df[~filtered_df['job_profile'].str.contains('finance', case=False, na=False)]
-    filtered_df = filtered_df[~filtered_df['job_family'].str.contains('treasury', case=False, na=False)]
-    print(f"- Excluded {initial_count - len(filtered_df)} jobs with 'finance' in job_profile.")
+    filtered_df = filtered_df[
+        ~filtered_df["job_profile"].str.contains("finance", case=False, na=False)
+    ]
+    filtered_df = filtered_df[
+        ~filtered_df["job_family"].str.contains("treasury", case=False, na=False)
+    ]
+    print(
+        f"- Excluded {initial_count - len(filtered_df)} jobs with 'finance' in job_profile."
+    )
 
     # Exclude job_level Executive
     initial_count = len(filtered_df)
-    filtered_df = filtered_df[filtered_df['job_level'].ne('Executive')]
-    print(f"- Excluded {initial_count - len(filtered_df)} jobs with job_level 'Executive'.")
-
+    filtered_df = filtered_df[filtered_df["job_level"].ne("Executive")]
+    print(
+        f"- Excluded {initial_count - len(filtered_df)} jobs with job_level 'Executive'."
+    )
 
     print(f"\nFiltering complete. {len(filtered_df)} jobs remain.")
     return filtered_df
 
+
 # --- 4. Main Execution Block ---
 # if __name__ == "__main__":
 # Specify the database file name
-database_file = 'jobs_minutils.db'
+database_file = "jobs_minutils.db"
 
 # Run the filtering function
 df = filter_jobs_data(database_file)
@@ -109,25 +121,28 @@ df = filter_jobs_data(database_file)
 # 120
 # Sort supervisors by number of jobs
 
-def sort_supervisors_by_job_count(df: pd.DataFrame, top_n: int | None = None, save_path: str | None = None) -> pd.DataFrame:
+
+def sort_supervisors_by_job_count(
+    df: pd.DataFrame, top_n: int | None = None, save_path: str | None = None
+) -> pd.DataFrame:
     """
     Return a DataFrame of supervisors sorted by number of jobs (descending).
     - Replaces missing supervisory values with 'MISSING' so they are counted.
     - Adds a relative percentage column.
     - Optionally returns only top_n rows and saves to CSV if save_path is provided.
     """
-    if df is None or 'supervisory_organization' not in df.columns:
+    if df is None or "supervisory_organization" not in df.columns:
         raise ValueError("DataFrame must contain a 'supervisory_organization' column")
 
     counts = (
-        df['supervisory_organization']
-        .fillna('MISSING')
+        df["supervisory_organization"]
+        .fillna("MISSING")
         .value_counts(dropna=False)
-        .rename_axis('supervisory_organization')
-        .reset_index(name='job_count')
+        .rename_axis("supervisory_organization")
+        .reset_index(name="job_count")
     )
 
-    counts['pct_of_total'] = counts['job_count'] / counts['job_count'].sum()
+    counts["pct_of_total"] = counts["job_count"] / counts["job_count"].sum()
 
     if top_n is not None:
         counts = counts.head(top_n)
@@ -137,8 +152,11 @@ def sort_supervisors_by_job_count(df: pd.DataFrame, top_n: int | None = None, sa
 
     return counts
 
+
 # Example usage:
-counts_df = sort_supervisors_by_job_count(df, top_n=20, save_path='supervisor_job_counts.csv')
+counts_df = sort_supervisors_by_job_count(
+    df, top_n=20, save_path="supervisor_job_counts.csv"
+)
 
 #                              supervisory_organization  job_count  pct_of_total
 # 0   DSRMGJ NAP/qPCR & Sequencing (Vahid Akbarzadeh...          5      0.040984
@@ -194,25 +212,25 @@ counts_df = sort_supervisors_by_job_count(df, top_n=20, save_path='supervisor_jo
 
 # make a list of interesting organizations
 orgs = [
-    'DSRMGJ NAP/qPCR & Sequencing (Vahid Akbarzadeh) (32410074)',
-    'PSTB Genomics 360 Lab (Kim Schneider) (50473535)',
-    'PNUA Pathology 1 (Björn Jacobsen) (32231909)',
-    'PRE Nucleic Acid Based Medicine (Hendrik Knötgen) (50211838)',
-    'PREBB Oligonucleotide Research (Johannes Braun) (50667061)',
-    'PREB Therapeutic Oligonucleotides (Felix Schumacher) (50467570)',
-    'GTA Analytics (Fabian Birzele) (50606589)',
-    'GTAE Computational CoE (Jörg Degen) (50682980)',
-    'GSFHB Computational Catalyst (Jens Reeder) (30931809)',
-    'GSAA Prescient AI ML (Vladimir Gligorijevic) (50364410)',
-    'GSAG Prescient Frontier Research (Stephen Ra) (50427018)',
-    'MMED Data Backbone (Dominik Wendel) (50407023)',
-    'PRDF Lead Discovery (Federica Morandi) (50225496)',
-    'POR Discovery Oncology (Ashley Lakner) (25696339)',
-    'TNDAB Neurodegeneration (Christopher Lane) (50663284)',
-    'PCE Early Development (Luka Kulic) (50310171)'
+    "DSRMGJ NAP/qPCR & Sequencing (Vahid Akbarzadeh) (32410074)",
+    "PSTB Genomics 360 Lab (Kim Schneider) (50473535)",
+    "PNUA Pathology 1 (Björn Jacobsen) (32231909)",
+    "PRE Nucleic Acid Based Medicine (Hendrik Knötgen) (50211838)",
+    "PREBB Oligonucleotide Research (Johannes Braun) (50667061)",
+    "PREB Therapeutic Oligonucleotides (Felix Schumacher) (50467570)",
+    "GTA Analytics (Fabian Birzele) (50606589)",
+    "GTAE Computational CoE (Jörg Degen) (50682980)",
+    "GSFHB Computational Catalyst (Jens Reeder) (30931809)",
+    "GSAA Prescient AI ML (Vladimir Gligorijevic) (50364410)",
+    "GSAG Prescient Frontier Research (Stephen Ra) (50427018)",
+    "MMED Data Backbone (Dominik Wendel) (50407023)",
+    "PRDF Lead Discovery (Federica Morandi) (50225496)",
+    "POR Discovery Oncology (Ashley Lakner) (25696339)",
+    "TNDAB Neurodegeneration (Christopher Lane) (50663284)",
+    "PCE Early Development (Luka Kulic) (50310171)",
 ]
 
-df_slide = df #df[df['supervisory_organization'].isin(orgs)]
+df_slide = df  # df[df['supervisory_organization'].isin(orgs)]
 
 # >>> df_slide
 #             job_id                                              title company_name                                        description  ...                    job_level grade                         job_family  is_evergreen
@@ -251,6 +269,7 @@ class Job(BaseModel):
     slide_tag_relevance: int
     idx: int
 
+
 def generate(job_description):
     client = genai.Client(
         api_key=os.environ.get("GEMINI_API_KEY"),
@@ -261,7 +280,8 @@ def generate(job_description):
         types.Content(
             role="user",
             parts=[
-                types.Part.from_text(text=f"""Analyze the job descriptions below in the context of Slide-tag and related spatial 
+                types.Part.from_text(
+                    text=f"""Analyze the job descriptions below in the context of Slide-tag and related spatial 
 genomics technologies. These technologies integrate techniques like Next-Generation Sequencing (NGS), single-cell/nucleus RNA 
 sequencing (sc/snRNA-seq), molecular pathology, and complex bioinformatics to map gene activity in tissue.
 The output should be a JSON object with a list containing three fields for each job description:
@@ -269,7 +289,8 @@ The output should be a JSON object with a list containing three fields for each 
 2. `slide_tag_relevance`: An integer score from 1 (unrelated) to 5 (highly relevant), rating the job's connection to the development or application of these technologies.
 3. `idx`: The index of the job in the input list (for tracking purposes).
 
-{job_description}"""),
+{job_description}"""
+                ),
             ],
         ),
     ]
@@ -294,7 +315,8 @@ The output should be a JSON object with a list containing three fields for each 
     )
     return result.parsed
 
- # iterate rows and append formatted entries until the total string length would exceed 20000 characters; if the very first entry would exceed the limit, truncate it to fit (this should never happen!).
+
+# iterate rows and append formatted entries until the total string length would exceed 20000 characters; if the very first entry would exceed the limit, truncate it to fit (this should never happen!).
 #
 # v = df_slide.iloc[[23,24]]
 #
@@ -312,10 +334,11 @@ max_len = 20000
 separator = "\n\n"
 
 # Prepare result columns (only create if missing so re-runs preserve previous annotations)
-if 'job_summary' not in df_slide.columns:
-    df_slide['job_summary'] = None
-if 'slide_tag_relevance' not in df_slide.columns:
-    df_slide['slide_tag_relevance'] = None
+if "job_summary" not in df_slide.columns:
+    df_slide["job_summary"] = None
+if "slide_tag_relevance" not in df_slide.columns:
+    df_slide["slide_tag_relevance"] = None
+
 
 # Inserted helper: send a chunk to the model, parse result, and store into df_slide.
 def _send_chunk_and_store(entries, indices, max_retries=3, retry_delay=2):
@@ -335,7 +358,9 @@ def _send_chunk_and_store(entries, indices, max_retries=3, retry_delay=2):
             results = generate(job_descriptions)
             break
         except Exception as e:
-            print(f"_send_chunk_and_store: generate failed (attempt {attempt}/{max_retries}): {e}")
+            print(
+                f"_send_chunk_and_store: generate failed (attempt {attempt}/{max_retries}): {e}"
+            )
             if attempt < max_retries:
                 time.sleep(retry_delay)
             else:
@@ -351,21 +376,21 @@ def _send_chunk_and_store(entries, indices, max_retries=3, retry_delay=2):
         relevance = None
 
         if isinstance(item, dict):
-            item_idx = item.get('idx')
-            job_summary = item.get('job_summary')
-            relevance = item.get('slide_tag_relevance')
+            item_idx = item.get("idx")
+            job_summary = item.get("job_summary")
+            relevance = item.get("slide_tag_relevance")
         else:
             # pydantic model or object with attributes
-            item_idx = getattr(item, 'idx', None)
-            job_summary = getattr(item, 'job_summary', None)
-            relevance = getattr(item, 'slide_tag_relevance', None)
+            item_idx = getattr(item, "idx", None)
+            job_summary = getattr(item, "job_summary", None)
+            relevance = getattr(item, "slide_tag_relevance", None)
             # fallback: if it's a pydantic BaseModel, try .dict()
             if item_idx is None or job_summary is None or relevance is None:
                 try:
                     d = item.dict()
-                    item_idx = item_idx or d.get('idx')
-                    job_summary = job_summary or d.get('job_summary')
-                    relevance = relevance or d.get('slide_tag_relevance')
+                    item_idx = item_idx or d.get("idx")
+                    job_summary = job_summary or d.get("job_summary")
+                    relevance = relevance or d.get("slide_tag_relevance")
                 except Exception:
                     pass
 
@@ -374,15 +399,20 @@ def _send_chunk_and_store(entries, indices, max_retries=3, retry_delay=2):
             if i < len(indices):
                 item_idx = indices[i]
             else:
-                print(f"_send_chunk_and_store: can't determine idx for response item {i}, skipping")
+                print(
+                    f"_send_chunk_and_store: can't determine idx for response item {i}, skipping"
+                )
                 continue
 
         # Store back into dataframe (preserve data types)
         try:
-            df_slide.at[item_idx, 'job_summary'] = job_summary
-            df_slide.at[item_idx, 'slide_tag_relevance'] = relevance
+            df_slide.at[item_idx, "job_summary"] = job_summary
+            df_slide.at[item_idx, "slide_tag_relevance"] = relevance
         except Exception as e:
-            print(f"_send_chunk_and_store: failed to write results for idx {item_idx}: {e}")
+            print(
+                f"_send_chunk_and_store: failed to write results for idx {item_idx}: {e}"
+            )
+
 
 # Build and send chunks
 entries = []
@@ -394,12 +424,12 @@ separator = "\n\n"
 
 for idx, row in df_slide.iterrows():
     # Skip rows that already have an annotation (so re-runs only submit missing rows)
-    existing = row.get('slide_tag_relevance')
-    if pd.notna(existing) and existing != '':
+    existing = row.get("slide_tag_relevance")
+    if pd.notna(existing) and existing != "":
         continue
 
-    title = str(row.get('title', ''))
-    description = str(row.get('description', ''))
+    title = str(row.get("title", ""))
+    description = str(row.get("description", ""))
     entry = f"idx: {idx}\ntitle: {title}\ndescription: {description}"
     add_len = (len(separator) if entries else 0) + len(entry)
 
@@ -439,4 +469,4 @@ if entries:
 
 print("AI annotations added: job_summary and slide_tag_relevance columns updated.")
 
-df_slide.to_csv('df_with_ai_annotations.csv', index=True)
+df_slide.to_csv("df_with_ai_annotations.csv", index=True)

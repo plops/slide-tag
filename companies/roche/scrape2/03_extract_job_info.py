@@ -2,6 +2,7 @@ import sys
 import re
 import os
 
+
 def extract_and_save_json(html_filepath):
     """
     Extracts a JSON object from a script tag in an HTML file and saves it.
@@ -10,15 +11,17 @@ def extract_and_save_json(html_filepath):
         html_filepath (str): The path to the input HTML file.
     """
     try:
-        with open(html_filepath, 'r', encoding='utf-8') as f:
+        with open(html_filepath, "r", encoding="utf-8") as f:
             html_content = f.read()
 
         # Regex to find the JavaScript object assigned to phApp.ddo
         # re.DOTALL is crucial because the JSON string contains newlines
-        match = re.search(r'phApp\.ddo\s*=\s*(\{.*?\});', html_content, re.DOTALL)
+        match = re.search(r"phApp\.ddo\s*=\s*(\{.*?\});", html_content, re.DOTALL)
 
         if not match:
-            print(f"Error: Could not find the 'phApp.ddo' JSON object in {html_filepath}")
+            print(
+                f"Error: Could not find the 'phApp.ddo' JSON object in {html_filepath}"
+            )
             return
 
         # The first capturing group contains the JSON string
@@ -29,7 +32,7 @@ def extract_and_save_json(html_filepath):
         output_filepath = base_name + ".json"
 
         # Write the extracted JSON string to the new file
-        with open(output_filepath, 'w', encoding='utf-8') as f:
+        with open(output_filepath, "w", encoding="utf-8") as f:
             f.write(json_string)
 
         print(f"Successfully extracted JSON to: {output_filepath}")
@@ -54,5 +57,5 @@ def main():
     extract_and_save_json(filename)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
