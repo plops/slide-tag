@@ -212,7 +212,7 @@ orgs = [
     'PCE Early Development (Luka Kulic) (50310171)'
 ]
 
-df_slide = df[df['supervisory_organization'].isin(orgs)]
+df_slide = df #df[df['supervisory_organization'].isin(orgs)]
 
 # >>> df_slide
 #             job_id                                              title company_name                                        description  ...                    job_level grade                         job_family  is_evergreen
@@ -439,4 +439,4 @@ if entries:
 
 print("AI annotations added: job_summary and slide_tag_relevance columns updated.")
 
-df_slide.to_csv('df_slide_with_ai_annotations.csv', index=True)
+df_slide.to_csv('df_with_ai_annotations.csv', index=True)
