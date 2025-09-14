@@ -1,80 +1,58 @@
 import sys
-import json
 import re
-from bs4 import BeautifulSoup
+import os
 
-def extract_job_description(html_content):
+def extract_and_save_json(html_filepath):
     """
-    Parses the HTML to find the job description embedded in a script tag.
+    Extracts a JSON object from a script tag in an HTML file and saves it.
+
+    Args:
+        html_filepath (str): The path to the input HTML file.
     """
-    soup = BeautifulSoup(html_content, 'html.parser')
-
-    # Find all script tags
-    script_tags = soup.find_all('script')
-
-    job_data_json = None
-
-    # Loop through scripts to find the one containing the job data
-    for script in script_tags:
-        # The job data is in a script that defines 'phApp.ddo'
-        if script.string and 'phApp.ddo' in script.string:
-            # Use regex to find the JSON object assigned to phApp.ddo
-            match = re.search(r'phApp\.ddo\s*=\s*(\{.*?\});', script.string, re.DOTALL)
-            if match:
-                job_data_json = match.group(1)
-                break
-
-    if not job_data_json:
-        return "Could not find the job data JSON in the script tags."
-
     try:
-        # Load the JSON data into a Python dictionary
-        data = json.loads(job_data_json)
+        with open(html_filepath, 'r', encoding='utf-8') as f:
+            html_content = f.read()
 
-        # Navigate through the dictionary to get the job description HTML
-        # The path is jobDetail -> data -> job -> description
-        description_html = data.get('jobDetail', {}).get('data', {}).get('job', {}).get('description', '')
+        # Regex to find the JavaScript object assigned to phApp.ddo
+        # re.DOTALL is crucial because the JSON string contains newlines
+        match = re.search(r'phApp\.ddo\s*=\s*(\{.*?\});', html_content, re.DOTALL)
 
-        if not description_html:
-            return "Job description field was empty in the JSON data."
+        if not match:
+            print(f"Error: Could not find the 'phApp.ddo' JSON object in {html_filepath}")
+            return
 
-        # Now, parse the extracted description HTML to get clean text
-        description_soup = BeautifulSoup(description_html, 'html.parser')
+        # The first capturing group contains the JSON string
+        json_string = match.group(1)
 
-        # Get text from the parsed HTML, use a separator to ensure space between elements
-        clean_text = description_soup.get_text(separator='\n', strip=True)
+        # Create the output filename by replacing .html with .json
+        base_name = os.path.splitext(html_filepath)[0]
+        output_filepath = base_name + ".json"
 
-        return clean_text
+        # Write the extracted JSON string to the new file
+        with open(output_filepath, 'w', encoding='utf-8') as f:
+            f.write(json_string)
 
-    except json.JSONDecodeError:
-        return "Failed to decode JSON from the script tag."
-    except KeyError as e:
-        return f"Could not find expected key in JSON data: {e}"
+        print(f"Successfully extracted JSON to: {output_filepath}")
+
+    except FileNotFoundError:
+        print(f"Error: The file '{html_filepath}' was not found.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        sys.exit(1)
+
 
 def main():
     """
     Main function to run the script from the command line.
     """
-    # Check if a filename is provided as a command-line argument
     if len(sys.argv) < 2:
-        print("Usage: python extract_job_info.py <filename.html>")
+        print("Usage: python extract_json_from_html.py <filename.html>")
         sys.exit(1)
 
     filename = sys.argv[1]
+    extract_and_save_json(filename)
 
-    try:
-        with open(filename, 'r', encoding='utf-8') as f:
-            html_content = f.read()
-
-        relevant_text = extract_job_description(html_content)
-        print(relevant_text)
-
-    except FileNotFoundError:
-        print(f"Error: The file '{filename}' was not found.")
-        sys.exit(1)
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        sys.exit(1)
 
 if __name__ == '__main__':
     main()
