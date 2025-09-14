@@ -238,3 +238,106 @@ df_slide = df[df['supervisory_organization'].isin(orgs)]
 # 148  202509-122166                     research associate in genomics        Roche  <p>Bei Roche kannst du ganz du selbst sein und...  ...       Individual Contributor   SE5                           Research             0
 #
 # [26 rows x 20 columns]
+
+
+import base64
+import os
+from google import genai
+from google.genai import types
+from pydantic import BaseModel
+
+class Job(BaseModel):
+    slide_tag_relevance: int
+    job_summary: list[str]
+
+def generate(title,job_description):
+    client = genai.Client(
+        api_key=os.environ.get("GEMINI_API_KEY"),
+    )
+
+    model = "gemini-2.5-flash"
+    contents = [
+        types.Content(
+            role="user",
+            parts=[
+                types.Part.from_text(text=f"""## Business Units Relevant to Slide-tag and Similar Spatial Genomics Technologies
+
+By cross-referencing the technical capabilities of Slide-tag and similar spatial genomics technologies with the strategic focus and operational structure outlined in Roche's reports, we can pinpoint the most relevant business units.
+
+The genomic technologies related to Slide-tag are most directly related to two key areas within Roche, which have a symbiotic relationship:
+
+1.  **The Developers & Providers: The Diagnostics Division**, specifically the **Pathology Lab** and **Molecular Lab** customer areas.
+2.  **The End-Users & Application Drivers: The Pharmaceuticals Division**, specifically its research arms, **Pharma Research and Early Development (pRED)** and **Genentech Research and Early Development (gRED)**.
+
+Here is a detailed breakdown of how each unit relates to these technologies.
+
+---
+
+### 1. The Developers and Providers: Roche Diagnostics Division
+
+This division is responsible for creating and commercializing the tools—instruments, reagents, and software—that enable advanced biological analysis. Slide-tag and similar technologies represent the next frontier for several of their key business areas.
+
+*   **Pathology Lab:** This is the most direct and impactful fit.
+    *   **Current Focus:** This unit provides solutions for analyzing tissue biopsies, primarily through advanced staining (immunohistochemistry) and companion diagnostics. This gives a snapshot of a few proteins in a spatial context.
+    *   **Relation to Slide-tag:** Slide-tag represents a quantum leap for pathology. Instead of visualizing a handful of proteins, it creates a high-resolution map of the entire transcriptome (*all* gene activity) within a tissue slice. This is essentially **"Digital Spatial Pathology 2.0."** Roche Diagnostics would be the unit responsible for developing and selling the integrated systems—the specialized slides, reagents, instruments, and software—that labs would use to perform these analyses. This technology is the natural evolution of their current portfolio and is crucial for developing the next generation of companion diagnostics.
+
+*   **Molecular Lab:** This unit is also critically involved.
+    *   **Current Focus:** This area develops solutions for sequencing and genomic profiling, as demonstrated by the integration of the **Foundation Medicine** business, which performs genomic sequencing on tumors.
+    *   **Relation to Slide-tag:** The entire Slide-tag workflow is built upon a foundation of **single-nucleus RNA sequencing (snRNA-seq)** and **Next-Generation Sequencing (NGS)**. The Molecular Lab provides the platforms and assays for this core part of the process. While a company like 10x Genomics currently provides the "front-end" microfluidics, Roche Diagnostics develops and sells the high-throughput sequencers and the genomic profiling tests that generate the raw data.
+
+*   **Digital Solutions & Bioinformatics:**
+    *   **Current Focus:** Roche is investing in digital platforms like their "navify" Algorithm Suite.
+    *   **Relation to Slide-tag:** The computational aspect of Slide-tag is immense. It requires sophisticated algorithms to process millions of sequencing reads and, most importantly, to computationally reconstruct the spatial coordinates from the barcode data. A commercial-grade version of this technology would require a robust, user-friendly software suite for data analysis and visualization. This falls squarely within the strategic goal of Roche Diagnostics to expand its digital solution offerings.
+
+### 2. The End-Users and Application Drivers: Roche Pharmaceuticals (pRED & gRED)
+
+The research and development units within the Pharmaceuticals division are the primary internal *customers* and *users* of these advanced technologies. They leverage these tools to understand disease and develop new medicines.
+
+*   **Target Identification and Validation:**
+    *   By creating spatial maps of diseased tissues (e.g., a tumor, an Alzheimer's-affected brain region, or an inflamed joint), researchers can pinpoint which genes are uniquely active in specific cell types at the heart of the disease process. This provides a wealth of new, highly validated potential drug targets.
+
+*   **Understanding Disease Biology:**
+    *   The technology allows scientists to ask fundamental questions that were previously unanswerable. How do cancer cells interact with immune cells in the tumor microenvironment? Which cell types are the first to show signs of neurodegeneration? Slide-tag provides a detailed cellular and molecular atlas to understand these complex interactions, which is essential for designing effective drugs.
+
+*   **Biomarker Discovery & Companion Diagnostics:**
+    *   A key goal of personalized medicine is to predict which patients will respond to a specific therapy. A spatial genomics tool like Slide-tag could be used on a patient's biopsy to identify not just the presence of a biomarker, but its spatial organization. For example, the proximity of T-cells to PD-L1-expressing tumor cells might be a much better predictor of response to **Tecentriq** than simply measuring the overall level of PD-L1. Pharma R&D would use this to discover the biomarker, and the Diagnostics Division would then develop it into a commercial companion diagnostic test.
+
+*   **Evaluating Drug Efficacy and Mechanism of Action:**
+    *   Researchers can use this technology to see precisely how a new drug affects a tissue at the single-cell level. Did the drug successfully target the intended cells? Did it have unintended off-target effects on neighboring healthy cells? This provides an unprecedented level of detail for preclinical and clinical studies.
+
+### Summary
+
+In short, the relationship is a cycle:
+
+1.  **Roche Diagnostics (Pathology and Molecular Labs)** is the business unit that would **develop, manufacture, and sell** the instruments, barcoded slides, reagents, and software for Slide-tag and similar spatial genomics technologies.
+2.  **Roche Pharmaceuticals (pRED and gRED)** is the primary internal **user** of these technologies to **discover novel drug targets, understand disease, and develop the next generation of targeted therapies**, which in turn creates the need for new companion diagnostics developed by the Diagnostics division.
+
+I have the following job description. create a bullet list summary of the job description and decide with a number from 1 to 5 if the job listing is related to slide-tag (5 meaning completely relevant):
+title: {title}
+job description: {job_description}"""),
+            ],
+        ),
+    ]
+    generate_content_config = types.GenerateContentConfig(
+        # thinking_config = types.ThinkingConfig(
+        #     thinking_budget=32768,34
+        # ),
+        response_mime_type="application/json",
+        response_schema=list[Job],
+    )
+
+    # for chunk in client.models.generate_content_stream(
+    #     model=model,
+    #     contents=contents,
+    #     config=generate_content_config,
+    # ):
+    #     print(chunk.text, end="")
+    result = client.models.generate_content(
+        model=model,
+        contents=contents,
+        config=generate_content_config,
+    )
+    return result.parsed
+
+v = df_slide.iloc[-10]
+r = generate(v.title,v.description)
