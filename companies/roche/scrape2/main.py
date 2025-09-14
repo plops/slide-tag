@@ -102,18 +102,48 @@ except Exception:
     exit(1)
 
 # Click on "Schweiz" checkbox with xpath //*[@id="country_phs_0"] or even better by css selector input[data-ph-at-text='Schweiz']
-logger.info("Clicking on 'Schweiz' checkbox")
-schweiz_css = "input[data-ph-at-text='Schweiz']"
+# As before it is required to scroll the element into view
+# we have to click on the nearest label, not the input itself
+
 try:
-    schweiz_checkbox = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, schweiz_css)))
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});"
-                          "window.scrollBy(0, -80);", schweiz_checkbox)
-    try:
-        schweiz_checkbox.click()
-    except Exception:
-        driver.execute_script("arguments[0].click();", schweiz_checkbox)
-    logger.info("'Schweiz' checkbox clicked")
+    logger.info("Locating 'Schweiz' checkbox via CSS only")
+    selector = "input[data-ph-at-text='Schweiz']"
+    # ensure the element exists in the DOM first
+    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
+
+    logger.info("'Schweiz' checkbox present, attempting JS scroll+click on nearest label")
+    js_click_and_scroll = """
+    const sel = arguments[0];
+    const el = document.querySelector(sel);
+    if (!el) return false;
+    const target = el.closest('label') || el;
+    target.scrollIntoView({block: 'center', inline: 'nearest'});
+    window.scrollBy(0, -80); // offset for sticky header
+    const rect = target.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return false;
+    try {
+        target.click();
+        return true;
+    } catch (e) {
+        // fallback dispatch
+        try {
+            target.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true, view: window}));
+            return true;
+        } catch (e2) {
+            return false;
+        }
+    }
+    """
+
+    clicked = WebDriverWait(driver, 10, poll_frequency=0.5).until(
+        lambda d: d.execute_script(js_click_and_scroll, selector)
+    )
+
+    if clicked:
+        logger.info("'Schweiz' checkbox clicked (CSS + JS on label)")
+    else:
+        raise Exception("JS click returned false")
 except Exception:
-    logger.exception("Failed to click 'Schweiz' checkbox")
+    logger.exception("Failed to click 'Schweiz' checkbox using CSS + JS")
     driver.quit()
     exit(1)
