@@ -307,6 +307,8 @@ logger.info(f"Collected {len(job_links)} job links across paginated results")
 for link in job_links:
     logger.info(link)
 
+# This took 1min5sec for 166 jobs
+
 logger.info("Store all job links in jobs.txt")
 with open("jobs.txt", "w") as f:
     for link in job_links:
