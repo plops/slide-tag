@@ -28,7 +28,37 @@ logger.info(f"Current URL after navigation: {driver.current_url}")
 
 wait = WebDriverWait(driver, 10)
 
-# click away the cookie banner:
+# scroll to the bottom of the page to load all elements
+
+# click on "Ort" //*[@id="OrtAccordion"]
+# ensure 'OrtAccordion' is visible (scroll into view) then click
+logger.info("Ensuring 'Ort' accordion is visible and clickable")
+try:
+    ort_accordion = wait.until(EC.presence_of_element_located((By.ID, "OrtAccordion")))
+
+    # scroll element into view and adjust for any sticky header (small negative offset)
+    driver.execute_script(
+        "arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});"
+        "window.scrollBy(0, -80);", ort_accordion
+    )
+
+    # optional short wait for any animations / reflow
+    wait.until(EC.element_to_be_clickable((By.ID, "OrtAccordion")))
+
+    # click (use JS click if normal click is still blocked)
+    try:
+        ort_accordion.click()
+    except Exception:
+        driver.execute_script("arguments[0].click();", ort_accordion)
+
+    logger.info("'Ort' accordion clicked")
+except Exception:
+    logger.exception("Failed to click 'Ort' accordion")
+    driver.quit()
+    exit(1)
+
+
+# click away the cookie banner (note that it appears with a slight delay):
 # <div id="onetrust-button-group-parent" class="ot-sdk-three ot-sdk-columns has-reject-all-button"><div id="onetrust-button-group"><button id="onetrust-pc-btn-handler">Cookie-Einstellungen</button> <button id="onetrust-reject-all-handler">Alle ablehnen</button> <button id="onetrust-accept-btn-handler">Alle akzeptieren</button></div></div>
 # xpath to accept all: //*[@id="onetrust-accept-btn-handler"]
 logger.info("Waiting for cookie banner and attempting to accept")
@@ -58,20 +88,32 @@ except Exception:
     except Exception:
         logger.exception("Could not interact with cookie banner; continuing without dismissing it")
 
-# click on the checkbox for Schweiz:
-logger.info("Attempting to select the 'Schweiz' country filter")
+
+# Enter "Schweiz" in the "Ort" filter input box with xpath //*[@id="facetInput_2"]
+logger.info("Entering 'Schweiz' in the 'Ort' filter input box")
 try:
-    label = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'label[for="country_phs_46"]')))
-    logger.info("Found Schweiz label, clicking via JS")
-    driver.execute_script("arguments[0].click();", label)
-    logger.info("Clicked Schweiz label successfully")
+    ort_input = wait.until(EC.presence_of_element_located((By.ID, "facetInput_2")))
+    ort_input.clear()
+    ort_input.send_keys("Schweiz")
+    logger.info("'Schweiz' entered in the 'Ort' filter input box")
 except Exception:
-    logger.exception("Failed to click Schweiz label, falling back to clicking the input checkbox directly")
-    # fallback: click the input checkbox directly
+    logger.exception("Failed to enter 'Schweiz' in the 'Ort' filter input box")
+    driver.quit()
+    exit(1)
+
+# Click on "Schweiz" checkbox with xpath //*[@id="country_phs_0"] or even better by css selector input[data-ph-at-text='Schweiz']
+logger.info("Clicking on 'Schweiz' checkbox")
+schweiz_css = "input[data-ph-at-text='Schweiz']"
+try:
+    schweiz_checkbox = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, schweiz_css)))
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});"
+                          "window.scrollBy(0, -80);", schweiz_checkbox)
     try:
-        checkbox = wait.until(EC.element_to_be_clickable((By.ID, "country_phs_46")))
-        logger.info("Found Schweiz checkbox input, clicking via JS")
-        driver.execute_script("arguments[0].click();", checkbox)
-        logger.info("Clicked Schweiz checkbox input successfully")
+        schweiz_checkbox.click()
     except Exception:
-        logger.exception("Failed to click Schweiz checkbox input; giving up on selecting the filter")
+        driver.execute_script("arguments[0].click();", schweiz_checkbox)
+    logger.info("'Schweiz' checkbox clicked")
+except Exception:
+    logger.exception("Failed to click 'Schweiz' checkbox")
+    driver.quit()
+    exit(1)
