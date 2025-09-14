@@ -178,42 +178,133 @@ except Exception:
 #             </a>
 #         </span>
 
+#
+# def collect_job_links(driver, wait, timeout=20, poll=0.5):
+#     """
+#     Scroll through results and collect unique job links (anchors with data-ph-at-id='job-link').
+#     Returns a sorted list of hrefs.
+#     """
+#     end_time = time.time() + timeout
+#     links = set()
+#     last_count = -1
+#
+#     while time.time() < end_time:
+#         elems = driver.find_elements(By.CSS_SELECTOR, "a[data-ph-at-id='job-link']")
+#         for e in elems:
+#             href = e.get_attribute("href")
+#             if href:
+#                 links.add(href)
+#
+#         if elems:
+#             try:
+#                 # scroll the last element into view to trigger lazy load / pagination
+#                 driver.execute_script("arguments[0].scrollIntoView({block: 'end'}); window.scrollBy(0, -80);", elems[-1])
+#             except Exception:
+#                 pass
+#
+#         time.sleep(poll)
+#
+#         # stop early if no new links were found in the last iteration
+#         if len(links) == last_count:
+#             break
+#         last_count = len(links)
+#
+#     return sorted(links)
+#
+# # usage: call after filters are applied and results rendered
+# logger.info("Collecting job links from the results list")
+# job_links = collect_job_links(driver, wait, timeout=20)
+# logger.info(f"Collected {len(job_links)} job links")
+# for link in job_links:
+#     logger.info(link)
 
-def collect_job_links(driver, wait, timeout=20, poll=0.5):
+# Pagination "Next" button:
+
+# <a href.bind="paginationUrls[currentSelectedPage + 1]" aria-label="Nächste Seite anzeigen" key-aria-label="viewNextPage" show.bind="nextButtonVisibility" ph-tevent="pagination_click" data-ph-tevent-attr-trait214="Next" data-ph-at-id="pagination-next-link" role="button" class="next-btn au-target" key-role="btnRole" data-ps="af1c0deb-a-11" v-phw-setting="" au-target-id="617" href="https://careers.roche.com/de/de/search-results?from=10&amp;s=1">
+#                         <span data-ps="af1c0deb-span-135" v-phw-setting="" class="au-target" au-target-id="618">
+#                             <ppc-content key="nextPaginationText" data-ph-at-id="pagination-next-text" data-ps="af1c0deb-ppc-content-15" v-phw-setting="" class="au-target" au-target-id="619">Nächster</ppc-content>
+#                         </span>
+#                         <span aria-hidden="true" class="icon icon-arrow-right au-target" data-ps="af1c0deb-span-136" v-phw-setting="" au-target-id="620"></span>
+#                     </a>
+
+# python
+def collect_job_links_paginated(driver, wait, timeout=60, poll=0.5):
     """
-    Scroll through results and collect unique job links (anchors with data-ph-at-id='job-link').
-    Returns a sorted list of hrefs.
+    Iterate pages by clicking the pagination 'Next' link and collect unique job links
+    (anchors with data-ph-at-id='job-link') from each page. Returns a sorted list of hrefs.
     """
     end_time = time.time() + timeout
     links = set()
-    last_count = -1
+    visited_pages = set()
+
+    next_selector = "a[data-ph-at-id='pagination-next-link']"
+    job_selector = "a[data-ph-at-id='job-link']"
 
     while time.time() < end_time:
-        elems = driver.find_elements(By.CSS_SELECTOR, "a[data-ph-at-id='job-link']")
+        # collect links on current page
+        elems = driver.find_elements(By.CSS_SELECTOR, job_selector)
         for e in elems:
             href = e.get_attribute("href")
             if href:
                 links.add(href)
 
-        if elems:
-            try:
-                # scroll the last element into view to trigger lazy load / pagination
-                driver.execute_script("arguments[0].scrollIntoView({block: 'end'}); window.scrollBy(0, -80);", elems[-1])
-            except Exception:
-                pass
-
-        time.sleep(poll)
-
-        # stop early if no new links were found in the last iteration
-        if len(links) == last_count:
+        current_url = driver.current_url
+        # avoid infinite loops if page doesn't change
+        if current_url in visited_pages:
             break
-        last_count = len(links)
+        visited_pages.add(current_url)
+
+        # find next button
+        next_elems = driver.find_elements(By.CSS_SELECTOR, next_selector)
+        if not next_elems:
+            break
+        next_el = next_elems[0]
+
+        # ensure next is interactable and has an href (otherwise assume no more pages)
+        next_href = next_el.get_attribute("href")
+        if not next_href:
+            break
+
+        # click next (try standard click, fallback to JS dispatch)
+        try:
+            try:
+                next_el.click()
+            except Exception:
+                driver.execute_script(
+                    "arguments[0].scrollIntoView({block: 'center'}); window.scrollBy(0, -80); arguments[0].click();",
+                    next_el,
+                )
+        except Exception:
+            # last resort: dispatch synthetic click event
+            try:
+                driver.execute_script(
+                    "arguments[0].dispatchEvent(new MouseEvent('click', {bubbles:true,cancelable:true,view:window}));",
+                    next_el,
+                )
+            except Exception:
+                break
+
+        # wait for navigation or new job links to appear
+        start_wait = time.time()
+        while time.time() - start_wait < 10:  # per-click wait (seconds)
+            time.sleep(poll)
+            # if URL changed, treat as success
+            if driver.current_url != current_url:
+                break
+            # or if new job links loaded (different href set), treat as success
+            new_hrefs = {e.get_attribute("href") for e in driver.find_elements(By.CSS_SELECTOR, job_selector) if e.get_attribute("href")}
+            if not new_hrefs.issubset(links):
+                break
+        else:
+            # timed out waiting for next page to load
+            break
 
     return sorted(links)
 
-# usage: call after filters are applied and results rendered
-logger.info("Collecting job links from the results list")
-job_links = collect_job_links(driver, wait, timeout=20)
-logger.info(f"Collected {len(job_links)} job links")
+logger.info("Collecting job links from paginated results")
+job_links = collect_job_links_paginated(driver, wait, timeout=60)
+logger.info(f"Collected {len(job_links)} job links across paginated results")
 for link in job_links:
     logger.info(link)
+# done
+driver.quit()
