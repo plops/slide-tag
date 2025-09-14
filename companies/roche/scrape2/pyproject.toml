@@ -9,4 +9,5 @@ dependencies = [
     "beautifulsoup4>=4.13.5",
     "helium>=5.1.1",
     "loguru>=0.7.3",
+    "sqlite-minutils>=4.0.3",
 ]
