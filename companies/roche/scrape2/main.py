@@ -7,6 +7,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from loguru import logger
+import time
+
 
 # configure this browser binary: /usr/bin/google-chrome-stable
 chromedriver_path = shutil.which("chromedriver") or "/usr/bin/chromedriver"
@@ -147,3 +149,71 @@ except Exception:
     logger.exception("Failed to click 'Schweiz' checkbox using CSS + JS")
     driver.quit()
     exit(1)
+
+
+# There will be a list of jobs. I think this is a good selector for the ul element: ph-role="data.bind:jobResults"
+# I only want the corresponding link, e.g. https://careers.roche.com/de/de/job/202203-110282/System-Development-Troubleshooter
+# <ul data-ph-at-id="jobs-list" ph-role="data.bind:jobResults" data-ps="af1c0deb-ul-2" v-phw-setting="" class="au-target" au-target-id="103" data-ph-at-widget-data-count="10" role="list">
+#                     <li class="jobs-list-item au-target phw-card-block-nd" data-ph-at-id="jobs-list-item" data-ps="af1c0deb-li-3" v-phw-setting="" au-target-id="104" role="listitem">
+#                         <!--anchor-->
+# <div data-ps="af1c0deb-div-27" v-phw-setting="" class="au-target" au-target-id="111">
+#     <div class="information au-target" data-ps="af1c0deb-div-28" v-phw-setting="" au-target-id="112">
+#
+#         <!--anchor-->
+#
+#         <div class="job-smart-tags au-target" data-ps="af1c0deb-div-31" v-phw-setting="" au-target-id="119">
+#             <!--anchor-->
+#             <div data-ps="af1c0deb-div-33" v-phw-setting="" class="au-target job-tag-area style-1" au-target-id="127">
+#                 <!--anchor-->
+#                 <!--anchor-->
+#             </div>
+#         </div>
+#         <span role="heading" key-role="headingRole" aria-level="3" key-aria-level="headingAriaLevelValue" instance-id="MXbNfa-lF1V3N" data-ps="af1c0deb-span-20" v-phw-setting="" class="au-target" au-target-id="138">
+#             <a ph-tevent="job_click" ref="linkEle" href.bind="getUrl(linkEle, 'job', eachJob, '', eachJob.jobUrl)" data-ph-at-id="job-link" data-ps="af1c0deb-a-7" v-phw-setting="" class="au-target" au-target-id="139" ph-click-ctx="job" ph-tref="17578651096361503f" ph-tag="ph-search-results-v2" href="https://careers.roche.com/de/de/job/202203-110282/System-Development-Troubleshooter" data-ph-at-job-title-text="System Development Troubleshooter" data-ph-at-job-location-text="Rotkreuz, Zug, Schweiz" data-ph-at-job-location-area-text="Rotkreuz, Zug, Schweiz" data-ph-at-job-category-text="Manufacturing" data-access-list-item="0" data-ph-at-job-id-text="202203-110282" data-ph-at-job-type-text="Vollzeit" data-ph-at-job-industry-text="" data-ph-at-job-post-date-text="2022-03-08T00:00:00.000+0000" data-ph-at-job-seqno-text="ROCHGLOBAL202203110282EXTERNALDEDE" aria-label="System Development Troubleshooter Job-ID ist 202203-110282">
+#                 <div class="job-title au-target phw-g-i-s7OoeY" data-ps="af1c0deb-div-34" v-phw-setting="" au-target-id="140">
+#                     <!--anchor-->
+#                     <!--anchor-->
+#                     <span data-ps="af1c0deb-span-22" v-phw-setting="" class="au-target" au-target-id="146">System Development Troubleshooter </span>
+#                 </div><!--anchor-->
+#             </a>
+#         </span>
+
+
+def collect_job_links(driver, wait, timeout=20, poll=0.5):
+    """
+    Scroll through results and collect unique job links (anchors with data-ph-at-id='job-link').
+    Returns a sorted list of hrefs.
+    """
+    end_time = time.time() + timeout
+    links = set()
+    last_count = -1
+
+    while time.time() < end_time:
+        elems = driver.find_elements(By.CSS_SELECTOR, "a[data-ph-at-id='job-link']")
+        for e in elems:
+            href = e.get_attribute("href")
+            if href:
+                links.add(href)
+
+        if elems:
+            try:
+                # scroll the last element into view to trigger lazy load / pagination
+                driver.execute_script("arguments[0].scrollIntoView({block: 'end'}); window.scrollBy(0, -80);", elems[-1])
+            except Exception:
+                pass
+
+        time.sleep(poll)
+
+        # stop early if no new links were found in the last iteration
+        if len(links) == last_count:
+            break
+        last_count = len(links)
+
+    return sorted(links)
+
+# usage: call after filters are applied and results rendered
+logger.info("Collecting job links from the results list")
+job_links = collect_job_links(driver, wait, timeout=20)
+logger.info(f"Collected {len(job_links)} job links")
+for link in job_links:
+    logger.info(link)
