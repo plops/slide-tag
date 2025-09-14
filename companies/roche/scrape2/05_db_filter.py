@@ -1,6 +1,12 @@
 import pandas as pd
 import sqlite3
 import os
+import base64
+import time
+import json
+from google import genai
+from google.genai import types
+from pydantic import BaseModel
 
 def filter_jobs_data(db_path='jobs_minutils.db'):
     """
@@ -240,12 +246,6 @@ df_slide = df[df['supervisory_organization'].isin(orgs)]
 # [26 rows x 20 columns]
 
 
-import base64
-import os
-from google import genai
-from google.genai import types
-from pydantic import BaseModel
-
 class Job(BaseModel):
     job_summary: list[str]
     slide_tag_relevance: int
@@ -311,46 +311,93 @@ The output should be a JSON object with a list containing three fields for each 
 max_len = 20000
 separator = "\n\n"
 
-# Prepare result columns
-df_slide['job_summary'] = None
-df_slide['slide_tag_relevance'] = None
+# Prepare result columns (only create if missing so re-runs preserve previous annotations)
+if 'job_summary' not in df_slide.columns:
+    df_slide['job_summary'] = None
+if 'slide_tag_relevance' not in df_slide.columns:
+    df_slide['slide_tag_relevance'] = None
 
-def _send_chunk_and_store(entries, indices):
-    """Send a chunk to the model and store results into df_slide."""
+# Inserted helper: send a chunk to the model, parse result, and store into df_slide.
+def _send_chunk_and_store(entries, indices, max_retries=3, retry_delay=2):
+    """
+    Send concatenated entries to the model and store parsed outputs back into df_slide.
+    entries: list[str] -- the job description strings that were sent
+    indices: list[int] -- original dataframe indices corresponding to entries
+    """
     if not entries:
         return
-    payload = separator.join(entries)
-    try:
-        results = generate(payload) or []
-        print(results)
-    except Exception as e:
-        print(f"Error calling generate for chunk starting at {indices[0]}: {e}")
-        return
 
-    returned_idxs = set()
-    for item in results:
+    job_descriptions = separator.join(entries)
+
+    # Retry loop for transient errors
+    for attempt in range(1, max_retries + 1):
         try:
-            idx = int(item.idx)
-        except Exception:
-            print(f"Skipping item with invalid idx: {item}")
-            continue
-        if idx in df_slide.index:
-            df_slide.at[idx, 'job_summary'] = item.job_summary
-            df_slide.at[idx, 'slide_tag_relevance'] = item.slide_tag_relevance
-            returned_idxs.add(idx)
-        else:
-            print(f"Warning: returned idx {idx} not found in df_slide index.")
+            results = generate(job_descriptions)
+            break
+        except Exception as e:
+            print(f"_send_chunk_and_store: generate failed (attempt {attempt}/{max_retries}): {e}")
+            if attempt < max_retries:
+                time.sleep(retry_delay)
+            else:
+                print(f"_send_chunk_and_store: giving up on indices {indices}")
+                return
 
-    missing = set(indices) - returned_idxs
-    if missing:
-        print(f"Warning: model did not return results for indices: {sorted(missing)}")
+    # results is expected to be a list of items (dicts or pydantic models)
+    # If items don't include idx, fall back to mapping by order to indices
+    for i, item in enumerate(results):
+        # Extract fields robustly
+        item_idx = None
+        job_summary = None
+        relevance = None
+
+        if isinstance(item, dict):
+            item_idx = item.get('idx')
+            job_summary = item.get('job_summary')
+            relevance = item.get('slide_tag_relevance')
+        else:
+            # pydantic model or object with attributes
+            item_idx = getattr(item, 'idx', None)
+            job_summary = getattr(item, 'job_summary', None)
+            relevance = getattr(item, 'slide_tag_relevance', None)
+            # fallback: if it's a pydantic BaseModel, try .dict()
+            if item_idx is None or job_summary is None or relevance is None:
+                try:
+                    d = item.dict()
+                    item_idx = item_idx or d.get('idx')
+                    job_summary = job_summary or d.get('job_summary')
+                    relevance = relevance or d.get('slide_tag_relevance')
+                except Exception:
+                    pass
+
+        # If idx missing from response, align by order with original indices
+        if item_idx is None:
+            if i < len(indices):
+                item_idx = indices[i]
+            else:
+                print(f"_send_chunk_and_store: can't determine idx for response item {i}, skipping")
+                continue
+
+        # Store back into dataframe (preserve data types)
+        try:
+            df_slide.at[item_idx, 'job_summary'] = job_summary
+            df_slide.at[item_idx, 'slide_tag_relevance'] = relevance
+        except Exception as e:
+            print(f"_send_chunk_and_store: failed to write results for idx {item_idx}: {e}")
 
 # Build and send chunks
 entries = []
 indices = []
 current_len = 0
 
+max_len = 13000
+separator = "\n\n"
+
 for idx, row in df_slide.iterrows():
+    # Skip rows that already have an annotation (so re-runs only submit missing rows)
+    existing = row.get('slide_tag_relevance')
+    if pd.notna(existing) and existing != '':
+        continue
+
     title = str(row.get('title', ''))
     description = str(row.get('description', ''))
     entry = f"idx: {idx}\ntitle: {title}\ndescription: {description}"
