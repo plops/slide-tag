@@ -294,10 +294,102 @@ The output should be a JSON object with a list containing three fields for each 
     )
     return result.parsed
 
-v = df_slide.iloc[[23,24]]
+ # iterate rows and append formatted entries until the total string length would exceed 20000 characters; if the very first entry would exceed the limit, truncate it to fit (this should never happen!).
+#
+# v = df_slide.iloc[[23,24]]
+#
+# # for each row of v create a job description string "idx: {index}\ntitle: {title}\ndescription: {description}\n"
+#
+# job_descriptions = "\n\n".join([f"idx: {i}\ntitle: {row['title']}\ndescription: {row['description']}" for i, row in v.iterrows()])
+#
+# r = generate(job_descriptions)
 
-# for each row of v create a job description string "idx: {index}\ntitle: {title}\ndescription: {description}\n"
+# [Job(job_summary=['Design innovative siRNA candidate libraries for early research and development projects and platform technology activities.', 'Drive continuous adoption and modernization of chemistry strategy for oligonucleotide therapeutics (ONTs), including exploring target- or project-specific aspects.', 'Collaborate with scientific experts on all aspects of siRNA design, chemistry, screening, and selection.', 'Lead cross-functional discovery project teams from target idea to clinical candidate selection.', "Contribute to and drive the RNAHub's technology platform landscape and support external innovation scouting and assessments.", 'Requires a PhD in RNA biology, Chemistry, or Biochemistry with expertise in oligonucleotide (preferably siRNA) design and/or chemistry.', 'At least 5 years of industrial R&D and drug discovery experience in ONTs with a proven track record in project execution and leadership in matrix teams.'], slide_tag_relevance=2, idx=123), Job(job_summary=['Develop next-generation multimodal foundation models and Large Language Models (LLMs) to enable AI/ML-powered drug discovery applications within a Lab-in-the-Loop setting.', 'Participate in cutting-edge machine learning research with direct applications to drug discovery and development.', 'Collaborate closely with cross-functional teams across Genentech and Roche to solve complex problems in multimodal and representation learning.', 'Provide technical leadership in machine learning, both in research and engineering, shaping strategic directions for foundation model applications in drug discovery.', 'Contribute to and drive publications, and present research results at internal and external scientific conferences.', 'Requires a PhD in Computer Science, Statistics, Applied Mathematics, Physics, or a related technical field, with 2-7 years of relevant work experience.', 'Strong publication record, experience contributing to research communities, and strong programming skills in languages like Python, C++, Java, or Go, with extensive experience in deep learning frameworks like PyTorch.', 'Possess intense curiosity about disease biology, drug discovery, and development.'], slide_tag_relevance=4, idx=126)]
 
-job_descriptions = "\n\n".join([f"idx: {i}\ntitle: {row['title']}\ndescription: {row['description']}" for i, row in v.iterrows()])
+# instead of 2 job descriptions, i want to attach job descriptions until the job_descriptions string is at most 20000 characters in size
+# make sure all the rows of df_slide will eventually be processed. also the results (summary of job description and slide_tag_relevance)shall be stored in new columns of df_slide at the original index
+max_len = 20000
+separator = "\n\n"
 
-r = generate(job_descriptions)
+# Prepare result columns
+df_slide['job_summary'] = None
+df_slide['slide_tag_relevance'] = None
+
+def _send_chunk_and_store(entries, indices):
+    """Send a chunk to the model and store results into df_slide."""
+    if not entries:
+        return
+    payload = separator.join(entries)
+    try:
+        results = generate(payload) or []
+        print(results)
+    except Exception as e:
+        print(f"Error calling generate for chunk starting at {indices[0]}: {e}")
+        return
+
+    returned_idxs = set()
+    for item in results:
+        try:
+            idx = int(item.idx)
+        except Exception:
+            print(f"Skipping item with invalid idx: {item}")
+            continue
+        if idx in df_slide.index:
+            df_slide.at[idx, 'job_summary'] = item.job_summary
+            df_slide.at[idx, 'slide_tag_relevance'] = item.slide_tag_relevance
+            returned_idxs.add(idx)
+        else:
+            print(f"Warning: returned idx {idx} not found in df_slide index.")
+
+    missing = set(indices) - returned_idxs
+    if missing:
+        print(f"Warning: model did not return results for indices: {sorted(missing)}")
+
+# Build and send chunks
+entries = []
+indices = []
+current_len = 0
+
+for idx, row in df_slide.iterrows():
+    title = str(row.get('title', ''))
+    description = str(row.get('description', ''))
+    entry = f"idx: {idx}\ntitle: {title}\ndescription: {description}"
+    add_len = (len(separator) if entries else 0) + len(entry)
+
+    if current_len + add_len <= max_len:
+        entries.append(entry)
+        indices.append(idx)
+        current_len += add_len
+        continue
+
+    # If adding would exceed limit, flush current chunk first
+    if entries:
+        _send_chunk_and_store(entries, indices)
+        entries = []
+        indices = []
+        current_len = 0
+
+    # Now try to add the current entry to the (now empty) chunk
+    if len(entry) <= max_len:
+        entries.append(entry)
+        indices.append(idx)
+        current_len = len(entry)
+    else:
+        # Single huge entry: truncate to fit
+        truncated = entry[:max_len]
+        entries = [truncated]
+        indices = [idx]
+        current_len = len(truncated)
+        # send truncated single entry immediately
+        _send_chunk_and_store(entries, indices)
+        entries = []
+        indices = []
+        current_len = 0
+
+# Send any remaining entries
+if entries:
+    _send_chunk_and_store(entries, indices)
+
+print("AI annotations added: job_summary and slide_tag_relevance columns updated.")
+
+df_slide.to_csv('df_slide_with_ai_annotations.csv', index=True)
