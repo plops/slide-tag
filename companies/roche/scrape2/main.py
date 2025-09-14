@@ -306,5 +306,11 @@ job_links = collect_job_links_paginated(driver, wait, timeout=60)
 logger.info(f"Collected {len(job_links)} job links across paginated results")
 for link in job_links:
     logger.info(link)
-# done
+
+logger.info("Store all job links in jobs.txt")
+with open("jobs.txt", "w") as f:
+    for link in job_links:
+        f.write(link + "\n")
+
+
 driver.quit()
