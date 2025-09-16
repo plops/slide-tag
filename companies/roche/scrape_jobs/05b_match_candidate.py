@@ -10,7 +10,7 @@ from loguru import logger
 INPUT_CSV_PATH = "df_with_ai_annotations.csv"
 CANDIDATE_PROFILE_PATH = "candidate_profile.txt"
 OUTPUT_CSV_PATH = "df_with_candidate_match.csv"
-MAX_CHAR_LIMIT = 15000  # A safe character limit for the model prompt
+MAX_WORD_LIMIT = 15000  # The maximum number of words per API request
 SEPARATOR = "\n\n---\n\n"
 MODEL_NAME = "gemini-1.5-flash" # Or another suitable model like "gemini-pro"
 
@@ -145,18 +145,15 @@ def process_and_store_chunk(
 
     job_descriptions_chunk = SEPARATOR.join(entries)
 
-    # *** NEW: Calculate and log the word count for the current request ***
     word_count = len(job_descriptions_chunk.split())
     logger.info(
         f"Sending chunk with {len(entries)} jobs ({word_count} words) for AI analysis "
         f"(Indices: {indices[0]} to {indices[-1]})."
     )
 
-
     for attempt in range(max_retries):
         try:
             response = get_ai_match_rating(job_descriptions_chunk, candidate_profile)
-            # The .parsed attribute automatically validates and loads the JSON into Pydantic models
             parsed_results = response.parsed
 
             if not parsed_results:
@@ -164,7 +161,6 @@ def process_and_store_chunk(
                 return
 
             for match in parsed_results:
-                # Using .loc to ensure we are modifying the original DataFrame
                 df.loc[match.idx, "candidate_match_score"] = match.match_score
             logger.success(f"Successfully processed and stored results for {len(parsed_results)} jobs in the chunk.")
             return
@@ -189,23 +185,18 @@ if __name__ == "__main__":
         df_jobs, candidate_text = load_data(INPUT_CSV_PATH, CANDIDATE_PROFILE_PATH)
 
         if df_jobs is not None and candidate_text is not None:
-            # Initialize the new column if it doesn't exist
             if "candidate_match_score" not in df_jobs.columns:
                 df_jobs["candidate_match_score"] = None
                 logger.info("Added 'candidate_match_score' column to the DataFrame.")
 
-            # Prepare lists for batching jobs to send to the AI
             chunk_entries = []
             chunk_indices = []
-            current_char_count = 0
+            current_word_count = 0
 
-            # Iterate over the DataFrame to process jobs in chunks
             for idx, row in df_jobs.iterrows():
-                # Skip rows that have already been processed
                 if pd.notna(row.get("candidate_match_score")):
                     continue
 
-                # Format the entry for the AI prompt
                 entry = (
                     f"idx: {idx}\n"
                     f"title: {row.get('title', 'N/A')}\n"
@@ -213,28 +204,30 @@ if __name__ == "__main__":
                     f"job_summary: {row.get('job_summary', 'N/A')}"
                 )
 
-                entry_len = len(entry)
-                separator_len = len(SEPARATOR)
+                # Calculate word count for the current entry
+                entry_word_count = len(entry.split())
 
-                # If adding the new entry exceeds the limit, process the current chunk
-                if chunk_entries and (current_char_count + entry_len + separator_len > MAX_CHAR_LIMIT):
+                # If adding the new entry exceeds the word limit, process the current chunk
+                if chunk_entries and (current_word_count + entry_word_count > MAX_WORD_LIMIT):
                     process_and_store_chunk(df_jobs, chunk_entries, chunk_indices, candidate_text)
                     # Reset for the next chunk
-                    chunk_entries, chunk_indices, current_char_count = [], [], 0
+                    chunk_entries, chunk_indices, current_word_count = [], [], 0
 
                 # Add the current job to the new chunk, checking its individual size
-                if entry_len <= MAX_CHAR_LIMIT:
+                if entry_word_count <= MAX_WORD_LIMIT:
                     chunk_entries.append(entry)
                     chunk_indices.append(idx)
-                    current_char_count += entry_len + (separator_len if len(chunk_entries) > 1 else 0)
+                    current_word_count += entry_word_count
                 else:
-                    logger.warning(f"Skipping job index {idx} because its content exceeds the character limit of {MAX_CHAR_LIMIT}.")
+                    logger.warning(
+                        f"Skipping job index {idx} because its content ({entry_word_count} words) "
+                        f"exceeds the word limit of {MAX_WORD_LIMIT}."
+                    )
 
             # Process any remaining jobs in the last chunk
             if chunk_entries:
                 process_and_store_chunk(df_jobs, chunk_entries, chunk_indices, candidate_text)
 
-            # Save the final DataFrame to a new CSV file
             try:
                 df_jobs.to_csv(OUTPUT_CSV_PATH, index=True)
                 logger.success(f"Processing complete. Final results saved to {OUTPUT_CSV_PATH}")
