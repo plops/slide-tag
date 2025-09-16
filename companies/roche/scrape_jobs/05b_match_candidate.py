@@ -12,7 +12,7 @@ CANDIDATE_PROFILE_PATH = "candidate_profile.txt"
 OUTPUT_CSV_PATH = "df_with_candidate_match.csv"
 MAX_CHAR_LIMIT = 15000  # A safe character limit for the model prompt
 SEPARATOR = "\n\n---\n\n"
-MODEL_NAME = "gemini-2.5-flash" # Or another suitable model like "gemini-pro"
+MODEL_NAME = "gemini-1.5-flash" # Or another suitable model like "gemini-pro"
 
 # --- Pydantic Model for AI Output Validation ---
 class CandidateMatch(BaseModel):
@@ -144,7 +144,14 @@ def process_and_store_chunk(
         return
 
     job_descriptions_chunk = SEPARATOR.join(entries)
-    logger.info(f"Sending chunk with {len(entries)} jobs for AI analysis (Indices: {indices[0]} to {indices[-1]}).")
+
+    # *** NEW: Calculate and log the word count for the current request ***
+    word_count = len(job_descriptions_chunk.split())
+    logger.info(
+        f"Sending chunk with {len(entries)} jobs ({word_count} words) for AI analysis "
+        f"(Indices: {indices[0]} to {indices[-1]})."
+    )
+
 
     for attempt in range(max_retries):
         try:
@@ -202,7 +209,7 @@ if __name__ == "__main__":
                 entry = (
                     f"idx: {idx}\n"
                     f"title: {row.get('title', 'N/A')}\n"
-#                    f"description: {row.get('description', 'N/A')}\n"
+                    # f"description: {row.get('description', 'N/A')}\n"
                     f"job_summary: {row.get('job_summary', 'N/A')}"
                 )
 
