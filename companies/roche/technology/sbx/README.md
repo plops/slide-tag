@@ -85,6 +85,44 @@ Key performance data is presented, showcasing high accuracy (Q39 for duplex sequ
 
 # eshg-2025-workshop-mark-kokoris [6]
 
+**Abstract:**
+
+This presentation provides a comprehensive update on a novel single-molecule sequencing technology, Sequencing by Expansion (SBX), which converts DNA into a larger surrogate molecule, an "expandomer," for high-resolution analysis via a nanopore sensor array. The speaker highlights significant performance improvements in both accuracy and speed, detailing the achievement of Q40 average base quality with the high-fidelity duplex sequencing method and a sample-to-variant-call workflow completed in under five hours. The talk introduces the first-ever datasets for challenging applications, demonstrating the platform's potential in analyzing damaged DNA from FFPE samples and its high sensitivity in detecting Minimal Residual Disease (MRD) from low-input cell-free DNA. Furthermore, the presentation covers the high-throughput simplex sequencing mode, showcasing its ability to generate a terabase of long-read data in a single hour for applications such as genomic phasing.
+
+**Advancements in Sequencing by Expansion (SBX): New Data on Speed, Accuracy, and Clinical Applications**
+
+*   **[0:55] Technology Update:** The presentation aims to update on the SBX duplex and fast sequencing methods, introduce the first-ever data for FFPE and Minimal Residual Disease (MRD) applications, and discuss simplex applications for RNA and DNA.
+*   **[1:53] Core Technology:** The platform combines "Sequencing by Expansion" (SBX) chemistry with a high-throughput nanopore sensor. It avoids sequencing DNA directly by first creating a larger surrogate molecule called an "expandomer," which improves the signal-to-noise ratio during measurement.
+*   **[4:47] Expandable Nucleotides (XNTPs):** The chemistry is built on specially engineered nucleotides (XNTPs) that contain elements to control the molecule's movement through the nanopore and enhance their incorporation, which is key to the process.
+*   **[6:57] Controlled Measurement:** The system uses voltage pulses to move the expandomer through the nanopore one base at a time. This deterministic control allows for high-quality, efficient, and flexible data acquisition, from short runs of a few minutes to longer runs of several hours.
+*   **[8:41] Massively Parallel Sequencing:** The sequencing occurs on a chip containing an array of 8 million microwells, each with a nanopore, enabling massive throughput. The chip is designed to be reusable to help drive down costs.
+*   **[11:37] Duplex Sequencing for High Accuracy:** The SBX Duplex (SBX-D) method uses a hairpin adapter to sequence both strands of the original DNA molecule. By creating an intramolecular consensus, this method achieves very high accuracy.
+*   **[13:46] Improved Accuracy:** The platform has improved its average duplex base quality to Q40, which corresponds to 99.99% accuracy. F1 scores for calling variants have significantly improved in just a few months.
+*   **[16:46] SBX Fast Workflow:** An amplification-free version of the duplex workflow, called SBX Fast, demonstrates even better performance on difficult homopolymer regions (stretches of identical bases).
+*   **[19:05] Sub-5-Hour Genome:** Using the SBX Fast workflow, the total time from sample preparation to a final variant call file (VCF) has been reduced to 4 hours and 23 minutes, a significant speed improvement.
+*   **[21:27] First FFPE Data:** The presentation showcases the first application of the SBX-D workflow to challenging Formalin-Fixed Paraffin-Embedded (FFPE) tissue samples, which often contain damaged DNA. The results indicate lower error rates and better performance in high GC-content regions compared to other technologies.
+*   **[26:07] Minimal Residual Disease (MRD) Detection:** In another first, the SBX-D protocol was used for MRD analysis, successfully detecting cancer-related mutations from just 4 nanograms of cell-free DNA.
+*   **[27:18] High MRD Sensitivity:** The platform demonstrated the ability to detect MRD in all 15 cancer samples tested, with an estimated sensitivity down to a tumor fraction of one in a million (10⁻⁶).
+*   **[28:00] Simplex Sequencing for Long Reads:** The SBX Simplex (SBX-S/SL) mode reads a single strand of DNA, enabling much higher throughput and longer read lengths (SL denotes reads >500 bases).
+*   **[30:42] Terabase-Scale Phasing:** A one-hour sequencing run in simplex mode generated one billion reads with an average length of nearly 1,000 bases. This volume of long-read data is powerful for genomic phasing, which determines which parent a genetic variant came from.
+*   **[33:51] Future Work:** The team will continue to optimize the technology and expand into new applications, including targeted enrichment and methylation analysis.
+
+**Glossary of Technical Terms**
+
+*   **SBX (Sequencing by Expansion):** The core technology that converts a DNA molecule into a larger surrogate molecule ("expandomer") to enable more accurate single-molecule sequencing.
+*   **Expandomer:** The synthetic polymer molecule created from a DNA template, designed for controlled, high-resolution passage through a nanopore.
+*   **XNTP (Expandable Nucleotide):** A modified nucleotide, the chemical building block used to synthesize an expandomer.
+*   **Duplex Sequencing:** A high-accuracy sequencing method where both strands of a double-stranded DNA molecule are sequenced and compared to create a highly accurate consensus sequence.
+*   **Simplex Sequencing:** A sequencing method that reads only a single strand of a DNA molecule, typically allowing for higher throughput and longer reads than duplex sequencing.
+*   **FFPE (Formalin-Fixed Paraffin-Embedded):** A standard method of preserving biological tissue samples that can cause chemical damage to DNA, making it challenging to sequence accurately.
+*   **MRD (Minimal Residual Disease):** Refers to the small number of cancer cells that can remain in a patient after treatment. Detecting MRD requires highly sensitive sequencing methods.
+*   **VCF (Variant Call Format):** A standardized text file format used in bioinformatics for storing information about genetic sequence variations.
+*   **F1 Score:** A statistical measure of a test's accuracy, calculated from its precision and recall. A score of 1 indicates perfect accuracy.
+*   **Homopolymer:** A repetitive sequence in a DNA strand consisting of a series of identical bases (e.g., AAAAAA). These can be challenging for many sequencing technologies to read correctly.
+*   **Nanopore:** A nano-scale pore, typically a protein embedded in a membrane, through which a single molecule (like an expandomer) is passed for analysis.
+*   **Q Score (Phred Quality Score):** A numerical score that represents the accuracy of a sequenced DNA base. Q40 indicates a 1 in 10,000 chance of an incorrect base call (99.99% accuracy).
+
+
 # sean-hofherr-eshg-2025-workshop-mc [7]
 
 # References
