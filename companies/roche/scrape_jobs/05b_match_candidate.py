@@ -1,29 +1,18 @@
 import pandas as pd
 import os
 import time
-from google import generativeai as genai
-from google.generativeai.types import GenerateContentResponse, GenerationConfig
+from google import genai
+from google.genai import types
 from pydantic import BaseModel, Field
 from loguru import logger
-import json
 
 # --- Configuration ---
-# Configure the generative AI model
-# Make sure to set your GOOGLE_API_KEY environment variable, e.g. export GEMINI_API_KEY=`cat ~/api_key.txt`
-try:
-    genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
-    logger.info("Generative AI model configured successfully.")
-except TypeError as e:
-    logger.error(f"GOOGLE_API_KEY not set. Please set the environment variable. Details: {e}")
-    exit()
-
-
 INPUT_CSV_PATH = "df_with_ai_annotations.csv"
 CANDIDATE_PROFILE_PATH = "candidate_profile.txt"
 OUTPUT_CSV_PATH = "df_with_candidate_match.csv"
 MAX_CHAR_LIMIT = 15000  # A safe character limit for the model prompt
 SEPARATOR = "\n\n---\n\n"
-
+MODEL_NAME = "gemini-2.5-flash" # Or another suitable model like "gemini-pro"
 
 # --- Pydantic Model for AI Output Validation ---
 class CandidateMatch(BaseModel):
@@ -62,7 +51,8 @@ def load_data(
         return None, None
 
     try:
-        df = pd.read_csv(jobs_path)
+        # Use the first column as the index since it was the original index
+        df = pd.read_csv(jobs_path, index_col=0)
         logger.success(f"Successfully loaded {len(df)} records from {jobs_path}")
         with open(candidate_path, "r", encoding="utf-8") as f:
             candidate_profile = f.read()
@@ -76,9 +66,9 @@ def load_data(
 def get_ai_match_rating(
         job_descriptions_chunk: str,
         candidate_profile: str
-) -> GenerateContentResponse:
+):
     """
-    Sends a request to the generative AI to get a match score.
+    Sends a request to the generative AI to get a match score using the genai.Client.
 
     Args:
         job_descriptions_chunk (str): A single string containing one or more
@@ -86,9 +76,14 @@ def get_ai_match_rating(
         candidate_profile (str): The text of the candidate's profile.
 
     Returns:
-        The raw response object from the generative AI model.
+        The parsed response object from the generative AI model.
     """
-    model = genai.GenerativeModel("gemini-2.5-flash")
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY environment variable not set.")
+
+    client = genai.Client(api_key=api_key)
+
     prompt = f"""
     Based on the following candidate profile:
     ---CANDIDATE PROFILE---
@@ -105,12 +100,24 @@ def get_ai_match_rating(
     ---END JOB DESCRIPTIONS---
     """
 
-    generation_config = GenerationConfig(
+    contents = [
+        types.Content(
+            role="user",
+            parts=[types.Part.from_text(text=prompt)],
+        ),
+    ]
+
+    generation_config = types.GenerateContentConfig(
         response_mime_type="application/json",
-        response_schema=list[CandidateMatch]
+        response_schema=list[CandidateMatch],
     )
 
-    return model.generate_content(prompt, generation_config=generation_config)
+    result = client.models.generate_content(
+        model=MODEL_NAME,
+        contents=contents,
+        config=generation_config,
+    )
+    return result
 
 
 def process_and_store_chunk(
@@ -142,16 +149,18 @@ def process_and_store_chunk(
     for attempt in range(max_retries):
         try:
             response = get_ai_match_rating(job_descriptions_chunk, candidate_profile)
+            # The .parsed attribute automatically validates and loads the JSON into Pydantic models
+            parsed_results = response.parsed
 
-            # The SDK can parse the JSON directly if the response is valid
-            results = response.candidates[0].content.parts[0].text
-            parsed_results = json.loads(results)
+            if not parsed_results:
+                logger.warning(f"AI returned an empty result for chunk starting with index {indices[0]}.")
+                return
 
-            for item in parsed_results:
-                match = CandidateMatch(**item)
+            for match in parsed_results:
+                # Using .loc to ensure we are modifying the original DataFrame
                 df.loc[match.idx, "candidate_match_score"] = match.match_score
             logger.success(f"Successfully processed and stored results for {len(parsed_results)} jobs in the chunk.")
-            return  # Exit the function on success
+            return
 
         except Exception as e:
             logger.warning(
@@ -167,58 +176,60 @@ def process_and_store_chunk(
 
 # --- Main Execution Block ---
 if __name__ == "__main__":
-    df_jobs, candidate_text = load_data(INPUT_CSV_PATH, CANDIDATE_PROFILE_PATH)
+    if not os.environ.get("GEMINI_API_KEY"):
+        logger.error("GEMINI_API_KEY not set. Please set the environment variable before running.")
+    else:
+        df_jobs, candidate_text = load_data(INPUT_CSV_PATH, CANDIDATE_PROFILE_PATH)
 
-    if df_jobs is not None and candidate_text is not None:
-        # Initialize the new column if it doesn't exist
-        if "candidate_match_score" not in df_jobs.columns:
-            df_jobs["candidate_match_score"] = None
-            logger.info("Added 'candidate_match_score' column to the DataFrame.")
+        if df_jobs is not None and candidate_text is not None:
+            # Initialize the new column if it doesn't exist
+            if "candidate_match_score" not in df_jobs.columns:
+                df_jobs["candidate_match_score"] = None
+                logger.info("Added 'candidate_match_score' column to the DataFrame.")
 
-        # Prepare lists for batching jobs to send to the AI
-        chunk_entries = []
-        chunk_indices = []
-        current_char_count = 0
+            # Prepare lists for batching jobs to send to the AI
+            chunk_entries = []
+            chunk_indices = []
+            current_char_count = 0
 
-        # Iterate over the DataFrame to process jobs in chunks
-        for idx, row in df_jobs.iterrows():
-            # Skip rows that have already been processed
-            if pd.notna(row.get("candidate_match_score")):
-                continue
+            # Iterate over the DataFrame to process jobs in chunks
+            for idx, row in df_jobs.iterrows():
+                # Skip rows that have already been processed
+                if pd.notna(row.get("candidate_match_score")):
+                    continue
 
-            # Format the entry for the AI prompt
-            entry = (
-                f"idx: {idx}\n"
-                f"title: {row.get('title', 'N/A')}\n"
-                f"description: {row.get('description', 'N/A')}\n"
-                f"job_summary: {row.get('job_summary', 'N/A')}"
-            )
+                # Format the entry for the AI prompt
+                entry = (
+                    f"idx: {idx}\n"
+                    f"title: {row.get('title', 'N/A')}\n"
+#                    f"description: {row.get('description', 'N/A')}\n"
+                    f"job_summary: {row.get('job_summary', 'N/A')}"
+                )
 
-            entry_len = len(entry)
-            separator_len = len(SEPARATOR)
+                entry_len = len(entry)
+                separator_len = len(SEPARATOR)
 
-            # If adding the new entry exceeds the limit, process the current chunk
-            if chunk_entries and (current_char_count + entry_len + separator_len > MAX_CHAR_LIMIT):
+                # If adding the new entry exceeds the limit, process the current chunk
+                if chunk_entries and (current_char_count + entry_len + separator_len > MAX_CHAR_LIMIT):
+                    process_and_store_chunk(df_jobs, chunk_entries, chunk_indices, candidate_text)
+                    # Reset for the next chunk
+                    chunk_entries, chunk_indices, current_char_count = [], [], 0
+
+                # Add the current job to the new chunk, checking its individual size
+                if entry_len <= MAX_CHAR_LIMIT:
+                    chunk_entries.append(entry)
+                    chunk_indices.append(idx)
+                    current_char_count += entry_len + (separator_len if len(chunk_entries) > 1 else 0)
+                else:
+                    logger.warning(f"Skipping job index {idx} because its content exceeds the character limit of {MAX_CHAR_LIMIT}.")
+
+            # Process any remaining jobs in the last chunk
+            if chunk_entries:
                 process_and_store_chunk(df_jobs, chunk_entries, chunk_indices, candidate_text)
-                # Reset for the next chunk
-                chunk_entries, chunk_indices, current_char_count = [], [], 0
 
-            # Add the current job to the new chunk
-            if entry_len <= MAX_CHAR_LIMIT:
-                chunk_entries.append(entry)
-                chunk_indices.append(idx)
-                current_char_count += entry_len + (separator_len if len(chunk_entries) > 1 else 0)
-            else:
-                logger.warning(f"Skipping job index {idx} because its content exceeds the character limit of {MAX_CHAR_LIMIT}.")
-
-
-        # Process any remaining jobs in the last chunk
-        if chunk_entries:
-            process_and_store_chunk(df_jobs, chunk_entries, chunk_indices, candidate_text)
-
-        # Save the final DataFrame to a new CSV file
-        try:
-            df_jobs.to_csv(OUTPUT_CSV_PATH, index=False)
-            logger.success(f"Processing complete. Final results saved to {OUTPUT_CSV_PATH}")
-        except Exception as e:
-            logger.error(f"Failed to save the final CSV file: {e}")
+            # Save the final DataFrame to a new CSV file
+            try:
+                df_jobs.to_csv(OUTPUT_CSV_PATH, index=True)
+                logger.success(f"Processing complete. Final results saved to {OUTPUT_CSV_PATH}")
+            except Exception as e:
+                logger.error(f"Failed to save the final CSV file: {e}")
