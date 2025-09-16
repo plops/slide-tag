@@ -63,10 +63,10 @@ LATEX_POSTAMBLE = r"\end{document}"
 
 
 def jobs_to_latex(
-        df: pd.DataFrame, min_relevance: int = 4, out_path: str | None = None
+        df: pd.DataFrame, min_candidate_score: int = 4, out_path: str | None = None
 ):
     """
-    Generate a LaTeX document for jobs with slide_tag_relevance >= min_relevance.
+    Generate a LaTeX document for jobs with candidate_match_score >= min_candidate_score.
     Writes the output to out_path if provided.
     """
     if df is None:
@@ -75,28 +75,19 @@ def jobs_to_latex(
 
     latex_job_blocks = []
 
-    # --- Re-use relevance and sorting logic from your original script ---
-    def relevance_of(x):
-        try:
-            return int(x)
-        except Exception:
-            try:
-                return int(float(x))
-            except Exception:
-                return None
-
+    # --- Sort dataframe by candidate match score ---
     dfc = df.copy()
-    dfc["_slide_tag_relevance_num"] = pd.to_numeric(
-        dfc.get("slide_tag_relevance"), errors="coerce"
+    dfc["candidate_match_score"] = pd.to_numeric(
+        dfc.get("candidate_match_score"), errors="coerce"
     )
     df_sorted = dfc.sort_values(
-        by="_slide_tag_relevance_num", ascending=False
+        by="candidate_match_score", ascending=False
     )
-    # --- End of re-used logic ---
+    # --- End of sorting logic ---
 
     for _, row in df_sorted.iterrows():
-        rel = relevance_of(row.get("slide_tag_relevance"))
-        if rel is None or rel < min_relevance:
+        score = row.get("candidate_match_score")
+        if pd.isna(score) or score < min_candidate_score:
             continue
 
         job_id = row.get("job_id", "")
@@ -116,6 +107,8 @@ def jobs_to_latex(
         # 2. Metadata Table
         # Define which columns to include and their display names
         metadata_map = {
+            "Candidate Match Score": "candidate_match_score",
+            "Slide-tag relevance": "slide_tag_relevance",
             "Worker type": "worker_type",
             "Sub category": "sub_category",
             "Job profile": "job_profile",
@@ -128,14 +121,13 @@ def jobs_to_latex(
             "Grade": "grade",
             "Job family": "job_family",
             "Is evergreen": "is_evergreen",
-            "Slide-tag relevance": "slide_tag_relevance",
         }
 
         table_rows = []
         for display_name, column_name in metadata_map.items():
             value = row.get(column_name)
             if pd.notna(value) and value != "":
-                # Ensure integer values don't have decimals (e.g., openings)
+                # Ensure integer values don't have decimals (e.g., openings, scores)
                 if isinstance(value, float) and value.is_integer():
                     value = int(value)
                 table_rows.append(f"{escape_latex(display_name)} & {escape_latex(value)} \\\\")
@@ -180,7 +172,7 @@ def jobs_to_latex(
         latex_job_blocks.append("\n".join(current_job_lines))
 
     if not latex_job_blocks:
-        print(f"No jobs found with slide_tag_relevance >= {min_relevance}")
+        print(f"No jobs found with candidate_match_score >= {min_candidate_score}")
         return
 
     # --- Assemble the final document ---
@@ -211,42 +203,44 @@ def jobs_to_latex(
 # read in the dataframe from previous step
 try:
     # Make sure this CSV file exists and is in the correct path
-    df_slide = pd.read_csv("df_with_ai_annotations.csv")
+    df_jobs = pd.read_csv("df_with_candidate_match.csv")
 except FileNotFoundError:
-    print("Error: 'df_with_ai_annotations.csv' not found.")
+    print("Error: 'df_with_candidate_match.csv' not found.")
     print("Creating a dummy DataFrame for demonstration purposes.")
     # Create a sample DataFrame if the file doesn't exist
     dummy_data = {
-        'job_id': ['202402-104044', '202507-117910'],
-        'title': ['Entwicklungsingenieur', 'Group Leader'],
-        'apply_url': ['https://roche.wd3.myworkdayjobs.com/roche-ext/job/Rotkreuz/Development-Engineer--contract-80-100--_202402-104044-1/apply', 'https://roche.wd3.myworkdayjobs.com/roche-ext/job/Basel/Group-Leader---Computational-Medicine---Imaging-Data-Insights--pRED_202507-117910/apply'],
-        'worker_type': ['Angestellt', 'Angestellt'],
-        'sub_category': ['Production Engineering', 'Research'],
-        'job_profile': ['Development Engineer', 'Scientific Management'],
-        'supervisory_organization': ['DSRMGJ NAP/qPCR & Sequencing (Vahid Akbarzadeh) (32410074)', 'GTAE Computational CoE (Jörg Degen) (50682980)'],
-        'recruiting_start_date': ['2024-02-19', '2025-07-15'],
-        'job_level': ['Individual Contributor', 'Manager with direct reports'],
-        'job_family': ['Production Engineering', 'Research'],
-        'is_evergreen': [1, 0],
-        'slide_tag_relevance': [5.0, 5.0],
-        'target_hire_date': [None, '2025-10-01'],
-        'openings': [None, 1.0],
-        'grade_profile': [None, 'CH_All_PL8 Research & Development'],
-        'grade': [None, 'PL8'],
+        'job_id': ['202507-119341', '202508-121705', '202507-118937'],
+        'title': ['Bioanalytical Assay Developer', 'Stability Manager', 'Leiter Daten Governance'],
+        'apply_url': ['http://example.com/apply/202507-119341', 'http://example.com/apply/202508-121705', 'http://example.com/apply/202507-118937'],
+        'worker_type': ['Angestellt', 'Angestellt', 'Angestellt'],
+        'sub_category': ['Research', 'Quality', 'IT'],
+        'job_profile': ['Scientist', 'Manager', 'Manager'],
+        'supervisory_organization': ['Bio-Analytics (John Doe)', 'Quality Control (Jane Smith)', 'Data Office (Max Mustermann)'],
+        'recruiting_start_date': ['2025-07-01', '2025-08-15', '2025-07-20'],
+        'job_level': ['Individual Contributor', 'Manager', 'Manager'],
+        'job_family': ['Research', 'Quality', 'IT'],
+        'is_evergreen': [0, 0, 1],
+        'slide_tag_relevance': [4.0, 1.0, 4.0],
+        'candidate_match_score': [5.0, 4.0, 1.0],
+        'target_hire_date': [None, '2025-11-01', None],
+        'openings': [1.0, 1.0, 1.0],
+        'grade_profile': ['CH_All_PL5 Research & Development', 'CH_All_PL6 Quality', 'CH_All_PL7 IT'],
+        'grade': ['PL5', 'PL6', 'PL7'],
         'job_summary': [
-            '["Work as a Development Engineer in System Development (R&D) to optimize workflows and integrate hardware, software, consumables, and reagents for diagnostic systems.", "Elaborate on robotics concepts (Cobots) for laboratory automation towards a \'dark lab\' vision.", "Knowledge of professional software development with languages like UR-Polyscope, Python, C#/NET, or LabView is essential."]',
-            '["Lead a local team of imaging experts in Basel and Penzberg.", "Deep knowledge in biomedical image analytics, AI/ML, and imaging biomarker research.", "Proven ability to lead multidisciplinary teams, handle ambiguity, and achieve timely results with multiple stakeholders."]'
+            '["Develop regulatory-compliant bioanalytical assays.", "Expertise in ligand binding assays for PK, PD, and immunogenicity.", "Contribute to and author regulatory documents."]',
+            '["Manage and ensure GMP-compliant stability programs.", "Author and review stability sections of regulatory submissions."]',
+            '["Define and execute PT-wide data governance strategy.", "Lead data governance initiatives across the organization."]'
         ]
     }
-    df_slide = pd.DataFrame(dummy_data)
+    df_jobs = pd.DataFrame(dummy_data)
 except Exception as e:
-    print(f"Failed to read 'df_with_ai_annotations.csv': {e}")
-    df_slide = None
+    print(f"Failed to read 'df_with_candidate_match.csv': {e}")
+    df_jobs = None
 
 
-if "df_slide" in globals() and df_slide is not None:
+if "df_jobs" in globals() and df_jobs is not None:
     try:
         # This will create the .tex file you can compile with pdflatex
-        jobs_to_latex(df_slide, min_relevance=4, out_path="high_relevance_jobs.tex")
+        jobs_to_latex(df_jobs, min_candidate_score=4, out_path="high_score_jobs.tex")
     except Exception as e:
         print(f"Failed to produce LaTeX document: {e}")
