@@ -30,15 +30,21 @@ def escape_latex(text: str) -> str:
     regex = re.compile('|'.join(re.escape(key) for key in replacements.keys()))
     return regex.sub(lambda match: replacements[match.group(0)], text)
 
-# --- LaTeX Preamble Definition ---
+# --- LaTeX Preamble Definition (MODIFIED FOR STRONG COMPRESSION) ---
 LATEX_PREAMBLE = r"""
 \documentclass[11pt, a4paper]{article}
+
+% --- PDFLATEX COMPRESSION AND OPTIMIZATION ---
+\pdfcompresslevel=9
+\pdfobjcompresslevel=2
+\pdfminorversion=5
 
 % --- PDFLATEX COMPATIBLE PREAMBLE ---
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{sourcesanspro}
 \renewcommand*\familydefault{\sfdefault}
+\usepackage{microtype}
 
 % --- OTHER PACKAGES ---
 \usepackage[margin=1in]{geometry}
@@ -52,6 +58,12 @@ LATEX_PREAMBLE = r"""
     urlcolor=blue,
     pdftitle={Job Descriptions},
     pdfauthor={Automated Script},
+    pdfsubject={Job Descriptions},
+    pdfkeywords={job, description, report},
+    pdflang={en},
+    pdfstartview=FitH,
+    pdfpagelayout=OneColumn,
+    breaklinks=true,
 }
 \usepackage{enumitem}
 
@@ -93,6 +105,12 @@ def jobs_to_latex(
         job_id = row.get("job_id", "")
         title = row.get("title", "")
         apply_url = row.get("apply_url", "")
+
+        # --- MODIFICATION START ---
+        # If the URL ends with /apply, remove it
+        apply_url = apply_url.removesuffix('/apply')
+        # --- MODIFICATION END ---
+
 
         # --- Build the LaTeX block for one job ---
         current_job_lines = []
@@ -211,7 +229,7 @@ except FileNotFoundError:
     dummy_data = {
         'job_id': ['202507-119341', '202508-121705', '202507-118937'],
         'title': ['Bioanalytical Assay Developer', 'Stability Manager', 'Leiter Daten Governance'],
-        'apply_url': ['http://example.com/apply/202507-119341', 'http://example.com/apply/202508-121705', 'http://example.com/apply/202507-118937'],
+        'apply_url': ['http://example.com/apply/202507-119341/apply', 'http://example.com/apply/202508-121705', 'http://example.com/apply/202507-118937'],
         'worker_type': ['Angestellt', 'Angestellt', 'Angestellt'],
         'sub_category': ['Research', 'Quality', 'IT'],
         'job_profile': ['Scientist', 'Manager', 'Manager'],
@@ -241,6 +259,6 @@ except Exception as e:
 if "df_jobs" in globals() and df_jobs is not None:
     try:
         # This will create the .tex file you can compile with pdflatex
-        jobs_to_latex(df_jobs, min_candidate_score=4, out_path="high_score_jobs.tex")
+        jobs_to_latex(df_jobs, min_candidate_score=3, out_path="high_score_jobs.tex")
     except Exception as e:
         print(f"Failed to produce LaTeX document: {e}")
