@@ -1,0 +1,423 @@
+Extracting audio from 'eshg-2025-workshop-mark-kokoris-mc--17411'...
+Transcribing audio to text...
+
+[00:00:00.000 --> 00:00:06.920]   Welcome, everybody. So, a couple things. So, we did an introduction back in February, a webinar.
+[00:00:06.920 --> 00:00:11.480]   There's quite a bit more detail in that that we'll cover here in terms of technical detail,
+[00:00:11.480 --> 00:00:16.720]   especially John Mannion, who's on the right there. He went to a lot more data path kind of
+[00:00:16.720 --> 00:00:20.960]   information there. So, check that out. If you haven't seen it, there's additional information.
+[00:00:20.960 --> 00:00:27.140]   We also published the seminal preprint at the same time, and that covers the chemistry up through
+[00:00:27.140 --> 00:00:34.600]   2020. It's a good read. If you're into the chemistry, I think it's a good thing to get more
+[00:00:34.600 --> 00:00:39.580]   background on, as well as AGBT, where we kind of did the launch introduction to technology,
+[00:00:39.580 --> 00:00:44.200]   where Hartwig and Broad and Sean presented, and he'll be presenting again here,
+[00:00:44.200 --> 00:00:49.420]   covered a lot of good stuff there as well. So, a lot of good things to look at to get background.
+[00:00:49.420 --> 00:00:55.740]   So, in that sense, I'll just really touch on the technology overview a lot faster this time,
+[00:00:55.740 --> 00:00:59.140]   kind of trying to go through it pretty quick, because I want to be able to focus on some of
+[00:00:59.140 --> 00:01:05.480]   the data we're going to show today. So, we'll do an update on the SBX duplex and the fast
+[00:01:05.480 --> 00:01:09.360]   sequencing approaches. So, we've actually improved the data from even two or three months ago,
+[00:01:09.360 --> 00:01:14.600]   and I think that'll be the theme, is we continue to advance the technology. We'll show some of our
+[00:01:14.600 --> 00:01:20.960]   first-ever FFPET data that we generated using our duplex approach, as well as MRD, and then finish off
+[00:01:20.960 --> 00:01:26.360]   with some simplex applications of RNA and DNA. So, that will be kind of the agenda for today.
+[00:01:26.360 --> 00:01:31.700]   So, when we conceived of the idea, I've said this many times, it was born out of flexibility.
+[00:01:31.700 --> 00:01:38.380]   We really wanted to do a single molecule approach that could flexibly sequence. You know, for me,
+[00:01:38.380 --> 00:01:42.120]   I'd want to, if I wanted to sequence for four minutes, I'd want to be able to do that. Wouldn't want to wait
+[00:01:42.120 --> 00:01:47.580]   around a couple days. I'm impatient. Or, you know, be able to sequence for several hours to get massive
+[00:01:47.580 --> 00:01:53.360]   throughput. I wanted a technology that can do that. And so, that was the thinking for our approach to
+[00:01:53.360 --> 00:01:57.860]   doing single molecule sequencing. Now, for every approach, you have to be thinking about performance.
+[00:01:57.860 --> 00:02:02.460]   You have to be thinking about scaling into the future. And so, we'll cover on accuracy, and we'll
+[00:02:02.460 --> 00:02:08.260]   talk about what we're doing. You know, update some of the F1 scores that we have using the genome-in-the-bottle
+[00:02:08.260 --> 00:02:12.580]   samples. Quite, you know, they've improved quite a bit, even in just two or three months.
+[00:02:13.280 --> 00:02:18.940]   Throughput, still very similar, 500 million bases per second throughput. And then we'll go into the
+[00:02:18.940 --> 00:02:26.000]   distinction between that simplex reads and the duplex reads. Simplex being really longer, higher
+[00:02:26.000 --> 00:02:32.860]   throughput, Q20 accuracy, whereas the duplex is the higher accuracy reads. We'll update on some
+[00:02:32.860 --> 00:02:39.600]   urgent samples. Basically, this SBX fast approach, where we go from sample to VCF now in less than
+[00:02:39.600 --> 00:02:44.900]   five hours. And Sean will cover a lot of that in some of his presentation as well. And then, of course,
+[00:02:44.900 --> 00:02:49.600]   at the end of the day, cost efficiency. People ask this question a lot about what's the cost going to
+[00:02:49.600 --> 00:02:55.800]   be. And of course, this is top of the mind for us. We have to be efficient, and the technology was built
+[00:02:55.800 --> 00:03:01.520]   for that. We think about efficiencies in terms of measurement, the quality of the data as it comes out,
+[00:03:01.520 --> 00:03:06.140]   so you can efficiently analyze the data coming out. All this has to come together if you're going to be
+[00:03:06.140 --> 00:03:11.320]   able to drive your cost down. And that's critical. And of course, we want to be able to give people the kind of
+[00:03:11.320 --> 00:03:17.060]   technology that they want moving forward. And that's key. Otherwise, I think, what's the point? So cost
+[00:03:17.060 --> 00:03:24.180]   efficiency is critical. Critical element. So what is this? What is our approach to sequencing? It's the coming
+[00:03:24.180 --> 00:03:30.340]   together of the stratogenomics, sequencing by expansion chemistry, with the Genia high-throughput sensor array.
+[00:03:31.840 --> 00:03:35.700]   The way that looks, I don't know if you've gone to our booth, or you can see that we have both of the
+[00:03:35.700 --> 00:03:41.420]   systems there. The SPX chemistry happens on the synthesis instrument, and then the sequencing on
+[00:03:41.420 --> 00:03:45.940]   the sequencing instrument. Two separate approaches there, or systems there. And we actually think
+[00:03:45.940 --> 00:03:50.540]   that's a more efficient way to run for the time being. Down into the future, you know, I would imagine
+[00:03:50.540 --> 00:03:55.680]   we would have a system that could integrate both workflows for specific applications. But right now,
+[00:03:55.760 --> 00:04:01.680]   our flexibility, we think, is maximized by keeping them separate. So the general approach was simple.
+[00:04:01.680 --> 00:04:08.340]   Don't sequence DNA. I think if you want to do single molecule for us, was rescale the problem. It came down to
+[00:04:08.340 --> 00:04:14.100]   signal-to-noise for us. How to adjust signal-to-noise of the measurement was the problem. So we created this new
+[00:04:14.100 --> 00:04:20.820]   molecule called an expandomer, a surrogate for the DNA molecule, where we could rescale that measurement
+[00:04:20.820 --> 00:04:28.940]   problem. At the time, nanopore really wasn't even still a thing in 2007. But over time, it seemed obvious to us
+[00:04:28.940 --> 00:04:35.940]   that we wanted to translate the technology to a nanopore sequencing approach. And so, you know, very difficult
+[00:04:35.940 --> 00:04:41.180]   protein molecular engineering to be able to achieve this. But when you get on the other side of it, it does open up a
+[00:04:41.180 --> 00:04:47.700]   whole lot of possibilities on the measurement side. So how you do this, I think the key, one of the key elements is the
+[00:04:47.700 --> 00:04:55.180]   expandable nucleotide, or XNTP. When we conceived the idea, it was really about putting a reporter code, a reporter
+[00:04:55.180 --> 00:05:02.640]   tether, and attaching it at two places on a nucleotide, alpha phosphate for one, and off the heterocycle for a second, and
+[00:05:02.640 --> 00:05:09.560]   then separate that with a cleavable bond. Okay, so that was kind of the beginning. Over time, as we directed more towards
+[00:05:09.560 --> 00:05:14.100]   the nanopore measurement, we knew we wanted to have something that can control translocation as it moves through the
+[00:05:14.100 --> 00:05:20.300]   nanopore. And so we put that translocation control element on there. And then, of course, over time, we learned that, you know,
+[00:05:20.300 --> 00:05:21.580]   we really need to enhance
+[00:05:21.580 --> 00:05:29.160]   the incorporation of these massive nucleotides, and so we built in enhancers. I can remember in 2014, going to a meeting at
+[00:05:29.160 --> 00:05:35.400]   Roche, this is when we were still partnering and working together, showing a gel with an extension of a single XNTP.
+[00:05:36.140 --> 00:05:40.840]   And I was really happy to show this. I mean, this was like, great, okay, we've made the XNTP, we can get a single extension.
+[00:05:40.840 --> 00:05:46.540]   That's when we kind of realized, yeah, we need to enhance the incorporation of these nucleotides.
+[00:05:46.540 --> 00:05:51.100]   And so we engineered those into the structure of the nucleotide, as well as many other things.
+[00:05:51.100 --> 00:05:58.600]   And that's the basic, the foundation was really a molecular engineering exercise to make these modified nucleotides.
+[00:05:58.700 --> 00:06:05.260]   Many other things came as well. I'm not going to cover all of it here, but there's a lot of other elements that you can get in some of the
+[00:06:05.260 --> 00:06:07.640]   other talks that we've had, and certainly our paper.
+[00:06:07.640 --> 00:06:15.760]   So the basic idea of the synthesis instrument is liquid handling reaction control system to synthesize the
+[00:06:15.760 --> 00:06:21.600]   expandimer on this chip that we show in the top left panel there in the green box, as well as a bunch of reagents to
+[00:06:21.600 --> 00:06:27.500]   basically support the biochemical synthesis and conversion of the DNA template into an expandimer.
+[00:06:27.500 --> 00:06:34.320]   So it's pretty intuitive. You have an oligo on a surface, hybridize a template, throw in a cocktail of
+[00:06:34.320 --> 00:06:41.880]   expandimer synthesis reagents to copy, do a template-dependent copying of the template, cleave at that amidate
+[00:06:41.880 --> 00:06:48.060]   linkage I showed you earlier to expand, and use an orthogonal cleavage, photo cleavage, to release the
+[00:06:48.060 --> 00:06:53.120]   expander from the support, releasing a pretty clean molecule as soon as you want to be able to measure this in a
+[00:06:53.120 --> 00:06:57.400]   nanopore, and you don't want a lot of noise there. Another key element was, as I mentioned, was
+[00:06:57.400 --> 00:07:03.620]   translocation control. You can see that little green triangle, a green arrow pointing to the triangle there,
+[00:07:03.620 --> 00:07:10.660]   holding an expandimer in place. It's on the barrel side of the nanopore, embedded in a bilayer, so you can see it
+[00:07:10.660 --> 00:07:15.660]   kind of holding it in place, so you can get good statistical sampling at a base voltage, so you can get that
+[00:07:15.660 --> 00:07:22.000]   signal that you see with that green arrow showing where the G base is, and then with a very quick
+[00:07:22.000 --> 00:07:28.720]   microsecond-level pulse, you can advance the expandimer to the next level, and that shows now a C code coming in,
+[00:07:28.720 --> 00:07:35.640]   and so on and so forth. And with this approach, we can modulate the throughput in a very controlled,
+[00:07:35.640 --> 00:07:41.560]   deterministic way, and that one adds efficiency, but adds quality to the measurement. This is all about
+[00:07:41.560 --> 00:07:47.700]   efficiency of measurement at the end of the day, and so this is a big deal. When we first made the
+[00:07:47.700 --> 00:07:52.700]   company, it's actually many years later, we drew this up. That's actually a drawing of what we wanted
+[00:07:52.700 --> 00:07:58.440]   to do, and, you know, this is the dream of what we tried to do, and a mere five or six or seven years
+[00:07:58.440 --> 00:08:03.900]   later, this was actually a real expandimer trace once we figured out how all the elements that had to
+[00:08:03.900 --> 00:08:09.320]   come together to make these expandimers. This is a result on a single pore axopatch system that we did
+[00:08:09.320 --> 00:08:14.280]   stratogenomics, but you get an idea of that signal resolution we were able to achieve, so we'd solve
+[00:08:14.280 --> 00:08:21.280]   that part of the problem. You get an idea of where homopolymer looks like three C bases in a row. You
+[00:08:21.280 --> 00:08:26.220]   see the resolution there, and then, of course, the level histograms, how nicely separated they are. I mean,
+[00:08:26.220 --> 00:08:29.600]   this is critical for single molecule measurement. If you're going to have accurate sequencing,
+[00:08:29.600 --> 00:08:34.640]   you can't have overlapping histograms, and so that was, so we'd achieve this. I look at this as kind of
+[00:08:34.640 --> 00:08:41.040]   like the baby picture of the expandimers, so we look at this, you know, fondly, but then we had to
+[00:08:41.040 --> 00:08:46.500]   transition, so now moving it into a much larger array. Now, instead of one nanopore, we're on an eight
+[00:08:46.500 --> 00:08:53.340]   million array where we combine microwells, electrodes, and detection circuits to do the analog to digital
+[00:08:53.340 --> 00:08:58.400]   conversion, and you can see in the right hand there, you see a single microwell with a bilayer, that
+[00:08:58.400 --> 00:09:03.560]   orangish color, a pore, and expandimers threading through. So now eight million times the throughput.
+[00:09:03.560 --> 00:09:10.280]   So the sequencing instrument, again, fluid handling, but, of course, all the data coming off the system.
+[00:09:10.280 --> 00:09:18.220]   The sensor module is a key part that contains the chip, the eight million chip on it, and it allows for
+[00:09:18.220 --> 00:09:22.800]   the fluidic control of all the reagents to go through, and a process, a very simplified version
+[00:09:22.800 --> 00:09:28.440]   of the process. On the right there is a sequencing workflow where you set up the bilayer, do the pore
+[00:09:28.440 --> 00:09:35.340]   insertion, throw on your expandimer reagent to do your sequencing, clean the system, and reuse. This
+[00:09:35.340 --> 00:09:41.520]   is key. I mean, as you can imagine, this is a pretty sophisticated device, and so being able to reuse is
+[00:09:41.520 --> 00:09:47.460]   pretty critical to get the cost profile down, and so this is something that I think really is very
+[00:09:47.460 --> 00:09:52.700]   important for the chemistry that you literally go through that workflow, that cyclical workflow, over
+[00:09:52.700 --> 00:09:57.280]   and over and over again, and I think that really helps us drive the cost down significantly.
+[00:09:57.280 --> 00:10:06.300]   And just a picture of the pores. So remember, it's an eight million array, so, you know, times zero.
+[00:10:06.300 --> 00:10:10.740]   Typically, we would get into seven-plus-million pores that are actually sequence-quality pores,
+[00:10:10.740 --> 00:10:17.140]   which is an astounding number, actually, when you think about Poisson. And then over time, as you can imagine,
+[00:10:17.140 --> 00:10:22.120]   you know, pores will clog, or you'll have a bilayer break. And so you can see what it looks like over,
+[00:10:22.120 --> 00:10:26.460]   say, a four-hour run. You still have five million functioning sequencing pores. But all the throughput
+[00:10:26.460 --> 00:10:32.240]   I'm showing for the longer runs would have gone through that type of fall-off of pores, and that's also
+[00:10:32.240 --> 00:10:37.500]   another opportunity for us to improve throughput into the future. Okay, this is now what a single
+[00:10:37.500 --> 00:10:42.960]   pore would look like on the eight million array, and you can see that arrow pointing to open channel,
+[00:10:42.960 --> 00:10:47.000]   which is no expandimer flowing through. And you get an idea of the signal,
+[00:10:47.080 --> 00:10:52.060]   separation of many hundreds of expandimers, maybe even thousands of expandimers going through.
+[00:10:52.060 --> 00:10:57.220]   But when you zoom in, you can see what one expandimer molecule looks like. That's probably
+[00:10:57.220 --> 00:11:03.300]   a 900 to 1,000 base sequence. And you zoom in even further, you get an idea of the signal resolution
+[00:11:03.300 --> 00:11:09.320]   for the translated XP base calls there. So still great signal resolution on the eight million array.
+[00:11:09.320 --> 00:11:15.900]   And again, flexibility is key. We want you to be able to do one expandimer or four expandimer pools,
+[00:11:16.140 --> 00:11:23.120]   whatever the multiplex level you want. In fact, that's what the synthesizer does up to four samples at a time.
+[00:11:23.120 --> 00:11:31.680]   And if you have, you know, four minutes to four hours of sequencing you need, we want to be able to allow people to sequence through the whole flexibility
+[00:11:31.680 --> 00:11:37.800]   throughput spectrum there on the left here. So that's the goal, has been the goal of the technology from the very beginning.
+[00:11:37.800 --> 00:11:47.240]   Okay. So moving on to duplex sequencing. We've covered this several times up to this point, but it's basically the structure there,
+[00:11:47.240 --> 00:11:55.020]   the library structure there shows a Y adapter and a hairpin so that you can actually generate an expandimer and do intramolecular consensus.
+[00:11:55.280 --> 00:11:59.720]   It allows us to get very good accuracy with the single molecule technology.
+[00:11:59.720 --> 00:12:09.460]   Okay. And the applications and some of the things we'll talk about today is MRD, as well as some of the rapid whole genome sequencing and FFPET.
+[00:12:09.460 --> 00:12:13.860]   So this, the MRD and FFPET, this will be the first time we've talked about it. This is brand new data.
+[00:12:13.860 --> 00:12:16.840]   And we haven't really started working on it in February.
+[00:12:16.840 --> 00:12:21.860]   So this is all new stuff that we've been working on since the last main presentation we did.
+[00:12:22.180 --> 00:12:29.140]   So the workflow for SBXD is pretty straightforward. You'd fragment a library to whatever links that you want
+[00:12:29.140 --> 00:12:32.880]   and do this ordered ligation to put a Y adapter hairpin on.
+[00:12:32.880 --> 00:12:36.760]   That show the amounts that we're typically using for genomic DNA and cell-free DNA.
+[00:12:36.760 --> 00:12:42.580]   We then go through and do a linear amplification, which is one of the unique things about what we do.
+[00:12:42.580 --> 00:12:49.020]   Very much helps us with our accuracy, being able to do linear amplification with homopolymer regions.
+[00:12:49.360 --> 00:12:54.640]   Other than that, it's pretty normal synthesis that falls along the lines of the workflow I showed earlier.
+[00:12:54.640 --> 00:12:56.980]   A little bit about read structure there.
+[00:12:56.980 --> 00:13:00.060]   So on the left, you have some raw read results.
+[00:13:00.060 --> 00:13:06.740]   What they look like on the right shows this partial duplex read, shows pictorially what it actually is.
+[00:13:06.740 --> 00:13:11.240]   And in terms of these partial reads, they're exactly what it says.
+[00:13:11.240 --> 00:13:13.140]   Some of it's duplex, some of it's simplex.
+[00:13:13.140 --> 00:13:14.600]   We use all of that information.
+[00:13:14.960 --> 00:13:16.080]   We don't want to throw it away.
+[00:13:16.080 --> 00:13:22.140]   The duplex spaces are what we use to actually give us our concordant accuracy or reads that we get.
+[00:13:22.140 --> 00:13:24.860]   Simplex spaces can actually be used to help us with mapping.
+[00:13:24.860 --> 00:13:26.360]   So we don't throw it away.
+[00:13:26.360 --> 00:13:26.940]   We use it.
+[00:13:26.940 --> 00:13:30.120]   But we only use the duplex spaces for our accuracy determination.
+[00:13:30.120 --> 00:13:34.740]   And then below, we see the full-length reads, which you get an idea of what those look like.
+[00:13:34.740 --> 00:13:38.340]   On the bottom, you can see the hairpin adapter sequence in the middle.
+[00:13:38.340 --> 00:13:42.720]   So you get an idea of the length histogram that we typically see for expandable lengths.
+[00:13:42.720 --> 00:13:45.340]   Okay.
+[00:13:45.340 --> 00:13:46.800]   A little bit of update on the data.
+[00:13:46.800 --> 00:13:48.260]   So we showed this previously.
+[00:13:48.260 --> 00:13:55.320]   These are genome-in-a-bottle samples, one-hour sequencing run, five billion duplex reads in one-hour sequencing.
+[00:13:55.320 --> 00:13:59.920]   You get an idea of the median coverage that we see and the mean insert length.
+[00:13:59.920 --> 00:14:03.740]   Those are the lengths of the full-length duplex reads that we're showing there.
+[00:14:03.740 --> 00:14:09.540]   So around 240 to 250, median coverage, high 30s to low 40s.
+[00:14:09.540 --> 00:14:14.980]   And then the F1 scores for SMBs and indels are shown in the table there.
+[00:14:14.980 --> 00:14:20.640]   And I'll point out that we have both our GATK Roche machine learning approach on the left,
+[00:14:20.640 --> 00:14:22.480]   as well as the deep variant from Google.
+[00:14:22.480 --> 00:14:24.180]   Great collaboration there.
+[00:14:24.180 --> 00:14:26.660]   Really awesome team to work with.
+[00:14:26.660 --> 00:14:28.940]   Their numbers, you can see, are a little bit better.
+[00:14:28.940 --> 00:14:32.620]   But I wanted to acknowledge that relationship there.
+[00:14:33.740 --> 00:14:38.200]   So as we said, accuracy since the last time has improved a bit.
+[00:14:38.200 --> 00:14:46.260]   Q40 average duplex base quality and 99.9% coverage of greater than 10X coverage for the genome.
+[00:14:46.260 --> 00:14:49.880]   So all of those numbers are improved from just two or three months before.
+[00:14:51.960 --> 00:14:56.640]   And this kind of shows, in terms of F1 scores, the dark blue being where we are currently
+[00:14:56.640 --> 00:15:04.000]   and the light blue being where we were in February, which is already really good numbers for an amplified library.
+[00:15:04.000 --> 00:15:07.360]   And so we're continuing to push on that and we'll continue to do so.
+[00:15:07.360 --> 00:15:12.080]   And this just shows the results if you downsample to 30X.
+[00:15:12.640 --> 00:15:15.020]   Typically, that's usually one way of looking at it.
+[00:15:15.020 --> 00:15:16.920]   They really don't change that much.
+[00:15:16.920 --> 00:15:21.200]   Maybe a 0.1 or 0.15 drop in F1 scores going to 30X.
+[00:15:21.200 --> 00:15:22.260]   Still very good results.
+[00:15:22.260 --> 00:15:24.640]   Okay.
+[00:15:24.640 --> 00:15:32.500]   Looking at the homopolymer links, you can see that for all homopolymer links, less than 17 base pairs.
+[00:15:32.860 --> 00:15:36.620]   We have F1 scores greater than 99% using either pipeline.
+[00:15:36.620 --> 00:15:38.400]   And that's on the left is the Roche pipeline.
+[00:15:38.400 --> 00:15:39.480]   On the right is deep barrier.
+[00:15:39.480 --> 00:15:42.380]   Very, very good results in terms of homopolymer.
+[00:15:42.380 --> 00:15:44.260]   Coverage.
+[00:15:44.260 --> 00:15:51.000]   On the left, you have the histograms of both all reads and just a full duplex reads on the left.
+[00:15:51.000 --> 00:15:58.600]   And you can see, in terms of the coverage across the GC spectrum, the low GC, you know, look at that.
+[00:15:58.600 --> 00:16:04.400]   Still really happy with that little work we can do there on that, but still very happy with what we're seeing at the low GC.
+[00:16:04.400 --> 00:16:06.720]   High GC is looking pretty great.
+[00:16:06.720 --> 00:16:09.340]   So we'll always continue to improve.
+[00:16:09.340 --> 00:16:16.640]   Next up on the list will probably be to lift up the lower GC on this, but still very, very good data that we get out of this.
+[00:16:16.640 --> 00:16:18.540]   Okay.
+[00:16:18.540 --> 00:16:22.380]   And then accuracy across the links, very links of expandimers.
+[00:16:22.840 --> 00:16:28.300]   This kind of shows just no drop-off in FRED score as you go through the number of links.
+[00:16:28.300 --> 00:16:36.680]   So, like, for example, the 300 base insert there, you see a pretty flat line with FRED scores of 40 across the entire length of 300 MERS.
+[00:16:36.680 --> 00:16:41.560]   And there was 350,000 of them used to plot this data here.
+[00:16:41.560 --> 00:16:44.660]   So no drop-off in accuracy across length.
+[00:16:46.140 --> 00:16:51.500]   Okay, SBX fast, very similar to SBX-D, only we don't do the linear amplification step.
+[00:16:51.500 --> 00:16:53.180]   We put more sample in.
+[00:16:53.180 --> 00:16:58.040]   In this case, we put 2 micrograms in, but then we don't have an amplification step here.
+[00:16:58.040 --> 00:17:02.940]   2 micrograms is really driven by the level of plex that we have.
+[00:17:02.940 --> 00:17:06.120]   If you're not going to plex deeply, 2 micrograms is what we go with.
+[00:17:06.120 --> 00:17:11.740]   But if you wanted to do higher multiplexing, you can get away with probably less DNA into the future.
+[00:17:12.920 --> 00:17:14.580]   Okay, so amplification-free workflow.
+[00:17:14.580 --> 00:17:18.760]   And the results here, we showed something similar before.
+[00:17:18.760 --> 00:17:19.900]   Very, very good.
+[00:17:19.900 --> 00:17:21.820]   F1 scores again for these.
+[00:17:21.820 --> 00:17:31.000]   We ran these as trios because that's going to overlap more with what Sean's going to talk about for the direction of the SBX fast workflow is to run solos or trios.
+[00:17:31.000 --> 00:17:35.100]   So we ran these as trios, so we actually have a lot higher coverage here.
+[00:17:35.100 --> 00:17:36.700]   But still very good results.
+[00:17:36.700 --> 00:17:39.060]   Difference between February and May.
+[00:17:39.060 --> 00:17:40.840]   Still, you know, big jump.
+[00:17:41.320 --> 00:17:47.440]   And a lot of these improvements were, they were chemistry, they were data algorithm analysis, the range of things.
+[00:17:47.440 --> 00:17:49.800]   There just wasn't one thing that led to these improvements.
+[00:17:49.800 --> 00:17:56.660]   And so we'll keep working along those lines for all the chemistries and all the approaches we're working on right now.
+[00:17:56.660 --> 00:17:58.440]   Okay.
+[00:17:58.540 --> 00:18:03.240]   Same thing when you downsample 30X, still very, very good F1 scores.
+[00:18:03.240 --> 00:18:10.400]   Homopolymer now, instead of 17 bases, we have F1 scores greater than 99% all the way up to 21 bases.
+[00:18:10.400 --> 00:18:11.160]   So even better.
+[00:18:11.160 --> 00:18:13.760]   And that's the difference between doing amplification or not.
+[00:18:14.020 --> 00:18:18.240]   But still, for the amplified results, very good homopolymer accuracies.
+[00:18:18.240 --> 00:18:21.740]   Histogram, very similar to what we showed before.
+[00:18:21.740 --> 00:18:23.560]   Same thing with read depth and coverage.
+[00:18:23.560 --> 00:18:25.080]   Very, very good there.
+[00:18:25.080 --> 00:18:27.800]   Continuing to work on that as well.
+[00:18:27.800 --> 00:18:32.640]   But I think, you know, so far, I think very, very good coverage across the GC spectrum.
+[00:18:32.640 --> 00:18:34.880]   Opportunities always, though, to improve.
+[00:18:36.140 --> 00:18:44.300]   So in comparing February to May, we can see the read length differences between SBXD and FAST, going from 230 to 248.
+[00:18:44.300 --> 00:18:45.860]   Both increase there.
+[00:18:45.860 --> 00:18:51.160]   The improvement in FED scores to Q40 and then coverage improvements.
+[00:18:51.160 --> 00:18:55.940]   So across the board, we've improved the chemistry and the detection.
+[00:18:55.940 --> 00:18:57.460]   So this is a fun one.
+[00:18:57.460 --> 00:19:05.620]   So this is something that we've been actively working on since February is SBX FAST time trials in a solo sample.
+[00:19:05.780 --> 00:19:08.560]   How fast can we process a human genome?
+[00:19:08.560 --> 00:19:16.800]   And so the workflow we showed above here, going from library prep to expandimer synthesis, sequencing, and then analysis through variant calling.
+[00:19:16.800 --> 00:19:19.080]   And so those are the time windows that we ran.
+[00:19:19.080 --> 00:19:22.960]   So now, in February, we were at 6 hours and 25 minutes.
+[00:19:22.960 --> 00:19:27.640]   We're now at 4 hours and 23 minutes for library prep through VCF.
+[00:19:27.640 --> 00:19:30.300]   And there's still more room to improve on this.
+[00:19:30.300 --> 00:19:31.940]   And so we'll keep working on this.
+[00:19:31.940 --> 00:19:36.180]   But our goal originally was to be able to do trios within a normal workday.
+[00:19:36.180 --> 00:19:38.480]   I think we're going to be well within that.
+[00:19:38.480 --> 00:19:40.080]   Sean will cover some of that in his talk.
+[00:19:40.080 --> 00:19:42.100]   So we were able to detect the variant.
+[00:19:42.100 --> 00:19:45.900]   In this case, it was a Coriol sample with propionic acidemia.
+[00:19:45.900 --> 00:19:47.800]   Able to positively detect that.
+[00:19:47.800 --> 00:19:48.940]   30x coverage.
+[00:19:48.940 --> 00:19:49.600]   Yeah.
+[00:19:49.600 --> 00:19:51.580]   In just a little over 4 hours and 23 minutes.
+[00:19:51.840 --> 00:19:55.860]   This did not include the actual prep of DNA prep.
+[00:19:55.860 --> 00:20:04.900]   So add another 20 minutes to that, we'd be at about 4 hours and 43 minutes for total sequencing from blood sample all the way through variant calling.
+[00:20:04.900 --> 00:20:06.260]   So pretty exciting.
+[00:20:06.260 --> 00:20:09.760]   It was fun to work on that and fun to continue to work on that.
+[00:20:09.760 --> 00:20:16.740]   And in fact, we just announced this last week, I believe, yeah, that we were doing an expanded collaboration with Broad.
+[00:20:16.740 --> 00:20:18.520]   So we're going to continue to do a lot of this.
+[00:20:18.520 --> 00:20:21.640]   And I don't know if Sean can maybe mention that in his talk.
+[00:20:21.640 --> 00:20:32.820]   So one of the other key things for these solo SBX fast runs was being able to do the analysis and read mapping and alignment basically concurrent with the sequencing itself.
+[00:20:32.820 --> 00:20:43.280]   This comes down to what I was mentioning before, the efficiency of measurement and the efficiencies that you have to be able to do throughout every step in the process like this if you're going to get your costs down.
+[00:20:43.280 --> 00:20:49.920]   Well, in this case, we're able to actually do DMUX, intramolecular consensus, mapping and alignment concurrent.
+[00:20:49.920 --> 00:20:58.400]   And that involved, you know, a lot of improvements in the implementation of literally every accelerated algorithm in the pipeline that we're currently using.
+[00:20:58.520 --> 00:21:04.380]   But in doing that, we're essentially able to get rid of hours of time of sequencing.
+[00:21:04.380 --> 00:21:14.700]   So this is a big part of it and wanted to acknowledge that and great relationships that we have with NVIDIA as well as working on the Parabricks libraries with the team.
+[00:21:14.700 --> 00:21:24.880]   But a big part of this, along with some of the chemistry adjustments, of course, that we've been making to get to that really fast genome sequencing time.
+[00:21:24.880 --> 00:21:27.420]   Okay, moving on to some new stuff.
+[00:21:27.420 --> 00:21:33.620]   So FFPET, so very similar looking workflow, SPXD-like workflow.
+[00:21:33.620 --> 00:21:46.820]   In this case, we actually did some DNA repair steps to, before we found we got better yield and actually better accuracy by going through a DNA repair step prior to doing the duplex library preparation.
+[00:21:46.820 --> 00:21:50.920]   Again, linear amplification as well we use for the process.
+[00:21:50.920 --> 00:21:55.640]   But other than that, it was pretty much the same as the SPXD protocol we normally run.
+[00:21:56.080 --> 00:22:05.800]   So in terms of samples, we did 18 matched normal tumor samples that we ran through with the range of Q ratios that were determined by the line assay.
+[00:22:06.280 --> 00:22:10.120]   So you get an idea of kind of the ranges of quality of the samples that we were using here.
+[00:22:10.120 --> 00:22:15.740]   Normally, we don't do these type of comparisons, but we needed some frame of reference.
+[00:22:15.740 --> 00:22:19.600]   So we just figured we'd list, you know, exactly kind of what we ran here.
+[00:22:19.800 --> 00:22:28.600]   So in comparing new Illumina sequencing, we used the AnyBnext repair kit, 100 nanograms for each sample going in.
+[00:22:28.600 --> 00:22:31.080]   For SPX, we did the SPXD protocol.
+[00:22:31.080 --> 00:22:34.560]   For Illumina, they used the Kappa EVO Plus V2 library prep.
+[00:22:34.560 --> 00:22:39.260]   For Illumina, they did the NovaSeq 6000 S4 300 cycle kit.
+[00:22:39.760 --> 00:22:46.740]   All of the data that we actually included in the summary here were greater than 70x coverage were included for comparison.
+[00:22:46.740 --> 00:22:50.920]   And for Illumina, we used the Dragon 4.3 for analysis.
+[00:22:51.680 --> 00:23:03.620]   So looking at the data, the accuracy for the – basically, SPX shows lower SNV indel error rates, higher long homopolymer accuracy when compared to Illumina.
+[00:23:03.620 --> 00:23:06.080]   I mean, when you look at the previous data, it kind of makes sense.
+[00:23:06.080 --> 00:23:08.280]   We're doing really well with the long homopolymer.
+[00:23:08.280 --> 00:23:14.020]   On the left, you can see the FRED scores are looking very good for SPX, relatively speaking.
+[00:23:14.020 --> 00:23:16.260]   Error rates also looking good.
+[00:23:16.260 --> 00:23:26.860]   And then you see that nice profile, especially looking out at homopolymer lengths of 8 all the way through 20, how well they compare with this, again, amplified protocol.
+[00:23:26.860 --> 00:23:34.140]   With a lot of FFP samples, it kind of may make sense to be able to use an amplified protocol, but in this case, looking quite good.
+[00:23:34.140 --> 00:23:37.100]   And this carries on through the rest of the analysis we're doing for FFP.
+[00:23:37.100 --> 00:23:42.960]   So similar on coverage, SPX showed better coverage uniformity in the higher GC regions.
+[00:23:42.960 --> 00:23:44.240]   I show to the right here.
+[00:23:44.240 --> 00:23:46.160]   Overall, though, pretty comparable there.
+[00:23:46.260 --> 00:23:47.060]   Looking good.
+[00:23:47.060 --> 00:23:51.640]   But that higher GC, I think, is definitely, for us, a real difference.
+[00:23:51.640 --> 00:23:54.800]   Okay.
+[00:23:54.800 --> 00:24:00.840]   And then evaluating some of the not-difficult regions, the NIST not-difficult regions of the genome,
+[00:24:00.840 --> 00:24:07.420]   using similar false positive rates for both SPX and Illumina, as determined by normal-normal analysis.
+[00:24:07.420 --> 00:24:15.060]   And so we use 0.08 false positive rate for the SNVs and 0.05 for the indels.
+[00:24:15.160 --> 00:24:19.480]   And again, you can see the differences between the two systems, so the two platforms there.
+[00:24:19.480 --> 00:24:24.900]   So SPX generally showed about 10% better recall compared to Illumina in this comparison.
+[00:24:24.900 --> 00:24:28.020]   So again, first time we've ever done this.
+[00:24:28.020 --> 00:24:36.060]   So not like we've run it thousands of times, but we're excited to show, and this will definitely be a focus of additional work as we move through the summer and fall.
+[00:24:36.700 --> 00:24:43.080]   Just to get an idea, the allele frequency distributions, they were pretty much overlapping, very similar between both technologies.
+[00:24:43.080 --> 00:24:53.380]   So looking at now some of the more challenging regions of the genome, so SMB calling there, reasonable concordance between both SPX and Illumina.
+[00:24:53.500 --> 00:25:05.700]   You do see SPX achieving higher sensitivity at the similar false positive rates, again, due to some of the data we showed you before in terms of the lower SMV error rates and the better uniformity in high GC.
+[00:25:05.700 --> 00:25:15.900]   So you can look at basically the difference between the blue and the orange here, where SPX only has a much higher amount relative to some of the Illumina.
+[00:25:16.940 --> 00:25:23.800]   Okay, similar here with indels, even more dramatic here with indels in terms of the difference between the two platforms.
+[00:25:23.800 --> 00:25:31.280]   But overall, you know, pretty concordant, pretty good, and certainly with SPX showing better sensitivity.
+[00:25:31.280 --> 00:25:37.680]   So for copy number variants, this is about 10 of the samples shown, so it makes it a little bit noisy here.
+[00:25:37.680 --> 00:25:44.940]   So we zoomed in on one copy number variant example from one sample, just to get an idea of the level of concordance there.
+[00:25:44.940 --> 00:25:46.900]   But I think pretty good concordance.
+[00:25:46.900 --> 00:25:53.060]   We're not trying to say who's right or wrong in either of the discordant, but I think overall, very high level of concordance.
+[00:25:53.060 --> 00:26:04.260]   And this is a zoom in on a single sample, again, so you can get an idea of both the arm level and focal event differences between the two technologies and very, very good concordance there as well.
+[00:26:04.260 --> 00:26:07.840]   So overall, I think pretty sound, pretty solid data.
+[00:26:07.840 --> 00:26:10.740]   So MRD, moving on quickly to MRD.
+[00:26:12.360 --> 00:26:16.220]   So we started off with four nanograms of DNA.
+[00:26:16.220 --> 00:26:18.040]   These are some samples that we have pretty limited.
+[00:26:18.040 --> 00:26:20.100]   We wanted to challenge ourselves here.
+[00:26:20.100 --> 00:26:29.240]   Again, SBXD protocol that used linear amplification and just brought it through our standard, you know, SBXD workflow.
+[00:26:31.520 --> 00:26:39.500]   And as far as the sample cohort, we use 15 cancer samples at various stages, 15 healthy donors, all four nanograms each for each one of them.
+[00:26:39.500 --> 00:26:44.320]   And this is kind of the breakdown of the different samples with tumor fraction there.
+[00:26:46.360 --> 00:26:49.220]   Okay, and a little bit about the workflow here.
+[00:26:49.220 --> 00:26:57.960]   On the left side, you see that we go from our cell-free DNA to our consensus reads that we talked about before, getting around a SNP accuracy of Q44.
+[00:26:57.960 --> 00:27:07.180]   We then do the alignment to reference and do super consensus collapsing to get to a Q46-like level of accuracy.
+[00:27:07.420 --> 00:27:14.300]   And then additional read filtering, trimming of the ends just a little bit, and we've got to a Q50-type accuracy.
+[00:27:14.300 --> 00:27:18.960]   And from that, we can get this estimated tumor fraction number.
+[00:27:18.960 --> 00:27:29.620]   And so with the comparison for all 15 of the samples, we were able to see positive MRD for all 15 of the samples we looked at
+[00:27:29.620 --> 00:27:36.000]   and would assess that we were at the 1 to 10 to the minus 6 estimated tumor fraction for these.
+[00:27:36.000 --> 00:27:44.220]   And you can get an idea of the breakdown between the tissue, different tissue samples in the stages of the cancer for each of the samples.
+[00:27:44.220 --> 00:27:48.640]   But we're really happy to see this, again, first time that we run this type of experiment.
+[00:27:48.640 --> 00:27:53.880]   So these are all going to be kind of firsts here, and this will continue, I think, as we get through the year,
+[00:27:53.880 --> 00:28:00.760]   as we do more firsts with different applications and expand on this with some of our early access partners.
+[00:28:00.760 --> 00:28:04.040]   So pivoting now to SBX Simplex.
+[00:28:04.040 --> 00:28:08.260]   So SBX-S, as we call it, are going to be reads less than 500.
+[00:28:08.260 --> 00:28:09.820]   It's a little definitional thing here.
+[00:28:09.820 --> 00:28:13.500]   SBX-SL are going to be reads that are longer than 500.
+[00:28:13.500 --> 00:28:15.880]   We kind of put that as the limiter here.
+[00:28:15.880 --> 00:28:21.000]   So we're going to talk a little bit about the both, but I think mostly about the SL applications.
+[00:28:21.000 --> 00:28:23.840]   So on the right, it's pretty much as we said.
+[00:28:23.840 --> 00:28:25.520]   It's not that duplex read structure.
+[00:28:25.520 --> 00:28:30.820]   It's that Simplex, single read through, higher throughput with the potential to do longer reads.
+[00:28:30.820 --> 00:28:36.780]   And this is helpful for, say, RNA isoform analysis, which is something that we're not going to talk about here.
+[00:28:36.780 --> 00:28:40.400]   We did last time Aziz Alkafaji talked about it at AGBT.
+[00:28:40.540 --> 00:28:44.120]   And I'm sure in the coming months we'll talk a lot more about some of that work.
+[00:28:44.120 --> 00:28:52.560]   But you can imagine doing probe-based, like 10xFlex applications for this approach, as well as some of the RNA isoform stuff.
+[00:28:52.560 --> 00:28:57.900]   And so I'll just show a summary here of kind of a throughput summary that I showed before on the left.
+[00:28:58.260 --> 00:29:05.740]   You get an idea of the output of 10xFlex reads in a one-hour sequencing run of about 14 billion reads.
+[00:29:05.740 --> 00:29:14.060]   And that's 14 billion reads that are what we call CellRanger valid reads, which are valid barcode, high-confidence maps.
+[00:29:14.180 --> 00:29:20.440]   So it was actually over 20 billion reads total, but we're really strict on how many we actually brought into CellRanger.
+[00:29:20.440 --> 00:29:24.220]   And so about 14 billion reads in one hour of sequencing.
+[00:29:24.220 --> 00:29:27.820]   On the right is a 10x5' mRNA run.
+[00:29:27.820 --> 00:29:37.740]   You get the extreme other side of the equation here, where you look at, for all reads, about 4 billion in an hour, 500 base pair average read length.
+[00:29:37.740 --> 00:29:44.260]   So you can get the idea of where we're going in terms, directionally, in terms of the length and yield for the longer read side.
+[00:29:44.260 --> 00:29:46.540]   And this has actually improved quite a bit since then.
+[00:29:46.540 --> 00:29:53.580]   Okay, so that's all I'll cover on RNA, but we're actually going to go do a lot more in the coming months on the RNA applications.
+[00:29:53.580 --> 00:30:01.120]   So, but expanding on the simplex side for phasing, for genomic DNA phasing applications,
+[00:30:01.120 --> 00:30:03.580]   was something that we were interested in doing for a long time.
+[00:30:03.680 --> 00:30:08.300]   Now we're taking this as an opportunity to kind of keep pushing on that workflow.
+[00:30:08.300 --> 00:30:09.700]   Looks pretty similar.
+[00:30:09.700 --> 00:30:12.900]   Y adapter ligation, pretty straightforward.
+[00:30:12.900 --> 00:30:20.460]   But now using the linear amplification, which, again, has the advantage of being able to drop straight in to expandimer synthesis.
+[00:30:20.460 --> 00:30:21.960]   It's already strand enriched.
+[00:30:21.960 --> 00:30:26.740]   That's our first step in library prep, or last step in library preparation, is that strand enrichment.
+[00:30:26.740 --> 00:30:30.000]   These can drop straight in to SBX directly.
+[00:30:30.780 --> 00:30:34.920]   Very good quality, again, homopolymer advantage there as well.
+[00:30:34.920 --> 00:30:37.840]   So, this is the workflow we've been working on.
+[00:30:37.840 --> 00:30:42.060]   Let's get through these, sorry.
+[00:30:42.060 --> 00:30:47.740]   Okay, on the left, when we're thinking about variable number tandem repeats of variant culling,
+[00:30:47.740 --> 00:30:49.180]   on the left kind of tells the picture.
+[00:30:49.180 --> 00:30:56.720]   If you're expanding to VNTRs of 200 or 800 in length, obviously they're just not going to be captured,
+[00:30:56.720 --> 00:30:58.280]   not going to be able to resolve those.
+[00:30:58.660 --> 00:31:03.100]   On the right, it gives you an idea of what you can do with 1,000 more SBX reads,
+[00:31:03.100 --> 00:31:07.960]   especially if you can get a billion of them in one hour of sequencing at 1,000 base length,
+[00:31:07.960 --> 00:31:11.880]   and the proportion of VNTRs that you can actually detect there.
+[00:31:11.880 --> 00:31:19.800]   And this is a specific result from HG002, genotyping concordance, kind of benchmarking run.
+[00:31:19.800 --> 00:31:22.020]   On the right, it actually gives the numbers that we got.
+[00:31:22.140 --> 00:31:27.480]   Again, this is a one-hour sequencing run, billion reads, average read length almost 1,000,
+[00:31:27.480 --> 00:31:32.380]   so almost a terabase of sequence of just those length in one hour sequencing.
+[00:31:32.380 --> 00:31:33.900]   So, there's a lot of power there.
+[00:31:33.900 --> 00:31:38.500]   Obviously, we're going to keep pushing the length up beyond the 1,000, go to 1,500,
+[00:31:38.500 --> 00:31:42.140]   be able to get better phasing as you get longer.
+[00:31:42.500 --> 00:31:45.600]   But this is all pretty new stuff that we've just only started working on.
+[00:31:45.600 --> 00:31:51.480]   On the left, you can get the idea of the alleles that cannot be phased with shorter read,
+[00:31:51.480 --> 00:31:54.760]   and that's SBXD, that's Lumina, that's any of the shorter read approaches.
+[00:31:54.760 --> 00:31:58.500]   You wouldn't be able to phase those various alleles shown there.
+[00:31:58.760 --> 00:32:05.280]   But on the right, you see SBXSL that would be able to, the C and the T alleles would be detected in phase
+[00:32:05.280 --> 00:32:07.300]   while the G allele is out of phase.
+[00:32:07.300 --> 00:32:09.760]   So, it just kind of frames the picture there.
+[00:32:09.760 --> 00:32:18.060]   Again, another way of looking at it, in terms of F1 score, the dark green being the 800 base and greater reads,
+[00:32:18.060 --> 00:32:24.820]   what that looks like across the maximum distance between consecutive HET variant number there.
+[00:32:24.820 --> 00:32:31.900]   So, quite a dramatic difference between the SBXSL and what would be the shorter SBXD reads
+[00:32:31.900 --> 00:32:35.120]   or Lumina or any other technologies on the shorter read side.
+[00:32:35.120 --> 00:32:42.140]   Okay, and this is just one last thing on this, which was a pathogenic compound heterozygous variant
+[00:32:42.140 --> 00:32:48.300]   from a sample that was affected with hyperphenylalanemia, easier to say.
+[00:32:49.800 --> 00:32:56.340]   And we were able to correctly detect with SBXSL, but not with Lumina or SBXD, for that matter,
+[00:32:56.340 --> 00:33:01.220]   be able to actually correct this heterozygous variant in this particular sample.
+[00:33:01.220 --> 00:33:07.620]   Again, similar read throughput here, billion reads in one hour of sequencing.
+[00:33:08.880 --> 00:33:11.340]   Okay, so, summary, really quick.
+[00:33:11.340 --> 00:33:13.400]   So, we covered the SBXFAST.
+[00:33:13.400 --> 00:33:17.420]   We're now sub-five hours from sample all the way through sequencing.
+[00:33:17.420 --> 00:33:26.260]   We've now started to work through FFPE, MRD workflows, and are expanding our work on longer reads, simplex,
+[00:33:26.260 --> 00:33:27.960]   and we'll continue to do all of these.
+[00:33:27.960 --> 00:33:32.220]   A lot of these are firsts, which is why it's exciting to come and talk about this stuff.
+[00:33:32.220 --> 00:33:33.840]   And Jagdish is right back there.
+[00:33:33.840 --> 00:33:35.120]   His team, he's smiling.
+[00:33:35.120 --> 00:33:35.900]   He's the guy right there.
+[00:33:35.900 --> 00:33:36.480]   Yeah?
+[00:33:36.480 --> 00:33:37.800]   Yeah, wave your hand, Jagdish.
+[00:33:37.880 --> 00:33:38.160]   It's okay.
+[00:33:38.160 --> 00:33:38.800]   Yeah, there you go.
+[00:33:38.800 --> 00:33:43.780]   Anyway, his team's doing a lot of the work on the chemistry side to pull all this stuff together.
+[00:33:43.780 --> 00:33:51.420]   And it's, you know, I think throughout the year, we're going to continue to do a lot more of these kind of application developments.
+[00:33:51.420 --> 00:33:59.080]   So, in terms of the future, there are more buttons to push on the technology than we can actually push at any given time to optimize the measurement.
+[00:33:59.080 --> 00:34:01.060]   So, there's a lot to do.
+[00:34:01.060 --> 00:34:05.520]   We will continue to relentlessly do that into the future.
+[00:34:05.520 --> 00:34:08.040]   That's the nature of this approach.
+[00:34:08.040 --> 00:34:12.740]   This technology is still very early in our understanding of how to utilize SBX.
+[00:34:12.740 --> 00:34:24.920]   And so, we'll continue to hit on all of these fundamental optimizations here as we embark on the next step of SBX as we get towards launching in 26.
+[00:34:25.980 --> 00:34:27.020]   So, a lot of things there.
+[00:34:27.020 --> 00:34:40.420]   And I know this will probably could come up in some of the questions, but next steps for us, we'll be showing target enrichment, some methylation work, and a range of other different application areas that are very interesting to us.
+[00:34:40.540 --> 00:34:44.780]   So, continuing to work on this, and excited for the next steps.
+[00:34:44.780 --> 00:34:46.440]   And I thank you.
+[00:34:46.440 --> 00:34:47.540]   Thank you.
+[00:34:47.540 --> 00:34:48.120]   Thank you.
+Transcription complete. Output saved to 'eshg-2025-workshop-mark-kokoris-mc--17411.txt'
+Removing intermediate audio file...
+Done.
