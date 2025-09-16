@@ -10,7 +10,7 @@ from loguru import logger
 INPUT_CSV_PATH = "df_with_ai_annotations.csv"
 CANDIDATE_PROFILE_PATH = "candidate_profile.txt"
 OUTPUT_CSV_PATH = "df_with_candidate_match.csv"
-MAX_WORD_LIMIT = 15000  # The maximum number of words per API request
+MAX_WORD_LIMIT = 5000  # The maximum number of words per API request
 SEPARATOR = "\n\n---\n\n"
 MODEL_NAME = "gemini-1.5-flash" # Or another suitable model like "gemini-pro"
 
