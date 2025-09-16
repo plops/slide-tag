@@ -38,9 +38,17 @@ This blog post provides an initial analysis of Roche's new short-read sequencing
 *   **GATK (Genome Analysis Toolkit):** A widely used set of software tools for analyzing high-throughput sequencing data, with a focus on variant discovery.
 *   **Homopolymer Run:** A sequence of three or more identical consecutive nucleotide bases in a DNA sequence.
 
+# Sequencing by Expansion (SBX) webinar [5]
+
+# eshg-2025-workshop-mark-kokoris [6]
+
+# sean-hofherr-eshg-2025-workshop-mc [7]
 
 # References
 - 1 https://www.roche.com/media/releases/med-cor-2025-02-20
 - 2 https://www.roche.com/investors/events/roche-virtual-event-on-the-sbx-technology
 - 3 https://sequencing.roche.com/us/en/article-listing/sequencing-platform-technologies.html
 - 4 https://lh3.github.io/2025/09/11/a-quick-look-at-roches-sbx 11 September 2025
+- 5 https://sequencing.roche.com/us/en/videos/webinar-sequencing-by-expansion-technology.html Sequencing by Expansion (SBX) webinar September 10, 2025
+- 6 https://roche.scene7.com/is/content/RocheDiaProd/eshg-2025-workshop-mark-kokoris-mc--17411
+- 7 https://roche.scene7.com/is/content/RocheDiaProd/sean-hofherr-eshg-2025-workshop-mc--17449
