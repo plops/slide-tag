@@ -23,7 +23,7 @@ Roche has unveiled its breakthrough Sequencing by Expansion (SBX) technology, in
 *   *Origin of SBX:* The chemistry was invented by Mark Kokoris and Robert McRuer, co-founders of Stratos Genomics, which Roche acquired in 2020.
 *   *Complementary Portfolio:* Roche's existing sequencing portfolio includes KAPA sample preparation products and the AVENIO Edge system for automation, along with AVENIO assays for oncology, which play a significant role in the sequencing ecosystem.
 
-# A First Look at Roche's SBX Sequencing Technology [4] (Harvard, h-index 81)
+# A First Look at Roche's SBX Sequencing Technology [4] (Harvard, h-index 81, was Broad Institute in 2009)
 
 This blog post provides an initial analysis of Roche's new short-read sequencing technology, Sequencing by Expansion (SBX), based on a recently released public dataset. The author, Heng Li, examines the characteristics of the duplex SBX (SBX-D) data, noting its single-end reads of approximately 241bp. A key observation is the basecaller's method of assigning quality scores, which leads to 1bp insertions as the primary error type. While the empirical base quality is comparable to Illumina's NovaSeq, the author questions the decision to favor the longer strand in case of disagreements, as it may pose challenges for existing analysis tools. The post suggests alternative base-calling strategies that could make the data more compatible with current bioinformatics pipelines. Ultimately, the author concludes that the adoption of SBX will heavily depend on its pricing relative to established technologies.
 
