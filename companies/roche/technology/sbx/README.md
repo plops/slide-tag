@@ -125,6 +125,40 @@ This presentation provides a comprehensive update on a novel single-molecule seq
 
 # sean-hofherr-eshg-2025-workshop-mc [7]
 
+**Abstract**
+
+This presentation details the collaboration between Broad Clinical Labs and Roche to transition a novel, high-speed, high-accuracy Nanopore and Expandimer sequencing technology from a proof-of-principle concept to a practical clinical tool. The primary application explored is rapid whole-genome sequencing for trio testing (mother, father, and infant) in the neonatal intensive care unit (NICU). The speaker highlights the significant reduction in sequencing time, achieving results for three genomes in just over seven hours, a critical advancement for diagnosing acutely ill newborns where time is of the essence. The technology has successfully identified a wide range of pathogenic variants, including small nucleotide variants, indels, large copy number events, and repeat expansions, in patient cell lines. Furthermore, the data generated is compatible with existing tertiary analysis software, demonstrating a viable workflow from sequencing to a potential clinical report. The ongoing collaboration aims to further optimize, automate, and validate this end-to-end workflow to implement one-day, one-shift rapid genome analysis for patient care.
+
+**From Concept to Clinic: Rapid Trio-Genomic Sequencing**
+
+*   **0:26 A Mission to Translate Technology:** The Broad Institute's Clinical Labs focuses on applying large-scale genomic technology to solve clinical problems, working with a diverse range of partners from research to clinical translation.
+*   **1:51 Platform Agnostic Sequencing Powerhouse:** The lab is equipped with a massive fleet of sequencers, including NovaSeq X Pluses, Ultima systems, and PacBio Revios, positioning it as a proving ground for new technologies.
+*   **3:31 Targeting a Critical Need:** The collaboration with Roche focuses on rapid genome sequencing for newborns in the NICU. Early diagnosis in these cases can significantly reduce the burden on patients, families, and the healthcare system.
+*   **4:57 Redefining "Rapid" Testing:** While current "rapid" testing can take from 72 hours to a week, the goal is to provide diagnoses faster, as every hour matters for critically ill infants.
+*   **5:49 Initial Success and Impressive Speed:** Early test runs of the Roche system sequenced three samples in 12 hours and 10 minutes. Subsequent optimizations dramatically reduced this time, achieving a single genome sequence in as little as four hours and 25 minutes.
+*   **8:15 Focusing on Clinical Reality:** The ultimate goal is a production-level workflow. The most clinically useful application is seen as trio testing (mother, father, and child) to determine if a variant is newly acquired or inherited.
+*   **9:26 Breakthrough in Trio Sequencing:** The team successfully sequenced three whole genomes simultaneously in seven hours and eight minutes, consistently achieving over 30x coverage.
+*   **9:50 Validated Diagnostic Accuracy:** Testing on patient cell lines with known conditions (like inborn errors of metabolism, cystic fibrosis, and muscular dystrophy) confirmed the system's ability to detect a wide array of causative variants, including single nucleotide variants, deletions, complex indels, copy number events, and repeat expansions.
+*   **12:28 Seamless Software Integration:** Data from the new sequencer was successfully loaded into the Fabric Genomics tertiary analysis platform, which is the same system Broad Clinical Labs uses for its standard clinical work. This test demonstrated that causative variants could be prioritized correctly without any special adjustments to the software.
+*   **14:11 Future Goals:** The collaboration is now focused on further optimizing bioinformatics, streamlining the workflow through automation, validating performance across various tertiary analysis platforms, and ultimately, implementing the technology for real-world patient care to achieve a one-day, one-shift turnaround for rapid genome results.
+
+**Glossary**
+
+*   **Copy Number Event (CNV):** A type of genetic variation where a segment of DNA is present in a different number of copies than the standard two (one from each parent).
+*   **CV (Curriculum Vitae):** A detailed document highlighting a person's professional and academic history.
+*   **De Novo Variant:** A genetic alteration that is present for the first time in one family member as a result of a mutation in a germ cell (egg or sperm) of one of the parents or in the fertilized egg itself.
+*   **Heterozygous:** Having two different alleles (variants) for a particular gene.
+*   **Homozygous:** Having two identical alleles for a particular gene.
+*   **Homopolymers:** A stretch of DNA consisting of repeated instances of the same nucleotide (e.g., AAAAAA).
+*   **IGV (Integrative Genomics Viewer):** A high-performance visualization tool for exploring large, integrated genomic datasets.
+*   **Indels:** A type of genetic variation that involves the insertion or deletion of nucleotides in the DNA sequence.
+*   **NICU (Neonatal Intensive Care Unit):** A specialized hospital unit that provides intensive care for ill or premature newborn infants.
+*   **Proband:** The first person in a family to receive genetic counseling or testing for a suspected hereditary condition.
+*   **Repeat Expansion:** A type of mutation where a specific short sequence of DNA is repeated multiple times in a row.
+*   **SMVs (Small Nucleotide Variants):** Changes to a single nucleotide in the DNA sequence.
+*   **Tertiary Analysis:** The process of interpreting the clinical significance of genetic variants found during sequencing, often involving software to filter and prioritize variants based on medical literature, population data, and predictive algorithms.
+*   **VCF (Variant Call Format):** A standard text file format for storing gene sequence variations.
+
 # References
 - 1 https://www.roche.com/media/releases/med-cor-2025-02-20
 - 2 https://www.roche.com/investors/events/roche-virtual-event-on-the-sbx-technology
