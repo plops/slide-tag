@@ -40,6 +40,49 @@ This blog post provides an initial analysis of Roche's new short-read sequencing
 
 # Sequencing by Expansion (SBX) webinar [5]
 
+**Abstract:**
+
+This webinar introduces Roche's innovative Sequencing by Expansion (SBX) technology, a novel approach designed to overcome the limitations of direct DNA sequencing. The core of SBX is a biochemical process that converts a DNA molecule into an "expandimer," a larger surrogate molecule. This expanded structure allows for more accurate and efficient reading as it passes through a nanopore. The presentation details the complex chemistry involved, including specially engineered expandable nucleotides (XNTPs) and a modified polymerase called an XP synthase. The system utilizes a two-instrument setup for synthesis and sequencing, featuring a reusable high-throughput sensor array with 8 million pores.
+
+Key performance data is presented, showcasing high accuracy (Q39 for duplex sequencing), massive throughput (over 5 billion duplex reads in one hour), and flexible read lengths. The webinar highlights two main sequencing approaches: high-accuracy duplex sequencing for applications like oncology and rapid whole genome sequencing, and high-throughput simplex sequencing for RNA and single-cell applications. Results from early access collaborations with the Hartwig Medical Foundation and the Broad Institute are shared, demonstrating the technology's potential in clinical research, including a sample-to-VCF time of under seven hours. The presentation also covers the data analysis pipeline, which is designed to handle the high data output in real-time. Finally, Roche outlines its commercialization strategy, with plans for a broader launch in 2026.
+
+### **Roche's Sequencing by Expansion (SBX) Technology: A Breakthrough in Genomic Analysis**
+
+*   **0:00:00 Introduction to Roche and the New Technology:** The webinar begins with a welcome and an overview of Roche's commitment to innovation in diagnostics. It sets the stage for the introduction of their new sequencing platform.
+*   **0:03:22 The Inventor and the Core Concept:** Mark Kakoris, the inventor, is introduced. The fundamental idea behind SBX is to address the challenge of accurately reading DNA bases as they pass through a nanopore at high speed by first converting the DNA into a larger, expanded molecule called an "expandimer."
+*   **0:05:15 Key Features of SBX Technology:** The technology is designed for flexibility, performance, and scalability. It aims to provide high accuracy, throughput, and variable read lengths while being cost-efficient.
+*   **0:08:03 The Two-Instrument System:** The SBX system consists of two separate instruments: one for the SBX chemistry (synthesis) and another for the actual sequencing, which allows for greater flexibility in workflow.
+*   **0:09:39 The "Expandimer": Not Sequencing DNA Directly:** The core of the technology is to not sequence DNA directly but to convert it into an "expandimer." This is a biochemical process that rescales the signal-to-noise challenges of direct DNA measurement.
+*   **0:11:08 The Chemistry Behind Expansion:** This involves expandable nucleotide triphosphates (XNTPs), which have a tether attached. After incorporation by a specially engineered polymerase, this structure can be cleaved and expanded, replacing the original nucleotide with a new reporter code.
+*   **0:13:45 The Engineered "XP Synthase":** A standard polymerase cannot handle the modified nucleotides. Roche has engineered a new enzyme, the "XP synthase," which is specifically designed to work with XNTPs.
+*   **0:17:20 Controlled Movement Through the Nanopore:** A "translocation control element" is engineered into the expandimer. This allows the system to pause the molecule's movement and advance it one reporter code at a time using voltage pulses, ensuring a clean and reproducible signal.
+*   **0:19:17 High-Density Sequencing Chip:** The technology utilizes a high-throughput sensor array with 8 million nanopores on a reusable chip, enabling massively parallel sequencing.
+*   **0:24:26 Duplex vs. Simplex Sequencing:**
+    *   **Duplex Sequencing:** Reads both parent strands of a DNA molecule, which are linked together on the same expandimer. This allows for intramolecular consensus, leading to extremely high accuracy (Q39) and is ideal for applications like somatic oncology.
+    *   **Simplex Sequencing:** Reads a single strand, offering very high throughput for applications like RNA sequencing and single-cell analysis.
+*   **0:26:16 Impressive Throughput and Accuracy:** In a one-hour run, the system generated 5.3 billion duplex reads, achieving over 30x coverage for seven human genomes with high F1 scores for variant calling.
+*   **0:27:38 Early Access Collaborations:** Roche is working with the Hartwig Medical Foundation and the Broad Institute to test and validate the technology in real-world clinical research settings.
+*   **0:31:19 The "SBXFAST" Protocol:** An amplification-free workflow that allows for a sample to be taken to variant call format (VCF) in approximately 5.5 hours. A demonstration at the Broad Institute achieved this in 6 hours and 25 minutes with just 20 minutes of sequencing.
+*   **0:53:17 Real-Time Data Analysis:** The system is designed for accelerated local data processing to handle the massive data output (over 500 million bases per second for simplex reads). Base calling is done in real-time, with subsequent analysis steps also highly accelerated.
+*   **0:57:46 High-Throughput Simplex Applications:** For RNA applications, the system can generate nearly 14 billion reads in one hour. It can also produce over 200 million reads longer than 1,000 bases in an hour for long-read applications.
+*   **1:16:02 Commercialization Roadmap:** Roche plans to continue its early access program in 2025 and is targeting a commercial launch of the RUO (Research Use Only) product in 2026, with a future vision for clinical applications.
+
+### **Glossary of Technical Terms**
+
+*   **Sequencing by Expansion (SBX):** Roche's novel sequencing technology that involves biochemically converting a DNA molecule into a larger surrogate molecule (an expandimer) before sequencing.
+*   **Expandimer:** The expanded surrogate molecule created from DNA. Its larger size makes it easier to read accurately as it passes through a nanopore.
+*   **XNTP (eXpandable Nucleotide Triphosphate):** A modified nucleotide with a tether and reporter code attached. These are the building blocks used to create the expandimer.
+*   **XP Synthase:** A specially engineered DNA polymerase designed to incorporate the bulky XNTPs into a growing strand, which a normal polymerase cannot do.
+*   **Nanopore:** A tiny hole, typically in a membrane, through which the expandimer molecule is passed. Changes in the ionic current as the molecule moves through the pore are measured to determine the sequence.
+*   **Duplex Sequencing:** A method where both strands of the original double-stranded DNA molecule are read. This allows for a consensus to be built, significantly increasing the accuracy of the final sequence.
+*   **Simplex Sequencing:** A method where only a single strand of the DNA (or an RNA molecule) is sequenced. This approach maximizes throughput.
+*   **VCF (Variant Call Format):** A standard text file format for storing gene sequence variations. The time it takes to go from a biological sample to a VCF file is a key benchmark for sequencing speed.
+*   **F1 Score:** A measure of a test's accuracy. It considers both the precision and the recall of the test to compute the score. In this context, it is used to evaluate the accuracy of calling genetic variants.
+*   **Throughput:** The amount of sequencing data that can be generated in a given amount of time.
+*   **Read Length:** The length of the continuous sequence of bases that can be read from a single DNA molecule.
+*   **Q-Score (Phred Quality Score):** A measure of the quality of the identification of the nucleobases generated by automated DNA sequencing. A Q-score of 30 (Q30) corresponds to a 1 in 1,000 chance of an incorrect base call (99.9% accuracy), while Q39 corresponds to higher accuracy.
+
+
 # eshg-2025-workshop-mark-kokoris [6]
 
 # sean-hofherr-eshg-2025-workshop-mc [7]
