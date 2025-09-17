@@ -23,9 +23,9 @@ Roche has unveiled its breakthrough Sequencing by Expansion (SBX) technology, in
 *   *Origin of SBX:* The chemistry was invented by Mark Kokoris and Robert McRuer, co-founders of Stratos Genomics, which Roche acquired in 2020.
 *   *Complementary Portfolio:* Roche's existing sequencing portfolio includes KAPA sample preparation products and the AVENIO Edge system for automation, along with AVENIO assays for oncology, which play a significant role in the sequencing ecosystem.
 
-# A First Look at Roche's SBX Sequencing Technology [4] (Harvard, h-index 81, was Broad Institute in 2009)
+# A First Look at Roche's SBX Sequencing Technology [4] (Harvard, h-index 81, was at Broad Institute in 2009)
 
-This blog post provides an initial analysis of Roche's new short-read sequencing technology, Sequencing by Expansion (SBX), based on a recently released public dataset. The author, Heng Li, examines the characteristics of the duplex SBX (SBX-D) data, noting its single-end reads of approximately 241bp. A key observation is the basecaller's method of assigning quality scores, which leads to 1bp insertions as the primary error type. While the empirical base quality is comparable to Illumina's NovaSeq, the author questions the decision to favor the longer strand in case of disagreements, as it may pose challenges for existing analysis tools. The post suggests alternative base-calling strategies that could make the data more compatible with current bioinformatics pipelines. Ultimately, the author concludes that the adoption of SBX will heavily depend on its pricing relative to established technologies.
+This blog post provides an initial analysis of Roche's new short-read sequencing technology, Sequencing by Expansion (SBX), based on a recently released public dataset [8]. The author, Heng Li, examines the characteristics of the duplex SBX (SBX-D) data, noting its single-end reads of approximately 241bp. A key observation is the basecaller's method of assigning quality scores, which leads to 1bp insertions as the primary error type. While the empirical base quality is comparable to Illumina's NovaSeq, the author questions the decision to favor the longer strand in case of disagreements, as it may pose challenges for existing analysis tools. The post suggests alternative base-calling strategies that could make the data more compatible with current bioinformatics pipelines. Ultimately, the author concludes that the adoption of SBX will heavily depend on its pricing relative to established technologies.
 
 *   **Introduction to SBX:** Roche has introduced a new short-read sequencing technology called Sequencing by Expansion (SBX). A public dataset from duplex SBX (SBX-D) was recently released.
 *   **Data Characteristics:** The initial public data consists of single-end reads with an average length of about 241 base pairs. Over 95% of these reads are longer than 150bp.
@@ -167,6 +167,28 @@ This presentation details the collaboration between Broad Clinical Labs and Roch
 *   **Tertiary Analysis:** The process of interpreting the clinical significance of genetic variants found during sequencing, often involving software to filter and prioritize variants based on medical literature, population data, and predictive algorithms.
 *   **VCF (Variant Call Format):** A standard text file format for storing gene sequence variations.
 
+# Introducing Roche Sequencing by Expansion (SBX) Technology [9] (Amazing visualization of the Expandomere function)
+
+
+*Abstract:*
+
+This video explains Roche's innovative Sequencing by Expansion (SBX) technology, a method designed to overcome the physical limitations of resolving closely spaced DNA bases. The technology synthesizes a surrogate molecule, called an "expander," which is over 50 times longer than the original DNA template. This is achieved using novel nucleotides (xNTPs), each carrying a large, high-signal "reporter" that corresponds to one of the four DNA bases. After synthesis, the expander is threaded through a biological nanopore. A Translocation Control Element (TCE) within each reporter momentarily holds it in the pore, generating a distinct electrical signal that identifies the base. A voltage pulse then advances the expander to the next reporter. This process is massively parallelized on a CMOS sensor, enabling extremely high, real-time sequencing rates.
+
+*Roche's Sequencing by Expansion (SBX): A Nanopore-Based Approach*
+
+*   *0:00:06 The Fundamental Challenge:* DNA bases are separated by only 3.4 angstroms, a distance too small for many sequencing methods to resolve easily.
+*   *0:00:16 The SBX Solution:* Sequencing by Expansion (SBX) technology creates a physically expanded surrogate molecule, the "expander," which is over 50 times longer than the target DNA, making it much easier to read.
+*   *0:00:38 Novel Building Blocks (xNTPs):* The expander is built from four types of novel nucleotides called xNTPs (A, C, G, and T).
+*   *0:00:46 Expander Synthesis:* Using a modified DNA replication process, xNTPs are linked sequentially along the target DNA template, creating a new molecule that encodes the original DNA sequence information into its structure.
+*   *0:01:04 High-Signal Reporters:* Each xNTP contains a large, high signal-to-noise "reporter" molecule attached via a tether. The identity of the reporter mirrors the identity of the DNA base it represents.
+*   *0:01:20 Translocation Control Element (TCE):* Located in the center of each reporter, the TCE is a key component that precisely modulates the expander's movement through the nanopore during the sequencing phase.
+*   *0:01:55 Creating the Expander:* After synthesis, a reagent degrades the original DNA template and cleaves a bond in the xNTP backbone, allowing the molecule to physically expand.
+*   *0:02:11 Electrical Reading via Nanopore:* The expander is threaded through a biological nanopore. The TCE holds each reporter in the pore, altering the electrical resistance to generate one of four unique signals that identifies the corresponding DNA base.
+*   *0:02:37 Step-Wise Advancement:* After a base is read, a short, high-voltage pulse is applied to reliably advance the expander to the next reporter for measurement.
+*   *0:02:46 Massive Parallelization and Speed:* This process is performed simultaneously across millions of wells on a single CMOS-based sensor, achieving remarkable real-time sequencing rates of hundreds of millions of bases per second.
+
+
+
 # References
 - 1 https://www.roche.com/media/releases/med-cor-2025-02-20
 - 2 https://www.roche.com/investors/events/roche-virtual-event-on-the-sbx-technology
@@ -175,3 +197,5 @@ This presentation details the collaboration between Broad Clinical Labs and Roch
 - 5 https://sequencing.roche.com/us/en/videos/webinar-sequencing-by-expansion-technology.html Sequencing by Expansion (SBX) webinar September 10, 2025
 - 6 https://roche.scene7.com/is/content/RocheDiaProd/eshg-2025-workshop-mark-kokoris-mc--17411
 - 7 https://roche.scene7.com/is/content/RocheDiaProd/sean-hofherr-eshg-2025-workshop-mc--17449
+- 8 https://sequencing.roche.com/global/en/events/sbx-d-data-analysis-webinar.html
+- 9 Introducing Roche Sequencing by Expansion (SBX) Technology https://www.youtube.com/watch?v=G8ECt04qPos
