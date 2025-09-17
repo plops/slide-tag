@@ -187,6 +187,24 @@ This video explains Roche's innovative Sequencing by Expansion (SBX) technology,
 *   *0:02:37 Step-Wise Advancement:* After a base is read, a short, high-voltage pulse is applied to reliably advance the expander to the next reporter for measurement.
 *   *0:02:46 Massive Parallelization and Speed:* This process is performed simultaneously across millions of wells on a single CMOS-based sensor, achieving remarkable real-time sequencing rates of hundreds of millions of bases per second.
 
+# Roche SBX Sequencing: Game-Changer or Just Hype? [10] (Short Review by independent Biologist)
+
+*Abstract:*
+
+This video provides a concise summary of RO's new sequencing technology, SPX (Sequencing by Expansion), based on the company's 82-minute webinar. The core of the technology involves synthesizing a stretchable, accordion-like DNA analog called an "expandimemer" and reading its sequence by threading it through a pore, similar to nanopore sequencing. Key differentiators are that SPX is a short-read technology and incorporates "translocation control elements" in the expandimemer's backbone to ensure controlled, base-by-base movement through the pore.
+
+The primary advantage of SPX is its exceptional speed, enabled by a high-density flow cell containing 8 million pores. This allows for generating 5 billion reads in just one hour and completing an entire workflow, from library preparation to variant calling, in under 6.5 hours. In terms of accuracy, SPX achieves Q39 scores and is reported to be roughly on par with Illumina for SNP and indel calling. While cost details are not yet available, the technology is expected to be competitive with existing platforms. The platform is anticipated to launch in 2026.
+
+*Key Takeaways on RO's SPX Sequencing Technology*
+
+*   *00:00:10 What is SPX?:* SPX stands for "Sequencing by Expansion." It works by creating a complimentary, stretchable DNA analog ("expandimemer") which is then threaded through a pore. The sequence is read by detecting changes in electrical current, a method similar to nanopore sequencing.
+*   *00:00:29 SPX vs. Nanopore:* While the detection method is similar, SPX differs significantly. It is a short-read technology (inserts in the low hundreds of base pairs) and features "translocation control elements" for a more controlled, paused movement between each base reading.
+*   *00:00:58 Main Advantage - Speed:* The technology is exceptionally fast. It can produce 5 billion reads in one hour (or 15 billion in four hours) and complete a full workflow from library prep to variant calling in under 6.5 hours.
+*   *00:01:16 High-Density Flow Cell:* Its speed is attributed to a flow cell with 8 million pores, which is orders of magnitude higher than the tens of thousands of pores found in the highest-throughput nanopore instruments.
+*   *00:01:28 High Accuracy:* SPX demonstrates high accuracy, achieving Q39 quality scores. For SNP and indel calling, its accuracy is in the 99% to 99.8% range, making it competitive with Illumina platforms.
+*   *00:01:53 Cost is Unknown:* RO has not yet announced pricing for the instrument or its reagents, but it is expected to be competitive with platforms like the Illumina NovaSeq on a cost-per-gigabyte basis.
+*   *00:02:24 A Key Limitation:* A current drawback is that the system cannot analyze native DNA or RNA directly. It requires the conversion of the sample into the synthetic "expandimemer" molecule first.
+*   *00:02:32 Expected Launch:* The SPX platform is scheduled for a commercial launch in 2026.
 
 
 # References
@@ -198,4 +216,5 @@ This video explains Roche's innovative Sequencing by Expansion (SBX) technology,
 - 6 https://roche.scene7.com/is/content/RocheDiaProd/eshg-2025-workshop-mark-kokoris-mc--17411
 - 7 https://roche.scene7.com/is/content/RocheDiaProd/sean-hofherr-eshg-2025-workshop-mc--17449
 - 8 https://sequencing.roche.com/global/en/events/sbx-d-data-analysis-webinar.html
-- 9 Introducing Roche Sequencing by Expansion (SBX) Technology https://www.youtube.com/watch?v=G8ECt04qPos
+- 9 Introducing Roche Sequencing by Expansion (SBX) Technology https://www.youtube.com/watch?v=G8ECt04qPos 20 February 2025
+- 10 Roche SBX Sequencing: Game-Changer or Just Hype? https://www.youtube.com/watch?v=rbIGMYfXjdo 26 Mar 2025
