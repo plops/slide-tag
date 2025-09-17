@@ -207,6 +207,55 @@ The primary advantage of SPX is its exceptional speed, enabled by a high-density
 *   *00:02:32 Expected Launch:* The SPX platform is scheduled for a commercial launch in 2026.
 
 
+# Roche Sequencing Solutions USA YouTube channel [11]
+
+Here is an overview of the videos from the Roche Sequencing Solutions USA YouTube channel, based on the provided summaries. The most recent video of this summary is from 2025-07 the oldest is from 2024-09.
+
+### Next-Generation Sequencing (NGS) Platforms & Technology
+
+*   **Stratos Genomics Sequencing by Expansion (SPX/SBX):** This single-molecule sequencing technology is highlighted for its high accuracy, speed, and flexibility.
+    *   **Rapid Turnaround:** The SPX Fast approach can go from a blood sample to a variant call file (VCF) in under 5 hours.
+    *   **High Performance:** It has achieved Q40 average base quality for Duplex sequencing and Q50 for Minimal Residual Disease (MRD) applications.
+    *   **Clinical & Research Applications:** The platform is being successfully evaluated for rapid Whole Genome Sequencing (WGS) in cancer diagnostics and for critically ill infants in the NICU. It has demonstrated excellent performance with challenging samples like FFPE tissue and for detecting various variant types, including SNVs, indels, CNVs, and repeat expansions.
+    *   **Multiomic & RNA Isoform Sequencing:** In collaboration with Broad Clinical Labs, the SPX platform has been used for high-scale multiomic (RNA and protein) drug response profiling, generating 80 billion reads in one experiment. It also enables ultra-high throughput RNA isoform sequencing, capable of resolving full-length isoforms and discovering novel ones.
+*   **Rapid Whole Genome Sequencing (rWGS) in the NICU:** Broad Clinical Labs showcases a collaboration with Roche to optimize rWGS for neonatal intensive care unit (NICU) patients.
+    *   **Transformative Speed:** The team achieved a patient-to-diagnosis time of just 6 hours and 25 minutes. Initial sequencing runs were completed in as little as 4 hours and 25 minutes for a single sample and 7 hours and 8 minutes for a clinical trio (proband and parents).
+    *   **Clinical Impact:** Rapid diagnosis in the NICU can significantly improve patient care, shorten hospital stays, and reduce healthcare costs. The platform's data integrates seamlessly with clinical analysis software, allowing for efficient variant prioritization.
+
+### Target Enrichment & Exome Sequencing
+
+*   **KAPA HyperExome Technology:** This technology for whole exome sequencing (WES) is presented as a cost-effective and efficient backbone for molecular genetics labs.
+    *   **Optimized Design:** It uses balanced capture oligos designed to cover disease-relevant regions from comprehensive databases, resulting in high on-target rates of over 80%.
+    *   **Versatile Application:** The technology has enabled labs to shift from traditional gene panels to using WES for creating flexible "virtual panels." Its even coverage also allows for robust copy number variant (CNV) detection, including single-exon deletions.
+*   **Kappa Hyper PET (Primer Extension Target Enrichment):** A novel technology that combines the high performance of hybrid capture with the speed and ease of amplicon-based workflows.
+    *   **Single-Day Workflow:** It enables an automatable, single-day process for detecting all major variant classes, including SNVs, indels, CNVs, MSI, and fusions.
+    *   **High Performance:** The technology demonstrates high on-target rates and superior coverage uniformity compared to other methods across various sample types like FFPE tissue, cell-free DNA, and RNA.
+*   **Single-Tube DNA & RNA Library Prep:** A workflow that simultaneously prepares DNA and RNA libraries from a single sample. This approach conserves precious samples (like tumor biopsies), reduces bias from tumor heterogeneity, and saves significant time, enabling more reliable paired genomic and transcriptomic profiling.
+
+### Automated Sample & Library Preparation (Avenio Edge System)
+
+*   **The Avenio Edge System** is a fully integrated, "walkaway" platform that automates the entire NGS workflow from DNA purification to library preparation, target enrichment, pooling, and quantification.
+    *   **Ease of Use:** It features an intuitive touchscreen interface, guided setup, and pre-packaged, barcoded reagents and consumables, which drastically reduces the potential for human error. An automated "load check" verifies that all components are placed correctly before a run begins.
+    *   **Efficiency and Throughput:** The system requires only about 20 minutes of manual setup, saving over 9 hours of hands-on time compared to manual prep. This has allowed labs to clear 14-month sample backlogs and operate nearly 24/7, significantly increasing capacity.
+    *   **Reliability and Confidence:** Described as "faultless," the system's reliability and robust sample/reagent tracking have given labs high confidence in processing precious, low-volume samples like circulating tumor DNA (ctDNA), where only a single library prep attempt is possible.
+    *   **Proven Success:** The Precision Medicine Centre was the first clinical research lab in the world to install the system, which was implemented and validated quickly, showing high concordance with results from manual preparation.
+
+### Digital PCR (dPCR) & qPCR
+
+*   **dPCR vs. qPCR:** A webinar explains the fundamental differences between the two technologies, positioning them as complementary. Digital PCR (dPCR) offers superior precision and absolute quantification without a standard curve, making it ideal for rare mutation detection and CNV analysis. Quantitative PCR (qPCR) provides higher throughput and a wider dynamic range, suiting it for high-volume applications.
+*   **Roche Digital Light Cycler (DLC) Applications:** The Roche DLC system is featured in advanced dPCR applications.
+    *   **DNA Methylation Analysis:** A dPCR-based method using methylation-sensitive enzymes is presented as a superior alternative to bisulfite treatment for analyzing DNA methylation.
+    *   **AML Monitoring:** GT Molecular introduces a multiplexed dPCR panel for the Roche DLC to monitor Acute Myeloid Leukemia (AML) by detecting key mutations from liquid biopsies.
+
+### Bioinformatics & Design Tools
+
+*   **RO HyperD Design Tool:** An online tool for creating custom target enrichment panels that is highlighted for being fast, robust, and easy to use, even for those with no prior panel design experience.
+    *   **First-Try Success:** Users report generating high-quality panels on the first attempt without needing further optimization, saving significant time and lab resources.
+    *   **New Features:** The tool now allows users to modify existing designs (custom, shared, or off-the-shelf) and to specifically target or avoid genetic variants.
+*   **Targeted Enrichment Bioinformatics Workflow:** A presentation details the comprehensive bioinformatics pipeline for analyzing whole-exome sequencing data, covering primary analysis (BCL to FASTQ), secondary analysis (alignment, variant calling with DeepVariant), and tertiary analysis (annotation and filtering).
+
+
+
 # References
 - 1 https://www.roche.com/media/releases/med-cor-2025-02-20
 - 2 https://www.roche.com/investors/events/roche-virtual-event-on-the-sbx-technology
@@ -218,3 +267,4 @@ The primary advantage of SPX is its exceptional speed, enabled by a high-density
 - 8 https://sequencing.roche.com/global/en/events/sbx-d-data-analysis-webinar.html
 - 9 Introducing Roche Sequencing by Expansion (SBX) Technology https://www.youtube.com/watch?v=G8ECt04qPos 20 February 2025
 - 10 Roche SBX Sequencing: Game-Changer or Just Hype? https://www.youtube.com/watch?v=rbIGMYfXjdo 26 Mar 2025
+- 11 https://www.youtube.com/@RocheSequencingUSA/videos
