@@ -217,7 +217,7 @@ Here is an overview of the videos from the Roche Sequencing Solutions USA YouTub
     *   **Rapid Turnaround:** The SPX Fast approach can go from a blood sample to a variant call file (VCF) in under 5 hours.
     *   **High Performance:** It has achieved Q40 average base quality for Duplex sequencing and Q50 for Minimal Residual Disease (MRD) applications.
     *   **Clinical & Research Applications:** The platform is being successfully evaluated for rapid Whole Genome Sequencing (WGS) in cancer diagnostics and for critically ill infants in the NICU. It has demonstrated excellent performance with challenging samples like FFPE tissue and for detecting various variant types, including SNVs, indels, CNVs, and repeat expansions.
-    *   **Multiomic & RNA Isoform Sequencing:** In collaboration with Broad Clinical Labs, the SPX platform has been used for high-scale multiomic (RNA and protein) drug response profiling, generating 80 billion reads in one experiment. It also enables ultra-high throughput RNA isoform sequencing, capable of resolving full-length isoforms and discovering novel ones.
+    *   **Multiomic & RNA Isoform Sequencing:** In collaboration with Broad Clinical Labs, the SPX platform has been used for high-scale multiomic (RNA and protein) drug response profiling, generating 80 billion reads [12] at 3:50 in one experiment. It also enables ultra-high throughput RNA isoform sequencing, capable of resolving full-length isoforms and discovering novel ones.
 *   **Rapid Whole Genome Sequencing (rWGS) in the NICU:** Broad Clinical Labs showcases a collaboration with Roche to optimize rWGS for neonatal intensive care unit (NICU) patients.
     *   **Transformative Speed:** The team achieved a patient-to-diagnosis time of just 6 hours and 25 minutes. Initial sequencing runs were completed in as little as 4 hours and 25 minutes for a single sample and 7 hours and 8 minutes for a clinical trio (proband and parents).
     *   **Clinical Impact:** Rapid diagnosis in the NICU can significantly improve patient care, shorten hospital stays, and reduce healthcare costs. The platform's data integrates seamlessly with clinical analysis software, allowing for efficient variant prioritization.
@@ -254,6 +254,24 @@ Here is an overview of the videos from the Roche Sequencing Solutions USA YouTub
     *   **New Features:** The tool now allows users to modify existing designs (custom, shared, or off-the-shelf) and to specifically target or avoid genetic variants.
 *   **Targeted Enrichment Bioinformatics Workflow:** A presentation details the comprehensive bioinformatics pipeline for analyzing whole-exome sequencing data, covering primary analysis (BCL to FASTQ), secondary analysis (alignment, variant calling with DeepVariant), and tertiary analysis (annotation and filtering).
 
+# Multiomic drug response profiling in highly multiplexed cancer lines | Dr.Aziz Al’Khafaji |AGBT 2025 [12]
+
+*Abstract:*
+
+This presentation by Aziz Alafage of Broad Clinical Labs details two ambitious projects leveraging Roche's new SPX sequencing platform. The primary focus is a large-scale, multiomic study aimed at understanding drug resistance mechanisms to KRAS inhibitors in cancer. Using a pool of 500 multiplexed PRISM cancer cell lines, the team simultaneously profiled single-cell RNA expression, protein expression for over 320 targets, and cell line identity. The experiment, which generated 80 billion reads, successfully linked drug sensitivity and resistance profiles to specific genetic mutations (e.g., KRAS and BRAF), highlighting the power of capturing both RNA and protein data, which are not always correlated. The second, smaller project demonstrates the SPX platform's capability for single-cell RNA isoform sequencing. By analyzing full-length cDNA, the team showed that the platform's longer read lengths (500-800 bp) significantly improve the ability to resolve full splice variants and even identify novel, unannotated isoforms.
+
+*Leveraging the SPX Platform for Drug Discovery and Isoform Sequencing*
+
+*   *00:00:26 Project Goals:* The presentation outlines two key projects utilizing Roche's new SPX platform: 1) a high-scale multiomic study of drug response in cancer cell lines, and 2) an evaluation of the platform for single-cell RNA isoform sequencing.
+*   *00:01:51 Multiomic Drug Response Study:* To understand resistance to KRAS inhibitors, researchers treated a pool of 500 unique, co-cultured PRISM cancer cell lines with two different inhibitors. They then performed single-cell analysis at 3 and 6 hours, plus a 5-day survival assay.
+*   *00:03:14 Simultaneous Data Capture:* The experiment captured three data types from each cell: its unique PRISM barcode (to identify the cell line), its full transcriptome (RNA), and the expression of over 320 proteins.
+*   *00:03:55 Massive Scale and High-Quality Data:* The sequencing run on the SPX platform produced 80 billion reads. The resulting data was of "phenomenal" quality, with high gene detection per cell and no detectable batch effects.
+*   *00:05:35 The Power of Multiomics:* The study underscores the importance of measuring both RNA and protein. While some genes show high correlation, others (like transcription factors) do not, meaning RNA is not always a reliable proxy for protein-level activity.
+*   *00:07:57 Linking Genetics to Drug Resistance:* The 5-day survival data allowed researchers to classify cell lines into four categories (e.g., sensitive to both drugs, resistant to both). These classifications correlated strongly with known genetic mutations; for example, cell lines with BRAF mutations were resistant, as expected.
+*   *00:10:05 RNA Isoform Sequencing:* The second project used the SPX platform to sequence full-length cDNA libraries to assess its ability to identify different RNA isoforms from single cells.
+*   *00:10:51 Longer Reads Improve Isoform Resolution:* The platform generated a high proportion of reads between 500-800 bp. Analysis showed a sharp increase in the ability to identify "full splice match" isoforms with these longer reads compared to shorter ones.
+*   *00:11:52 Discovery of Novel Isoforms:* The longer read lengths were able to span multiple exons, allowing researchers to not only resolve known isoforms but also discover new, previously unannotated splice variants.
+*   *00:12:34 Key Takeaway:* The speaker concludes that the Roche SPX platform is a "transformational technology" that enables a "paradigm shift" for complex applications like drug discovery and advanced RNA biology.
 
 
 # References
@@ -268,3 +286,4 @@ Here is an overview of the videos from the Roche Sequencing Solutions USA YouTub
 - 9 Introducing Roche Sequencing by Expansion (SBX) Technology https://www.youtube.com/watch?v=G8ECt04qPos 20 February 2025
 - 10 Roche SBX Sequencing: Game-Changer or Just Hype? https://www.youtube.com/watch?v=rbIGMYfXjdo 26 Mar 2025
 - 11 https://www.youtube.com/@RocheSequencingUSA/videos
+- 12 https://www.youtube.com/watch?v=mlysKhgeCac&t=194s At this point in the presentation, Aziz Alafage from Broad Clinical Labs discusses a multiomic single-cell profiling experiment where the SPX sequencing platform yielded 80 billion reads.
