@@ -127,7 +127,7 @@ def jobs_to_latex(
         # Define which columns to include and their display names
         metadata_map = {
             "Candidate Match Score": "candidate_match_score",
-            "New Job since 20250916 (1=Yes,0=No)": "new",
+            "New Job since 20251013 (1=Yes,0=No)": "new",
             "Slide-tag relevance": "slide_tag_relevance",
             "Worker type": "worker_type",
             "Sub category": "sub_category",

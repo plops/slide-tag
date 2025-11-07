@@ -10,7 +10,7 @@ from loguru import logger
 INPUT_CSV_PATH = "df_with_ai_annotations.csv"
 CANDIDATE_PROFILE_PATH = "/home/kiel/candidate_profile.md"
 OUTPUT_CSV_PATH = "df_with_candidate_match.csv"
-MAX_WORD_LIMIT = 5000  # The maximum number of words per API request
+MAX_WORD_LIMIT = 2000  # The maximum number of words per API request
 SEPARATOR = "\n\n---\n\n"
 MODEL_NAME = "gemini-flash-latest" # Or another suitable model like "gemini-pro"
 
@@ -92,6 +92,7 @@ def get_ai_match_rating(
 
     Please analyze each of the following job descriptions and provide a match score from 1 to 5,
     where 1 means a very poor match and 5 means an excellent match.
+    Don't exclude jobs because you consider the candidate overqualified; just rate the match based on skills and experience.
     The output must be a valid JSON object containing a list, where each item in the list
     corresponds to one of the job descriptions you analyzed.
 
