@@ -14,7 +14,6 @@ This project is a multi-step pipeline designed to scrape job postings from the R
 1.  **Install Dependencies:**
     ```bash
     uv sync
-    source .venv/bin/activate
     ```
 
 2.  **Set Environment Variable:**
@@ -49,29 +48,29 @@ Execute the scripts in numerical order. For scripts that accept file arguments, 
 
 ```bash
 # 1. Scrape job links
-python 01_main.py
+uv run 01_main.py
 
 # 2. Download job pages
-python 02_fetchlinks.py
+uv run 02_fetchlinks.py
 
 # 3. Extract JSON from HTML
 # (This script takes one file at a time, so a loop is needed)
-for f in jobs_html/*.html; do python 03_extract_job_info.py "$f"; done
+for f in jobs_html/*.html; do uv run 03_extract_job_info.py "$f"; done
 
 # 4. Populate the database from JSON files
-python 04_json_to_sqlite.py jobs_html/*.json
+uv run 04_json_to_sqlite.py jobs_html/*.json
 
 # 5. Filter and annotate jobs with AI
-python 05_db_filter.py
+uv run 05_db_filter.py
 
 # 5b. Match jobs to a candidate profile
-python 05b_match_candidate.py
+uv run 05b_match_candidate.py
 
 # 6. Generate Markdown report (optional)
-python 06_jobs_to_markdown.py
+uv run 06_jobs_to_markdown.py
 
 # 7. Generate LaTeX report
-python 07_jobs_to_latex.py
+uv run 07_jobs_to_latex.py
 
 # Compile the LaTeX report to PDF (requires a TeX distribution like TeX Live)
 pdflatex high_score_jobs.tex
