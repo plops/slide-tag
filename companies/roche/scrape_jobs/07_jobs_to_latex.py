@@ -119,7 +119,8 @@ def jobs_to_latex(
         # 1. Header with Title and linked Job ID
         header = (
             f"\\section*{{{escape_latex(title)} \\quad "
-            f"(\\href{{{apply_url}}}{{Job ID: {escape_latex(job_id)}}} {'(New)' if new == 1 else ''})}}"
+            #f"(\\href{{{apply_url}}}{{Job ID: {escape_latex(job_id)}}} {'(New)' if new == 1 else ''})}}"
+            f"(\\href{{{apply_url}}}{{Job ID: {escape_latex(job_id)}}})}}"
         )
         current_job_lines.append(header)
 
@@ -127,7 +128,7 @@ def jobs_to_latex(
         # Define which columns to include and their display names
         metadata_map = {
             "Candidate Match Score": "candidate_match_score",
-            "New Job since 20251013 (1=Yes,0=No)": "new",
+            #"New Job since 20251013 (1=Yes,0=No)": "new",
             "Slide-tag relevance": "slide_tag_relevance",
             "Worker type": "worker_type",
             "Sub category": "sub_category",
