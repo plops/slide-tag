@@ -103,6 +103,7 @@ def jobs_to_latex(
             continue
 
         job_id = row.get("job_id", "")
+        new = row.get("new", 0)
         title = row.get("title", "")
         apply_url = row.get("apply_url", "")
 
@@ -118,7 +119,7 @@ def jobs_to_latex(
         # 1. Header with Title and linked Job ID
         header = (
             f"\\section*{{{escape_latex(title)} \\quad "
-            f"(\\href{{{apply_url}}}{{Job ID: {escape_latex(job_id)}}})}}"
+            f"(\\href{{{apply_url}}}{{Job ID: {escape_latex(job_id)}}} {'(New)' if new == 1 else ''})}}"
         )
         current_job_lines.append(header)
 
@@ -126,6 +127,7 @@ def jobs_to_latex(
         # Define which columns to include and their display names
         metadata_map = {
             "Candidate Match Score": "candidate_match_score",
+            "New Job since 20250916 (1=Yes,0=No)": "new",
             "Slide-tag relevance": "slide_tag_relevance",
             "Worker type": "worker_type",
             "Sub category": "sub_category",
@@ -222,12 +224,14 @@ def jobs_to_latex(
 try:
     # Make sure this CSV file exists and is in the correct path
     df_jobs = pd.read_csv("df_with_candidate_match.csv")
+    df_jobs_old = pd.read_csv("20250916/df_with_candidate_match.csv")
 except FileNotFoundError:
     print("Error: 'df_with_candidate_match.csv' not found.")
     print("Creating a dummy DataFrame for demonstration purposes.")
     # Create a sample DataFrame if the file doesn't exist
     dummy_data = {
         'job_id': ['202507-119341', '202508-121705', '202507-118937'],
+        'new' : [1, 1, 0],
         'title': ['Bioanalytical Assay Developer', 'Stability Manager', 'Leiter Daten Governance'],
         'apply_url': ['http://example.com/apply/202507-119341/apply', 'http://example.com/apply/202508-121705', 'http://example.com/apply/202507-118937'],
         'worker_type': ['Angestellt', 'Angestellt', 'Angestellt'],
@@ -255,6 +259,11 @@ except Exception as e:
     print(f"Failed to read 'df_with_candidate_match.csv': {e}")
     df_jobs = None
 
+# create a new column 'new' marking jobs that are new (1) or old (0)
+# for each row in df_jobs, check if job_id is present in df_jobs_old
+if df_jobs is not None and 'df_jobs_old' in globals() and df_jobs_old is not None:
+    df_jobs['new'] = df_jobs['job_id'].apply(
+        lambda x: 1 if x not in df_jobs_old['job_id'].values else 0)
 
 if "df_jobs" in globals() and df_jobs is not None:
     try:

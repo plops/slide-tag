@@ -152,7 +152,7 @@ def sort_supervisors_by_job_count(
 
     return counts
 
-
+print ("\n--- Supervisory Organizations Sorted by Job Count ---")
 # Example usage:
 counts_df = sort_supervisors_by_job_count(
     df, top_n=20, save_path="supervisor_job_counts.csv"
@@ -230,6 +230,8 @@ orgs = [
     "PCE Early Development (Luka Kulic) (50310171)",
 ]
 
+
+print("Copy all rows from df to df_slide")
 df_slide = df  # df[df['supervisory_organization'].isin(orgs)]
 
 # >>> df_slide
@@ -275,7 +277,7 @@ def generate(job_description):
         api_key=os.environ.get("GEMINI_API_KEY"),
     )
 
-    model = "gemini-2.5-flash"
+    model = "gemini-flash-latest"
     contents = [
         types.Content(
             role="user",
@@ -330,8 +332,10 @@ The output should be a JSON object with a list containing three fields for each 
 
 # instead of 2 job descriptions, i want to attach job descriptions until the job_descriptions string is at most 20000 characters in size
 # make sure all the rows of df_slide will eventually be processed. also the results (summary of job description and slide_tag_relevance)shall be stored in new columns of df_slide at the original index
-max_len = 20000
+max_len = 200000
 separator = "\n\n"
+
+print("\n--- Adding AI Annotations to Job Descriptions ---")
 
 # Prepare result columns (only create if missing so re-runs preserve previous annotations)
 if "job_summary" not in df_slide.columns:
@@ -419,7 +423,7 @@ entries = []
 indices = []
 current_len = 0
 
-max_len = 13000
+max_len = 50000
 separator = "\n\n"
 
 for idx, row in df_slide.iterrows():
@@ -429,6 +433,7 @@ for idx, row in df_slide.iterrows():
         continue
 
     title = str(row.get("title", ""))
+    print(f"Processing idx {idx}: {title}")
     description = str(row.get("description", ""))
     entry = f"idx: {idx}\ntitle: {title}\ndescription: {description}"
     add_len = (len(separator) if entries else 0) + len(entry)

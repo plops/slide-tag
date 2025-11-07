@@ -12,9 +12,9 @@ CANDIDATE_PROFILE_PATH = "candidate_profile.txt"
 OUTPUT_CSV_PATH = "df_with_candidate_match.csv"
 MAX_WORD_LIMIT = 5000  # The maximum number of words per API request
 SEPARATOR = "\n\n---\n\n"
-MODEL_NAME = "gemini-1.5-flash" # Or another suitable model like "gemini-pro"
+MODEL_NAME = "gemini-flash-latest" # Or another suitable model like "gemini-pro"
 
-# --- Pydantic Model for AI Output Validation ---
+# --- Pydantic Model for AI Output Validatid on ---
 class CandidateMatch(BaseModel):
     """Defines the structure for the AI's response for each job."""
     match_score: int = Field(
