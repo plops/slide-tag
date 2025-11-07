@@ -8,7 +8,7 @@ from loguru import logger
 
 # --- Configuration ---
 INPUT_CSV_PATH = "df_with_ai_annotations.csv"
-CANDIDATE_PROFILE_PATH = "candidate_profile.txt"
+CANDIDATE_PROFILE_PATH = "/home/kiel/candidate_profile.md"
 OUTPUT_CSV_PATH = "df_with_candidate_match.csv"
 MAX_WORD_LIMIT = 5000  # The maximum number of words per API request
 SEPARATOR = "\n\n---\n\n"
