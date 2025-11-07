@@ -13,9 +13,9 @@ This project is a multi-step pipeline designed to scrape job postings from the R
 
 1.  **Install Dependencies:**
     ```bash
-    pip install -r requirements.txt
+    uv sync
+    source .venv/bin/activate
     ```
-    *(Note: A `pyproject.toml` is provided, you can generate `requirements.txt` from it or install dependencies directly).*
 
 2.  **Set Environment Variable:**
     Export your Gemini API key.
