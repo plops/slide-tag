@@ -6,6 +6,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from loguru import logger
 import time
 
@@ -247,69 +248,70 @@ def collect_job_links_paginated(driver, wait, timeout=60, poll=0.5):
     job_selector = "a[data-ph-at-id='job-link']"
 
     while time.time() < end_time:
-        # collect links on current page
-        elems = driver.find_elements(By.CSS_SELECTOR, job_selector)
-        for e in elems:
-            href = e.get_attribute("href")
-            if href:
-                links.add(href)
-
         current_url = driver.current_url
-        # avoid infinite loops if page doesn't change
         if current_url in visited_pages:
+            logger.warning(f"Re-visiting URL, breaking loop: {current_url}")
             break
         visited_pages.add(current_url)
 
-        # find next button
-        next_elems = driver.find_elements(By.CSS_SELECTOR, next_selector)
-        if not next_elems:
-            break
-        next_el = next_elems[0]
-
-        # ensure next is interactable and has an href (otherwise assume no more pages)
-        next_href = next_el.get_attribute("href")
-        if not next_href:
-            break
-
-        # click next (try standard click, fallback to JS dispatch)
+        # Ensure job links are present before fetching hrefs
         try:
-            try:
-                next_el.click()
-            except Exception:
-                driver.execute_script(
-                    "arguments[0].scrollIntoView({block: 'center'}); window.scrollBy(0, -80); arguments[0].click();",
-                    next_el,
-                )
-        except Exception:
-            # last resort: dispatch synthetic click event
-            try:
-                driver.execute_script(
-                    "arguments[0].dispatchEvent(new MouseEvent('click', {bubbles:true,cancelable:true,view:window}));",
-                    next_el,
-                )
-            except Exception:
-                break
-
-        # wait for navigation or new job links to appear
-        start_wait = time.time()
-        while time.time() - start_wait < 10:  # per-click wait (seconds)
-            time.sleep(poll)
-            # if URL changed, treat as success
-            if driver.current_url != current_url:
-                break
-            # or if new job links loaded (different href set), treat as success
-            new_hrefs = {
-                e.get_attribute("href")
-                for e in driver.find_elements(By.CSS_SELECTOR, job_selector)
-                if e.get_attribute("href")
-            }
-            if not new_hrefs.issubset(links):
-                break
-        else:
-            # timed out waiting for next page to load
+            wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, job_selector)))
+        except TimeoutException:
+            logger.warning("Timed out waiting for job links to appear on the page.")
             break
 
-    return sorted(links)
+        # Extract hrefs immediately to avoid StaleElementReferenceException
+        job_elements = driver.find_elements(By.CSS_SELECTOR, job_selector)
+        current_page_links = [elem.get_attribute("href") for elem in job_elements if elem.get_attribute("href")]
+        links.update(current_page_links)
+
+        # find and click the "Next" button
+        try:
+            next_el = driver.find_element(By.CSS_SELECTOR, next_selector)
+
+            # Check if the "Next" button is actually clickable (not disabled)
+            if next_el.get_attribute("href"):
+                try:
+                    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", next_el)
+                    driver.execute_script("arguments[0].click();", next_el)
+                except Exception:
+                    # fallback synthetic click dispatch
+                    try:
+                        driver.execute_script(
+                            "arguments[0].dispatchEvent(new MouseEvent('click', {bubbles:true,cancelable:true,view:window}));",
+                            next_el,
+                        )
+                    except Exception as e:
+                        logger.error(f"Failed to click 'Next' button: {e}")
+                        break
+
+                # Wait until the URL changes (indicates navigation) or new links appear
+                try:
+                    wait.until(EC.url_changes(current_url))
+                except TimeoutException:
+                    # as a fallback, wait briefly for new job links to appear
+                    start = time.time()
+                    while time.time() - start < 5:
+                        time.sleep(poll)
+                        new_hrefs = {
+                            e.get_attribute("href")
+                            for e in driver.find_elements(By.CSS_SELECTOR, job_selector)
+                            if e.get_attribute("href")
+                        }
+                        if not new_hrefs.issubset(links):
+                            break
+            else:
+                logger.info("Next button is disabled. Reached the last page.")
+                break
+        except NoSuchElementException:
+            logger.info("No 'Next' button found. Reached the last page.")
+            break
+        except Exception as e:
+            logger.error(f"An error occurred while trying to click the 'Next' button: {e}")
+            break
+
+    return sorted(list(links))
 
 
 logger.info("Collecting job links from paginated results")
