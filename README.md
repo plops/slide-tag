@@ -191,5 +191,6 @@ I started investigating companies related to this technology. Have a look at
 4. [Lecture on slide-tags by the group lead Dr. Fei Chen](https://www.youtube.com/watch?v=BlEUFdwUQfU)
 5. [Supercooled water not freezing in rigid capillaries](https://www.youtube.com/watch?v=6c7JoCZmqC4)
 6. [Microfluidics merging cells and beads](https://www.youtube.com/watch?v=IgIRoIMZN7Q)
+7. [Microfluidics video](https://www.precigenome.com/microfluidic-fluidic/single-cell-analysis-instrument)
 
 [ this is a summary of a conversation with AI (gemini 2.5 pro) ]
