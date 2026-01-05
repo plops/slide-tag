@@ -256,15 +256,21 @@ def collect_job_links_paginated(driver, wait, timeout=60, poll=0.5):
 
         # Ensure job links are present before fetching hrefs
         try:
-            wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, job_selector)))
+            WebDriverWait(driver,30).until(EC.presence_of_element_located((By.CSS_SELECTOR, job_selector)))
         except TimeoutException:
             logger.warning("Timed out waiting for job links to appear on the page.")
             break
 
-        # Extract hrefs immediately to avoid StaleElementReferenceException
+        # Extract hrefs in a single pass to avoid stale element issues
         job_elements = driver.find_elements(By.CSS_SELECTOR, job_selector)
-        current_page_links = [elem.get_attribute("href") for elem in job_elements if elem.get_attribute("href")]
-        links.update(current_page_links)
+        for elem in job_elements:
+            try:
+                href = elem.get_attribute("href")
+                if href:
+                    links.add(href)
+            except Exception:
+                # Skip stale elements
+                continue
 
         # find and click the "Next" button
         try:
