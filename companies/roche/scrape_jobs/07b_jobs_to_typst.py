@@ -6,67 +6,59 @@ import re
 # --- Helper function to escape special Typst characters ---
 def escape_typst(text: str) -> str:
     """
-    Escapes special Typst characters in a given string.
+    Escapes special Typst markup characters in a given string.
+    This ensures that the text is treated as literal content within Typst content blocks.
     """
     if not isinstance(text, str):
         text = str(text)
 
-    # Typst uses backslash to escape, so escape backslash first.
-    # Then escape characters that have special meaning in Typst markup.
-    # When text is enclosed in `[]` content blocks, fewer characters need escaping,
-    # but for robustness against potential markup, it's safer to escape these.
+    # Typst special characters to escape within content blocks `[...]`
+    # Escape the backslash itself first to prevent it from escaping other characters
+    # Order matters: \ needs to be handled before [ and ]
     replacements = {
-        '\\': r"\\",  # Must be first to prevent double-escaping other replacements
-        '[': r"\[",
-        ']': r"\]",
-        '*': r"\*",
-        '_': r"\_",
-        '#': r"\#",
-        '$': r"\$",
-        '@': r"\@",
+        '\\': r"\\",  # Escape the escape character
+        '[': r"\[",   # Literal open bracket
+        ']': r"\]",   # Literal close bracket
+        '*': r"\*",   # Literal asterisk (for bold)
+        '_': r"\_",   # Literal underscore (for italic)
+        '`': r"\`",   # Literal backtick (for raw text)
+        '$': r"\$",   # Literal dollar sign (for math)
+        '#': r"\#",   # Literal hash (for function calls)
+        '~': r"\~",   # Literal tilde (for non-breaking space)
+        '^': r"\^",   # Literal caret (for superscript)
+        '{': r"\{",   # Literal open curly brace
+        '}': r"\}",   # Literal close curly brace
     }
 
-    # Create a regex pattern that matches any of the keys.
-    # `re.escape` ensures that special regex characters in the keys are treated literally.
+    # Use a regex to perform all replacements in one pass
+    # This avoids issues where one replacement creates a sequence that another would match
     regex = re.compile('|'.join(re.escape(key) for key in replacements.keys()))
-    return regex.sub(lambda match: replacements[match.group(0)], text)
+    escaped_text = regex.sub(lambda match: replacements[match.group(0)], text)
+    return escaped_text
 
-# --- Typst Preamble Definition ---
-# This sets up global document styles and properties.
+# --- Typst Global Settings Definition (equivalent to a preamble) ---
 TYPST_PREAMBLE = r"""
-// Set global text font and size
-#set text(font: "Fira Sans", size: 11pt)
-// Set page margins and paper size
-#set page(margin: (top: 1in, bottom: 1in, left: 1in, right: 1in), paper: "a4")
-// Disable numbering for headings (sections and subsections)
-#set heading(numbering: none)
-// Set the color for links
-// #set link(stroke: blue)
-// Configure bullet lists
-//#set enum(indent: 0.5em, body_indent: 0.5em, marker: "-")
-
-// Global settings for tables to mimic a clean, booktabs-like style
-#set table(
-  // Default columns: first column auto-width (good for labels), second takes remaining space
-  columns: (auto, 1fr),
-  // Padding inside cells
-  inset: 5pt,
-  // Stroke configuration: thin horizontal lines only, no vertical lines
-  stroke: (y: 0.5pt, x: none),
-  // Align content to the start (left) of cells
-  align: start,
+#set text(font: "Fira Sans", lang: "en")
+#set page(
+  margin: (top: 1in, bottom: 1in, left: 1in, right: 1in),
 )
-
-// Document metadata for PDF properties
-#show: doc => {
-  set document(title: "Job Descriptions", author: "Automated Script", keywords: ("job", "description", "report")) // , lang: "en")
-  doc // Render the document content
-}
+#set heading(numbering: none) // Unnumbered headings for jobs and summaries
+//#set link(stroke: blue) // Styling for hyperlinks
+//#set list(marker: auto) // Default bullet for lists
+#set table(
+  stroke: (x: 0.5pt, y: 0.5pt), // All lines 0.5pt
+  //fill: (
+  //  even: luma(250), // Optional: light grey background for even rows
+  //  odd: white,
+  //),
+  inset: 5pt, // Padding inside cells
+  align: horizon, // Horizontal alignment of cell content
+)
 """
 
-# --- Typst Postamble (End of Document) ---
-# Typst does not require an explicit command to end the document.
-TYPST_POSTAMBLE = ""
+# --- Typst Postamble (no equivalent, document simply ends) ---
+TYPST_POSTAMBLE = r""
+
 
 def jobs_to_typst(
         df: pd.DataFrame, min_candidate_score: int = 4, out_path: str | None = None
@@ -97,7 +89,7 @@ def jobs_to_typst(
             continue
 
         job_id = row.get("job_id", "")
-        new = row.get("new", 0)
+        is_new = row.get("new", 0) == 1
         title = row.get("title", "")
         apply_url = row.get("apply_url", "")
 
@@ -106,17 +98,19 @@ def jobs_to_typst(
         apply_url = apply_url.removesuffix('/apply')
         # --- MODIFICATION END ---
 
-
         # --- Build the Typst block for one job ---
         current_job_lines = []
 
         # 1. Header with Title and linked Job ID
-        # Typst: = Heading, #link("url")[text]
-        # URLs within Typst strings might need escaping for backslashes and quotes
-        safe_apply_url = apply_url.replace("\\", "\\\\").replace('"', '\\"')
-        new_tag = " (New)" if new == 1 else ""
+        title_escaped = escape_typst(title)
+        job_id_escaped = escape_typst(job_id)
+        
+        job_id_link_content = f"#link(\"{apply_url}\")[Job ID: {job_id_escaped}]"
+        
+        new_text = f" {escape_typst('(New)')}" if is_new else ""
+        
         header = (
-            f"= {escape_typst(title)} (\#link(\"{safe_apply_url}\")[Job ID: {escape_typst(job_id)}]{new_tag})"
+            f"#heading(level: 1, outlined: false, [{title_escaped} #h(1em) ({job_id_link_content}{new_text})])"
         )
         current_job_lines.append(header)
 
@@ -139,20 +133,23 @@ def jobs_to_typst(
             "Is evergreen": "is_evergreen",
         }
 
-        table_cell_contents = []
+        table_cells = []
         for display_name, column_name in metadata_map.items():
             value = row.get(column_name)
             if pd.notna(value) and value != "":
                 # Ensure integer values don't have decimals (e.g., openings, scores)
                 if isinstance(value, float) and value.is_integer():
                     value = int(value)
-                # Typst table cells are comma-separated. The first column is bold.
-                table_cell_contents.append(f"  [* {escape_typst(display_name)} *], [{escape_typst(value)}],")
+                table_cells.append(f"[* {escape_typst(display_name)} *]") # Bold the display name
+                table_cells.append(f"[{escape_typst(value)}]")
 
-        if table_cell_contents:
-            # Table properties are set globally using #set table(...), so we just define the content here.
-            current_job_lines.append("#table(\n" + "\n".join(table_cell_contents) + "\n)")
-
+        if table_cells:
+            # Typst table structure: #table(columns: ..., cell1, cell2, cell3, cell4, ...)
+            current_job_lines.append("\n#table(")
+            current_job_lines.append("  columns: (auto, 1fr),") # Key column auto-width, value column fills rest
+            current_job_lines.append("  table.header([*Attribute*], [*Value*]),") # Table header
+            current_job_lines.extend([f"  {cell}," for cell in table_cells]) # Add comma after each cell content
+            current_job_lines.append(")")
 
         # 3. Summary Section
         js = row.get("job_summary")
@@ -175,16 +172,16 @@ def jobs_to_typst(
         summary_list = try_parse_list(js)
 
         if summary_list:
-            # Typst: == Subheading
-            current_job_lines.append("\n== Summary")
-            # Typst lists: - [Item content]
+            current_job_lines.append("\n#heading(level: 2, outlined: false, [Summary])")
+            current_job_lines.append("#list(")
             for item in summary_list:
                 if item is not None and str(item).strip():
-                    current_job_lines.append(f"- [{escape_typst(item)}]")
+                    current_job_lines.append(f"  [{escape_typst(item)}],")
+            current_job_lines.append(")")
         elif isinstance(js, str) and js.strip():
             # Fallback for summaries that are just plain text
-            current_job_lines.append("\n== Summary")
-            current_job_lines.append(f"[{escape_typst(js)}]") # Wrap in [] for a content block
+            current_job_lines.append("\n#heading(level: 2, outlined: false, [Summary])")
+            current_job_lines.append(f"[{escape_typst(js)}]")
 
         typst_job_blocks.append("\n".join(current_job_lines))
 
@@ -193,11 +190,11 @@ def jobs_to_typst(
         return
 
     # --- Assemble the final document ---
-    # Join each job block with a pagebreak command
+    # Join each job block with a pagebreak
     full_typst_content = (
             TYPST_PREAMBLE
-            + ("\n\n#pagebreak()\n\n".join(typst_job_blocks))
-            + "\n" + TYPST_POSTAMBLE
+            + "\n\n#pagebreak()\n\n".join(typst_job_blocks)
+            + TYPST_POSTAMBLE # This is an empty string, but keeps the structure
     )
 
     # Print to stdout
@@ -205,9 +202,9 @@ def jobs_to_typst(
 
     # Optionally save to file
     if out_path:
+        # Change file extension to .typ
+        typst_out_path = out_path.rsplit('.', 1)[0] + '.typ' if '.' in out_path else out_path + '.typ'
         try:
-            # Change file extension from .tex to .typ
-            typst_out_path = out_path.replace(".tex", ".typ")
             with open(typst_out_path, "w", encoding="utf-8") as f:
                 f.write(full_typst_content)
             print(f"\n--- SUCCESS ---\nTypst written to {typst_out_path}")
@@ -267,7 +264,6 @@ if df_jobs is not None and 'df_jobs_old' in globals() and df_jobs_old is not Non
 if "df_jobs" in globals() and df_jobs is not None:
     try:
         # This will create the .typ file you can compile with typst
-        # The .tex extension in out_path will be replaced with .typ
-        jobs_to_typst(df_jobs, min_candidate_score=3, out_path="high_score_jobs.tex")
+        jobs_to_typst(df_jobs, min_candidate_score=3, out_path="high_score_jobs.typ")
     except Exception as e:
         print(f"Failed to produce Typst document: {e}")
