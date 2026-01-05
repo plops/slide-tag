@@ -220,7 +220,7 @@ def jobs_to_typst(
 try:
     # Make sure this CSV file exists and is in the correct path
     df_jobs = pd.read_csv("df_with_candidate_match.csv")
-    df_jobs_old = pd.read_csv("20251210/me/df_with_candidate_match.csv")
+    df_jobs_old = pd.read_csv("20251210/df_with_candidate_match.csv")
 except FileNotFoundError:
     print("Error: 'df_with_candidate_match.csv' not found.")
     print("Creating a dummy DataFrame for demonstration purposes.")
