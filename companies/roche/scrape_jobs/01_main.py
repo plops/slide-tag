@@ -15,6 +15,9 @@ import time
 chromedriver_path = shutil.which("chromedriver") or "/usr/bin/chromedriver"
 chrome_binary = shutil.which("google-chrome-stable") or "/usr/bin/google-chrome-stable"
 options = Options()
+options.add_argument("--headless=new") # Modern headless mode
+options.add_argument("--window-size=1920,1080") # Ensures elements render correctly
+options.add_argument("--no-sandbox")
 options.binary_location = chrome_binary
 service = Service(chromedriver_path)
 driver = webdriver.Chrome(service=service, options=options)
