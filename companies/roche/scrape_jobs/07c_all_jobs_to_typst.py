@@ -43,17 +43,32 @@ TYPST_PREAMBLE = r"""
   margin: (top: 1in, bottom: 1in, left: 1in, right: 1in),
 )
 #set heading(numbering: none) // Unnumbered headings for jobs and summaries
-//#set link(stroke: blue) // Styling for hyperlinks
-//#set list(marker: auto) // Default bullet for lists
-#set table(
-  stroke: (x: 0.5pt, y: 0.5pt), // All lines 0.5pt
-  //fill: (
-  //  even: luma(250), // Optional: light grey background for even rows
-  //  odd: white,
-  //),
-  inset: 5pt, // Padding inside cells
-  align: horizon, // Horizontal alignment of cell content
+#show link: underline
+#show link: set text(fill: blue)
+
+// Helper 1: Forces the heading to always occupy vertical space for ~2 lines
+#let job-heading(content) = block(
+  height: 3.5em, // Adjust this value based on your font size
+  width: 100%, 
+  align(bottom, heading(level: 1, outlined: false, content))
 )
+
+// Helper 2: Forces a table cell to always occupy vertical space for ~2 lines
+#let fixed-height-cell(content) = box(
+  height: 3em, // Height sufficient for 2 lines of text
+  width: 100%, 
+  align(horizon, content)
+)
+
+#set table(
+  stroke: (x: 0.5pt, y: 0.5pt), 
+  inset: 5pt, 
+  align: horizon, 
+  // FIX: Use a fixed width for the first column so it doesn't move 
+  // based on the length of the attribute names.
+  columns: (5cm, 1fr), 
+)
+
 """
 
 # --- Typst Postamble (no equivalent, document simply ends) ---
@@ -107,27 +122,29 @@ def jobs_to_typst(
         title_escaped = escape_typst(title)
         job_id_escaped = escape_typst(job_id)
         
-        job_id_link_content = f"#link(\"{apply_url}\")[Job ID: {job_id_escaped}]"
+        job_id_link_content = f"link(\"{apply_url}\")[{job_id_escaped}]"
         
         new_text = f" {escape_typst('(New)')}" if is_new else ""
         
-        header = (
-            f"#heading(level: 1, outlined: false, [{title_escaped} #h(1em) ({job_id_link_content}{new_text})])"
+        header = (#job-heading[Software Tester #h(1em)]
+
+            f"#job-heading[{title_escaped}]"
         )
         current_job_lines.append(header)
 
         # 2. Metadata Table
         metadata_map = {
+            #"Job Link": "job_id_escaped",
+            "Recruiting start date": "recruiting_start_date",
+            "Target hire date": "target_hire_date",
             "Candidate Match Score": "candidate_match_score",
             "Slide-tag relevance": "slide_tag_relevance",
             "Worker type": "worker_type",
             "Sub category": "sub_category",
             "Job profile": "job_profile",
             "Supervisory organization": "supervisory_organization",
-            "Target hire date": "target_hire_date",
             "Openings": "openings",
             "Grade profile": "grade_profile",
-            "Recruiting start date": "recruiting_start_date",
             "Job level": "job_level",
             "Grade": "grade",
             "Job family": "job_family",
@@ -141,14 +158,18 @@ def jobs_to_typst(
                 # Ensure integer values don't have decimals (e.g., openings, scores)
                 if isinstance(value, float) and value.is_integer():
                     value = int(value)
-                table_cells.append(f"[* {escape_typst(display_name)} *]") # Bold the display name
+                if column_name == "supervisor_organization":
+                    table_cells.append(f"fixed-height-cell[* {escape_typst(display_name)} *]") # Bold the display name
+                else:
+                    table_cells.append(f"[* {escape_typst(display_name)} *]") # Bold the display name
                 table_cells.append(f"[{escape_typst(value)}]")
 
         if table_cells:
             # Typst table structure: #table(columns: ..., cell1, cell2, cell3, cell4, ...)
             current_job_lines.append("\n#table(")
-            current_job_lines.append("  columns: (auto, 1fr),") # Key column auto-width, value column fills rest
-            current_job_lines.append("  table.header([*Attribute*], [*Value*]),") # Table header
+            #current_job_lines.append("  columns: (auto, 1fr),") # Key column auto-width, value column fills rest
+            #current_job_lines.append("  table.header([*Attribute*], [*Value*]),") # Table header
+            current_job_lines.extend([f"    [* Link *], ({job_id_link_content}),"]) 
             current_job_lines.extend([f"  {cell}," for cell in table_cells]) # Add comma after each cell content
             current_job_lines.append(")")
 
@@ -208,7 +229,8 @@ def jobs_to_typst(
         try:
             with open(typst_out_path, "w", encoding="utf-8") as f:
                 f.write(full_typst_content)
-            print(f"\n--- SUCCESS ---\nTypst written to {typst_out_path}")
+            print(f"\n--- SUCCESS ---\nTypst written to typst file. You may create a PDF by calling:")
+            print(f"\ntypst compile {typst_out_path}")
         except Exception as e:
             print(f"Failed to write Typst to {typst_out_path}: {e}")
 
