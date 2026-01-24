@@ -2,6 +2,8 @@ import pandas as pd
 import ast
 import json
 import re
+import loguru
+log = loguru.logger
 
 # --- Helper function to escape special Typst characters ---
 def escape_typst(text: str) -> str:
@@ -83,7 +85,7 @@ def jobs_to_typst(
     Writes the output to out_path if provided.
     """
     if df is None:
-        print("jobs_to_typst: no dataframe provided")
+        log.error("jobs_to_typst: no dataframe provided")
         return
 
     typst_job_blocks = []
@@ -100,6 +102,8 @@ def jobs_to_typst(
         by="recruiting_start_date", ascending=True, na_position="last"
     )
     # --- End of sorting logic ---
+
+    log.info(f"Sorted {len(df_sorted)} jobs by recruiting_start_date for Typst output.")
 
     for _, row in df_sorted.iterrows():
         score = row.get("candidate_match_score")
@@ -208,7 +212,7 @@ def jobs_to_typst(
         typst_job_blocks.append("\n".join(current_job_lines))
 
     if not typst_job_blocks:
-        print(f"No jobs found with candidate_match_score >= {min_candidate_score}")
+        log.warn(f"No jobs found with candidate_match_score >= {min_candidate_score}")
         return
 
     # --- Assemble the final document ---
@@ -220,7 +224,7 @@ def jobs_to_typst(
     )
 
     # Print to stdout
-    print(full_typst_content)
+    #print(full_typst_content)
 
     # Optionally save to file
     if out_path:
@@ -229,10 +233,10 @@ def jobs_to_typst(
         try:
             with open(typst_out_path, "w", encoding="utf-8") as f:
                 f.write(full_typst_content)
-            print(f"\n--- SUCCESS ---\nTypst written to typst file. You may create a PDF by calling:")
-            print(f"\ntypst compile {typst_out_path}")
+            log.info(f"\n--- SUCCESS ---\nTypst written to typst file. You may create a PDF by calling:")
+            log.info(f"\ntypst compile {typst_out_path}")
         except Exception as e:
-            print(f"Failed to write Typst to {typst_out_path}: {e}")
+            log.error(f"Failed to write Typst to {typst_out_path}: {e}")
 
 
 # ==============================================================================
@@ -243,10 +247,10 @@ def jobs_to_typst(
 try:
     # Make sure this CSV file exists and is in the correct path
     df_jobs = pd.read_csv("df_with_candidate_match.csv")
-    df_jobs_old = pd.read_csv("20251210/df_with_candidate_match.csv")
+    df_jobs_old = pd.read_csv("../20260119/df_with_candidate_match.csv")
 except FileNotFoundError:
-    print("Error: 'df_with_candidate_match.csv' not found.")
-    print("Creating a dummy DataFrame for demonstration purposes.")
+    log.error("Error: 'df_with_candidate_match.csv' not found.")
+    log.warn("Creating a dummy DataFrame for demonstration purposes.")
     # Create a sample DataFrame if the file doesn't exist
     dummy_data = {
         'job_id': ['202507-119341', '202508-121705', '202507-118937'],
@@ -275,7 +279,7 @@ except FileNotFoundError:
     }
     df_jobs = pd.DataFrame(dummy_data)
 except Exception as e:
-    print(f"Failed to read 'df_with_candidate_match.csv': {e}")
+    log.error(f"Failed to read 'df_with_candidate_match.csv': {e}")
     df_jobs = None
 
 # create a new column 'new' marking jobs that are new (1) or old (0)
@@ -289,4 +293,4 @@ if "df_jobs" in globals() and df_jobs is not None:
         # This will create the .typ file you can compile with typst
         jobs_to_typst(df_jobs, min_candidate_score=3, out_path="high_score_jobs_all.typ")
     except Exception as e:
-        print(f"Failed to produce Typst document: {e}")
+        log.error(f"Failed to produce Typst document: {e}")

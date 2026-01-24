@@ -20,8 +20,9 @@ uv run ../05b_match_candidate.py
 # 6. Generate Markdown report (optional)
 uv run ../06_jobs_to_markdown.py
 
-# 7. Generate LaTeX report
-# uv run 07_jobs_to_latex.py
+# 7. Generate Typst report
+
+uv run ../07b_jobs_to_typst.py
 uv run ../07c_all_jobs_to_typst.py
 
 typst compile high_score_jobs.typ
