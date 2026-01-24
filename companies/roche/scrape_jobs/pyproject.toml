@@ -11,5 +11,6 @@ dependencies = [
     "helium>=5.1.1",
     "loguru>=0.7.3",
     "pandas>=2.3.2",
+    "playwright>=1.57.0",
     "sqlite-minutils>=4.0.3",
 ]

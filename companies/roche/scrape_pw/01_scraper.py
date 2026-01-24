@@ -75,8 +75,13 @@ time.sleep(0.3)
 logger.info("Selecting 'Schweiz' checkbox...")
 checkbox_label = page.locator("label").filter(has=page.locator("input[data-ph-at-text='Schweiz']"))
 checkbox_label.click()
-page.wait_for_load_state("networkidle")
-logger.info("Schweiz selected. Page loaded.")
+time.sleep(1)
+# Wait for job list to render instead of waiting for networkidle
+try:
+    page.locator("a[data-ph-at-id='job-link']").first.wait_for(timeout=10000)
+    logger.info("Schweiz selected. Job list loaded.")
+except PlaywrightTimeoutError:
+    logger.warning("Job list did not load after selecting Schweiz. Continuing anyway...")
 
 # ============================================================================
 # COLLECT JOBS - PAGINATE AND EXTRACT LINKS
@@ -105,10 +110,12 @@ while True:
         href = next_btn.get_attribute("href")
         if href and "javascript" not in href:
             try:
-                with page.expect_navigation(wait_until="domcontentloaded", timeout=10000):
-                    next_btn.click()
+                next_btn.click()
+                time.sleep(1)
+                # Wait for job list to render on next page
+                page.locator("a[data-ph-at-id='job-link']").first.wait_for(timeout=10000)
             except PlaywrightTimeoutError:
-                logger.warning("Timeout waiting for next page navigation, or last page reached.")
+                logger.warning("Timeout waiting for next page to load, or last page reached.")
                 break
         else:
             logger.info("Next button exists but has no valid href. Last page reached.")
@@ -132,4 +139,3 @@ logger.info("Saved to jobs.txt")
 browser.close()
 p.stop()
 logger.info("Browser closed.")
-
