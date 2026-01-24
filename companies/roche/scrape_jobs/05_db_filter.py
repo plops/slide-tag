@@ -277,7 +277,8 @@ def generate(job_description):
         api_key=os.environ.get("GEMINI_API_KEY"),
     )
 
-    model = "gemini-flash-latest"
+    model =   "gemini-flash-latest" # "gemini-2.5-pro"
+
     contents = [
         types.Content(
             role="user",

@@ -117,7 +117,7 @@ def jobs_to_typst(
         # 2. Metadata Table
         metadata_map = {
             "Candidate Match Score": "candidate_match_score",
-            "New Job since 20251210 (1=Yes,0=No)": "new",
+            "New Job since 20260119 (1=Yes,0=No)": "new",
             "Slide-tag relevance": "slide_tag_relevance",
             "Worker type": "worker_type",
             "Sub category": "sub_category",
@@ -220,7 +220,7 @@ def jobs_to_typst(
 try:
     # Make sure this CSV file exists and is in the correct path
     df_jobs = pd.read_csv("df_with_candidate_match.csv")
-    df_jobs_old = pd.read_csv("20251210/df_with_candidate_match.csv")
+    df_jobs_old = pd.read_csv("20250119/df_with_candidate_match.csv")
 except FileNotFoundError:
     print("Error: 'df_with_candidate_match.csv' not found.")
     print("Creating a dummy DataFrame for demonstration purposes.")

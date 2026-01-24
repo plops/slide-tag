@@ -158,11 +158,11 @@ def jobs_to_typst(
                 # Ensure integer values don't have decimals (e.g., openings, scores)
                 if isinstance(value, float) and value.is_integer():
                     value = int(value)
+                table_cells.append(f"[* {escape_typst(display_name)} *]") # Bold the display name
                 if column_name == "supervisor_organization":
-                    table_cells.append(f"fixed-height-cell[* {escape_typst(display_name)} *]") # Bold the display name
+                    table_cells.append(f"fixed-height-cell[{escape_typst(value)}]")
                 else:
-                    table_cells.append(f"[* {escape_typst(display_name)} *]") # Bold the display name
-                table_cells.append(f"[{escape_typst(value)}]")
+                    table_cells.append(f"[{escape_typst(value)}]")
 
         if table_cells:
             # Typst table structure: #table(columns: ..., cell1, cell2, cell3, cell4, ...)
@@ -287,6 +287,6 @@ if df_jobs is not None and 'df_jobs_old' in globals() and df_jobs_old is not Non
 if "df_jobs" in globals() and df_jobs is not None:
     try:
         # This will create the .typ file you can compile with typst
-        jobs_to_typst(df_jobs, min_candidate_score=3, out_path="high_score_jobs.typ")
+        jobs_to_typst(df_jobs, min_candidate_score=3, out_path="high_score_jobs_all.typ")
     except Exception as e:
         print(f"Failed to produce Typst document: {e}")

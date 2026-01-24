@@ -8,11 +8,16 @@ from loguru import logger
 
 # --- Configuration ---
 INPUT_CSV_PATH = "df_with_ai_annotations.csv"
+#CANDIDATE_PROFILE_PATH = "/home/kiel/candidate_me.md"
 CANDIDATE_PROFILE_PATH = "/home/kiel/candidate_profile.md"
 OUTPUT_CSV_PATH = "df_with_candidate_match.csv"
 MAX_WORD_LIMIT = 2000  # The maximum number of words per API request
 SEPARATOR = "\n\n---\n\n"
-MODEL_NAME = "gemini-flash-latest" # Or another suitable model like "gemini-pro"
+#MODEL_NAME = "gemini-pro"
+#MODEL_NAME = "gemini-flash-latest"
+#MODEL_NAME = "gemini-3-flash-preview"
+MODEL_NAME = "gemini-2.5-flash-lite"
+#MODEL_NAME = "gemini-flash-lite-latest"
 
 # --- Pydantic Model for AI Output Validatid on ---
 class CandidateMatch(BaseModel):
