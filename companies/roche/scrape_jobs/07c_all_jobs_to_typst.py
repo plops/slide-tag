@@ -39,8 +39,8 @@ def escape_typst(text: str) -> str:
     return escaped_text
 
 # --- Typst Global Settings Definition (equivalent to a preamble) ---
-TYPST_PREAMBLE = r"""
 #set text(font: "Fira Sans", lang: "en")
+TYPST_PREAMBLE = r"""
 #set page(
   margin: (top: 1in, bottom: 1in, left: 1in, right: 1in),
 )
@@ -85,7 +85,7 @@ def jobs_to_typst(
     Writes the output to out_path if provided.
     """
     if df is None:
-        log.error("jobs_to_typst: no dataframe provided")
+        print("jobs_to_typst: no dataframe provided")
         return
 
     typst_job_blocks = []
@@ -116,7 +116,10 @@ def jobs_to_typst(
 
         # --- MODIFICATION START ---
         # If the URL ends with /apply, remove it
-        apply_url = apply_url.removesuffix('/apply')
+        try:
+            apply_url = apply_url.removesuffix('/apply')
+        except Exception as e:
+            pass
         # --- MODIFICATION END ---
 
         # --- Build the Typst block for one job ---
@@ -224,7 +227,7 @@ def jobs_to_typst(
     )
 
     # Print to stdout
-    #print(full_typst_content)
+    print(full_typst_content)
 
     # Optionally save to file
     if out_path:
@@ -247,10 +250,10 @@ def jobs_to_typst(
 try:
     # Make sure this CSV file exists and is in the correct path
     df_jobs = pd.read_csv("df_with_candidate_match.csv")
-    df_jobs_old = pd.read_csv("../20260119/df_with_candidate_match.csv")
+    df_jobs_old = pd.read_csv("20260201/df_with_candidate_match.csv")
 except FileNotFoundError:
-    log.error("Error: 'df_with_candidate_match.csv' not found.")
-    log.warn("Creating a dummy DataFrame for demonstration purposes.")
+    print("Error: 'df_with_candidate_match.csv' not found.")
+    print("Creating a dummy DataFrame for demonstration purposes.")
     # Create a sample DataFrame if the file doesn't exist
     dummy_data = {
         'job_id': ['202507-119341', '202508-121705', '202507-118937'],
@@ -279,7 +282,7 @@ except FileNotFoundError:
     }
     df_jobs = pd.DataFrame(dummy_data)
 except Exception as e:
-    log.error(f"Failed to read 'df_with_candidate_match.csv': {e}")
+    print(f"Failed to read 'df_with_candidate_match.csv': {e}")
     df_jobs = None
 
 # create a new column 'new' marking jobs that are new (1) or old (0)
@@ -293,4 +296,4 @@ if "df_jobs" in globals() and df_jobs is not None:
         # This will create the .typ file you can compile with typst
         jobs_to_typst(df_jobs, min_candidate_score=3, out_path="high_score_jobs_all.typ")
     except Exception as e:
-        log.error(f"Failed to produce Typst document: {e}")
+        print(f"Failed to produce Typst document: {e}")

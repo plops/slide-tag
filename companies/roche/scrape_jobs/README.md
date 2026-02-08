@@ -72,6 +72,14 @@ uv run 06_jobs_to_markdown.py
 # 7. Generate LaTeX report
 uv run 07_jobs_to_latex.py
 
+
+uv run 07b_jobs_to_typst.py
+typst compile high_score_jobs.typ
+
+uv run 07c_all_jobs_to_typst.py
+typst compile high_score_jobs_all.typ
+z
+
 # Compile the LaTeX report to PDF (requires a TeX distribution like TeX Live)
 pdflatex high_score_jobs.tex
 ```
