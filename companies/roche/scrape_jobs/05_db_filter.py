@@ -2,6 +2,7 @@ import pandas as pd
 import sqlite3
 import os
 import time
+import argparse
 from google import genai
 from google.genai import types
 from pydantic import BaseModel
@@ -97,6 +98,31 @@ def filter_jobs_data(db_path="jobs_minutils.db"):
 # if __name__ == "__main__":
 # Specify the database file name
 database_file = "jobs_minutils.db"
+
+# Default configuration values
+DEFAULT_MODEL_NAME = "gemini-flash-latest"
+DEFAULT_MAX_LEN = 200000
+
+# Parse command line arguments
+parser = argparse.ArgumentParser(
+    description="Filter jobs from database and add AI annotations."
+)
+parser.add_argument(
+    "--model",
+    default=DEFAULT_MODEL_NAME,
+    help=f"Model name to use (default: {DEFAULT_MODEL_NAME})"
+)
+parser.add_argument(
+    "--max-len",
+    type=int,
+    default=DEFAULT_MAX_LEN,
+    help=f"Maximum character length per API request (default: {DEFAULT_MAX_LEN})"
+)
+
+args = parser.parse_args()
+
+MODEL_NAME = args.model
+max_len = args.max_len
 
 # Run the filtering function
 df = filter_jobs_data(database_file)
@@ -277,7 +303,7 @@ def generate(job_description):
         api_key=os.environ.get("GEMINI_API_KEY"),
     )
 
-    model =   "gemini-flash-latest" # "gemini-2.5-pro"
+    model = MODEL_NAME
 
     contents = [
         types.Content(
@@ -331,9 +357,8 @@ The output should be a JSON object with a list containing three fields for each 
 
 # [Job(job_summary=['Design innovative siRNA candidate libraries for early research and development projects and platform technology activities.', 'Drive continuous adoption and modernization of chemistry strategy for oligonucleotide therapeutics (ONTs), including exploring target- or project-specific aspects.', 'Collaborate with scientific experts on all aspects of siRNA design, chemistry, screening, and selection.', 'Lead cross-functional discovery project teams from target idea to clinical candidate selection.', "Contribute to and drive the RNAHub's technology platform landscape and support external innovation scouting and assessments.", 'Requires a PhD in RNA biology, Chemistry, or Biochemistry with expertise in oligonucleotide (preferably siRNA) design and/or chemistry.', 'At least 5 years of industrial R&D and drug discovery experience in ONTs with a proven track record in project execution and leadership in matrix teams.'], slide_tag_relevance=2, idx=123), Job(job_summary=['Develop next-generation multimodal foundation models and Large Language Models (LLMs) to enable AI/ML-powered drug discovery applications within a Lab-in-the-Loop setting.', 'Participate in cutting-edge machine learning research with direct applications to drug discovery and development.', 'Collaborate closely with cross-functional teams across Genentech and Roche to solve complex problems in multimodal and representation learning.', 'Provide technical leadership in machine learning, both in research and engineering, shaping strategic directions for foundation model applications in drug discovery.', 'Contribute to and drive publications, and present research results at internal and external scientific conferences.', 'Requires a PhD in Computer Science, Statistics, Applied Mathematics, Physics, or a related technical field, with 2-7 years of relevant work experience.', 'Strong publication record, experience contributing to research communities, and strong programming skills in languages like Python, C++, Java, or Go, with extensive experience in deep learning frameworks like PyTorch.', 'Possess intense curiosity about disease biology, drug discovery, and development.'], slide_tag_relevance=4, idx=126)]
 
-# instead of 2 job descriptions, i want to attach job descriptions until the job_descriptions string is at most 20000 characters in size
+# instead of 2 job descriptions, i want to attach job descriptions until the job_descriptions string is at most max_len characters in size
 # make sure all the rows of df_slide will eventually be processed. also the results (summary of job description and slide_tag_relevance)shall be stored in new columns of df_slide at the original index
-max_len = 200000
 separator = "\n\n"
 
 print("\n--- Adding AI Annotations to Job Descriptions ---")

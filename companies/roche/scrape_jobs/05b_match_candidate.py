@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import time
+import argparse
 from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
@@ -8,18 +9,46 @@ from loguru import logger
 
 # --- Configuration ---
 INPUT_CSV_PATH = "df_with_ai_annotations.csv"
-#CANDIDATE_PROFILE_PATH = "/home/kiel/candidate_me.md"
-CANDIDATE_PROFILE_PATH = "/home/kiel/candidate_profile.md"
 OUTPUT_CSV_PATH = "df_with_candidate_match.csv"
-MAX_WORD_LIMIT = 5100  # The maximum number of words per API request
-SEPARATOR = "\n\n---\n\n"
-#MODEL_NAME = "gemini-pro"
-#MODEL_NAME = "gemini-flash-latest"
-MODEL_NAME = "gemini-3-flash-preview"
-#MODEL_NAME = "gemini-2.5-flash-lite"
-#MODEL_NAME = "gemini-flash-lite-latest"
 
-# --- Pydantic Model for AI Output Validatid on ---
+# Default configuration values
+DEFAULT_MAX_WORD_LIMIT = 5100
+DEFAULT_MODEL_NAME = "gemini-3-flash-preview"
+DEFAULT_SEPARATOR = "\n\n---\n\n"
+
+# Parse command line arguments
+parser = argparse.ArgumentParser(
+    description="Match jobs to a candidate profile using AI."
+)
+parser.add_argument(
+    "candidate_profile_path",
+    help="Path to the candidate profile text file (e.g., /home/user/candidate_profile.md)"
+)
+parser.add_argument(
+    "--model",
+    default=DEFAULT_MODEL_NAME,
+    help=f"Model name to use (default: {DEFAULT_MODEL_NAME})"
+)
+parser.add_argument(
+    "--max-word-limit",
+    type=int,
+    default=DEFAULT_MAX_WORD_LIMIT,
+    help=f"Maximum words per API request (default: {DEFAULT_MAX_WORD_LIMIT})"
+)
+parser.add_argument(
+    "--separator",
+    default=DEFAULT_SEPARATOR,
+    help=f"Separator between job descriptions in chunk (default: newlines with ---)"
+)
+
+args = parser.parse_args()
+
+CANDIDATE_PROFILE_PATH = args.candidate_profile_path
+MAX_WORD_LIMIT = args.max_word_limit
+MODEL_NAME = args.model
+SEPARATOR = args.separator
+
+# --- Pydantic Model for AI Output Validation ---
 class CandidateMatch(BaseModel):
     """Defines the structure for the AI's response for each job."""
     match_score: int = Field(

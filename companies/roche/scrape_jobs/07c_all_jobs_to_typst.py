@@ -3,6 +3,11 @@ import ast
 import json
 import re
 import loguru
+import argparse
+import os
+from datetime import datetime
+from pathlib import Path
+
 log = loguru.logger
 
 # --- Helper function to escape special Typst characters ---
@@ -246,11 +251,34 @@ def jobs_to_typst(
 # --- MAIN EXECUTION ---
 # ==============================================================================
 
+# Parse command line arguments
+parser = argparse.ArgumentParser(
+    description="Generate Typst document for all candidate-matched jobs with new job highlighting."
+)
+parser.add_argument(
+    "--previous-date",
+    type=str,
+    default=None,
+    help="Date folder of previous run (YYYYMMDD format) for new job comparison. If not provided, no comparison will be made."
+)
+
+args = parser.parse_args()
+previous_date = args.previous_date
+
 # read in the dataframe from previous step
 try:
     # Make sure this CSV file exists and is in the correct path
     df_jobs = pd.read_csv("df_with_candidate_match.csv")
-    df_jobs_old = pd.read_csv("20260201/df_with_candidate_match.csv")
+    df_jobs_old = None
+
+    # Try to load previous results if previous date is provided
+    if previous_date:
+        previous_csv_path = f"{previous_date}/df_with_candidate_match.csv"
+        if os.path.exists(previous_csv_path):
+            df_jobs_old = pd.read_csv(previous_csv_path)
+            log.info(f"Loaded previous results from {previous_csv_path}")
+        else:
+            log.warning(f"Previous date CSV not found at {previous_csv_path}, proceeding without comparison")
 except FileNotFoundError:
     print("Error: 'df_with_candidate_match.csv' not found.")
     print("Creating a dummy DataFrame for demonstration purposes.")
