@@ -199,55 +199,65 @@ def main():
         print("PHASE 1: General Job Collection (Scripts 01-05)")
         print(f"{'*'*80}\n")
 
-        # Script 01: Scrape job links
-        if not run_command(
-            ["uv", "run", "01_main.py"],
-            dry_run=args.dry_run,
-            description="Step 01: Scraping job links from Roche careers website"
-        ):
-            success = False
+        # Save original directory and change to date folder for Phase 1
+        original_cwd = os.getcwd()
+        os.chdir(date_folder)
 
-        # Script 02: Download job pages
-        if not run_command(
-            ["uv", "run", "02_fetchlinks.py"],
-            dry_run=args.dry_run,
-            description="Step 02: Downloading job pages"
-        ):
-            success = False
+        try:
+            # Script 01: Scrape job links
+            if not run_command(
+                ["uv", "run", "../01_main.py"],
+                dry_run=args.dry_run,
+                description="Step 01: Scraping job links from Roche careers website"
+            ):
+                success = False
 
-        # Script 03: Extract JSON from HTML
-        if not run_command(
-            ["bash", "-c", "for f in jobs_html/*.html; do uv run 03_extract_job_info.py \"$f\"; done"],
-            dry_run=args.dry_run,
-            description="Step 03: Extracting JSON from HTML files"
-        ):
-            success = False
+            # Script 02: Download job pages
+            if not run_command(
+                ["uv", "run", "../02_fetchlinks.py"],
+                dry_run=args.dry_run,
+                description="Step 02: Downloading job pages"
+            ):
+                success = False
 
-        # Script 04: Populate database
-        if not run_command(
-            ["bash", "-c", "uv run 04_json_to_sqlite.py jobs_html/*.json"],
-            dry_run=args.dry_run,
-            description="Step 04: Populating SQLite database"
-        ):
-            success = False
+            # Script 03: Extract JSON from HTML
+            if not run_command(
+                ["bash", "-c", "for f in jobs_html/*.html; do uv run ../03_extract_job_info.py \"$f\"; done"],
+                dry_run=args.dry_run,
+                description="Step 03: Extracting JSON from HTML files"
+            ):
+                success = False
 
-        # Script 05: Filter and annotate with AI
-        cmd_05 = ["uv", "run", "05_db_filter.py"]
-        if model_05 != "gemini-flash-latest":
-            cmd_05.extend(["--model", model_05])
-        if args.max_len != 200000:
-            cmd_05.extend(["--max-len", str(args.max_len)])
+            # Script 04: Populate database
+            if not run_command(
+                ["bash", "-c", "uv run ../04_json_to_sqlite.py jobs_html/*.json"],
+                dry_run=args.dry_run,
+                description="Step 04: Populating SQLite database"
+            ):
+                success = False
 
-        if not run_command(
-            cmd_05,
-            dry_run=args.dry_run,
-            description="Step 05: Filtering jobs and adding AI annotations"
-        ):
-            success = False
+            # Script 05: Filter and annotate with AI
+            cmd_05 = ["uv", "run", "../05_db_filter.py"]
+            if model_05 != "gemini-flash-latest":
+                cmd_05.extend(["--model", model_05])
+            if args.max_len != 200000:
+                cmd_05.extend(["--max-len", str(args.max_len)])
 
-        if not success:
-            print("\nError: General job collection failed. Exiting.")
-            sys.exit(1)
+            if not run_command(
+                cmd_05,
+                dry_run=args.dry_run,
+                description="Step 05: Filtering jobs and adding AI annotations"
+            ):
+                success = False
+
+            if not success:
+                print("\nError: General job collection failed. Exiting.")
+                os.chdir(original_cwd)
+                sys.exit(1)
+
+        finally:
+            # Return to original directory
+            os.chdir(original_cwd)
 
     # =========================================================================
     # PHASE 2: Candidate-specific processing (scripts 05b-07c)
@@ -258,13 +268,15 @@ def main():
         print(f"Candidate: {candidate_name}")
         print(f"{'*'*80}\n")
 
-        # Change to candidate folder for output
+        # Change to date folder (where Phase 1 outputs are) to run Phase 2
+        # Phase 2 will output results to candidate subfolder
         original_cwd = os.getcwd()
-        os.chdir(candidate_folder)
+        os.chdir(date_folder)
 
         try:
             # Script 05b: Match jobs to candidate
-            cmd_05b = ["uv", "run", "../../05b_match_candidate.py", candidate_profile_path]
+            # This runs from date folder so it can access df_with_ai_annotations.csv
+            cmd_05b = ["uv", "run", "../05b_match_candidate.py", candidate_profile_path]
             if model_05b != "gemini-3-flash-preview":
                 cmd_05b.extend(["--model", model_05b])
             if args.max_word_limit != 5100:
@@ -277,11 +289,21 @@ def main():
             ):
                 success = False
 
+            # Move candidate-specific outputs to candidate subfolder
+            if not args.dry_run and success:
+                try:
+                    # Move df_with_candidate_match.csv
+                    candidate_csv = candidate_folder / "df_with_candidate_match.csv"
+                    if Path("df_with_candidate_match.csv").exists():
+                        Path("df_with_candidate_match.csv").rename(candidate_csv)
+                except Exception as e:
+                    print(f"Warning: Could not move CSV to candidate folder: {e}")
+
             if success and not args.no_typst:
                 # Script 07b: Generate Typst document
-                cmd_07b = ["uv", "run", "../../07b_jobs_to_typst.py"]
+                cmd_07b = ["uv", "run", "../07b_jobs_to_typst.py"]
                 if args.previous_date:
-                    cmd_07b.extend(["--previous-date", f"../../{args.previous_date}"])
+                    cmd_07b.extend(["--previous-date", f"../{args.previous_date}"])
 
                 if not run_command(
                     cmd_07b,
@@ -290,10 +312,19 @@ def main():
                 ):
                     success = False
 
+                # Move high_score_jobs.typ to candidate subfolder
+                if not args.dry_run and success:
+                    try:
+                        typ_file = candidate_folder / "high_score_jobs.typ"
+                        if Path("high_score_jobs.typ").exists():
+                            Path("high_score_jobs.typ").rename(typ_file)
+                    except Exception as e:
+                        print(f"Warning: Could not move Typst file to candidate folder: {e}")
+
                 # Script 07c: Generate all jobs Typst document
-                cmd_07c = ["uv", "run", "../../07c_all_jobs_to_typst.py"]
+                cmd_07c = ["uv", "run", "../07c_all_jobs_to_typst.py"]
                 if args.previous_date:
-                    cmd_07c.extend(["--previous-date", f"../../{args.previous_date}"])
+                    cmd_07c.extend(["--previous-date", f"../{args.previous_date}"])
 
                 if not run_command(
                     cmd_07c,
@@ -301,6 +332,15 @@ def main():
                     description=f"Step 07c: Generating all jobs Typst document for {candidate_name}"
                 ):
                     success = False
+
+                # Move high_score_jobs_all.typ to candidate subfolder
+                if not args.dry_run and success:
+                    try:
+                        typ_all_file = candidate_folder / "high_score_jobs_all.typ"
+                        if Path("high_score_jobs_all.typ").exists():
+                            Path("high_score_jobs_all.typ").rename(typ_all_file)
+                    except Exception as e:
+                        print(f"Warning: Could not move all jobs Typst file to candidate folder: {e}")
 
         finally:
             os.chdir(original_cwd)
