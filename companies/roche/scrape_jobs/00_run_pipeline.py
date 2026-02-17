@@ -290,12 +290,16 @@ def main():
                 success = False
 
             # Move candidate-specific outputs to candidate subfolder
-            if not args.dry_run and success:
+            if not args.dry_run:
                 try:
                     # Move df_with_candidate_match.csv
-                    candidate_csv = candidate_folder / "df_with_candidate_match.csv"
-                    if Path("df_with_candidate_match.csv").exists():
-                        Path("df_with_candidate_match.csv").rename(candidate_csv)
+                    csv_src = Path("df_with_candidate_match.csv")
+                    csv_dst = candidate_folder / "df_with_candidate_match.csv"
+                    if csv_src.exists():
+                        csv_src.rename(csv_dst)
+                        print(f"✓ Moved df_with_candidate_match.csv to {csv_dst}")
+                    else:
+                        print(f"Warning: df_with_candidate_match.csv not found in {os.getcwd()}")
                 except Exception as e:
                     print(f"Warning: Could not move CSV to candidate folder: {e}")
 
@@ -313,11 +317,16 @@ def main():
                     success = False
 
                 # Move high_score_jobs.typ to candidate subfolder
-                if not args.dry_run and success:
+                if not args.dry_run:
                     try:
-                        typ_file = candidate_folder / "high_score_jobs.typ"
-                        if Path("high_score_jobs.typ").exists():
-                            Path("high_score_jobs.typ").rename(typ_file)
+                        typ_src = Path("high_score_jobs.typ")
+                        typ_dst = candidate_folder / "high_score_jobs.typ"
+                        if typ_src.exists():
+                            typ_src.rename(typ_dst)
+                            print(f"✓ Moved high_score_jobs.typ to {typ_dst}")
+                        else:
+                            print(f"Warning: high_score_jobs.typ not found in {os.getcwd()}")
+                            print(f"Files in current directory: {list(Path('.').glob('*.typ'))}")
                     except Exception as e:
                         print(f"Warning: Could not move Typst file to candidate folder: {e}")
 
@@ -334,11 +343,16 @@ def main():
                     success = False
 
                 # Move high_score_jobs_all.typ to candidate subfolder
-                if not args.dry_run and success:
+                if not args.dry_run:
                     try:
-                        typ_all_file = candidate_folder / "high_score_jobs_all.typ"
-                        if Path("high_score_jobs_all.typ").exists():
-                            Path("high_score_jobs_all.typ").rename(typ_all_file)
+                        typ_all_src = Path("high_score_jobs_all.typ")
+                        typ_all_dst = candidate_folder / "high_score_jobs_all.typ"
+                        if typ_all_src.exists():
+                            typ_all_src.rename(typ_all_dst)
+                            print(f"✓ Moved high_score_jobs_all.typ to {typ_all_dst}")
+                        else:
+                            print(f"Warning: high_score_jobs_all.typ not found in {os.getcwd()}")
+                            print(f"Files in current directory: {list(Path('.').glob('*.typ'))}")
                     except Exception as e:
                         print(f"Warning: Could not move all jobs Typst file to candidate folder: {e}")
 
