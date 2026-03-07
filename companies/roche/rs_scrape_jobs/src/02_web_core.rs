@@ -54,6 +54,10 @@ pub async fn setup_browser() -> Result<(Browser, Page, tokio::task::JoinHandle<(
     let (browser, mut handler) = Browser::launch(config).await?;
     println!("Browser launched successfully.");
 
+    // Print Chrome version
+    // let version = browser.version().await?;
+    // println!("Chrome version: {}", version.product);
+
     let handle = tokio::spawn(async move {
         while let Some(h) = handler.next().await {
             if h.is_err() {

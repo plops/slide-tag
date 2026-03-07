@@ -1,10 +1,10 @@
 use anyhow::Result;
 use chromiumoxide::Page;
 use std::collections::HashSet;
+use std::fs;
 use std::time::Duration;
 use std::time::Instant;
 use tokio::time::sleep;
-use std::fs;
 
 /// Navigate to Roche careers search results page
 pub async fn navigate_to_roche(page: &Page) -> Result<()> {
@@ -152,12 +152,19 @@ pub async fn collect_job_urls(page: &Page) -> Result<Vec<String>> {
             );
             if has_href {
                 // Get href and navigate
-                let href_result = page.evaluate("document.querySelector('a[data-ph-at-id=\"pagination-next-link\"]').href").await?;
+                let href_result = page
+                    .evaluate(
+                        "document.querySelector('a[data-ph-at-id=\"pagination-next-link\"]').href",
+                    )
+                    .await?;
                 let href: String = serde_json::from_value(href_result.value().unwrap().clone())?;
                 println!("Navigating to next page: {}", href);
                 page.goto(href).await?;
                 page.wait_for_navigation().await?;
-                println!("Navigated to: {}", page.url().await?.unwrap_or_else(|| "No URL".to_string()));
+                println!(
+                    "Navigated to: {}",
+                    page.url().await?.unwrap_or_else(|| "No URL".to_string())
+                );
                 // Dump HTML after wait
                 let html_after = page.content().await?;
                 fs::write("page_after_click.html", &html_after)?;
