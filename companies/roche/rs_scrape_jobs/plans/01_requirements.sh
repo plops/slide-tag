@@ -40,6 +40,8 @@ declare -a FILES=(
 
 for i in "${FILES[@]}"; do
     if [ -f "$i" ]; then
+        SIZE_KB=$(du -k "$i" | cut -f1)
+        echo "LOG: Processing $i (${SIZE_KB} KB)" >&2
         echo "// start of $i"
         cat "$i"
         echo "// end of $i"
