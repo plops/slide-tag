@@ -1,0 +1,42 @@
+# Rust build artifacts
+/target/
+**/target/
+Cargo.lock
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Log files
+*.log
+
+# Temporary and backup files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Python cache and temp files
+__pycache__/
+*.pyc
+*.pyo
+*~
+
+# Other project files
+*.orig
+*.rej
+COMPLETION_SUMMARY.txt
+VERIFICATION_COMPLETE.txt
+companies/roche/scrape_jobs/20*
