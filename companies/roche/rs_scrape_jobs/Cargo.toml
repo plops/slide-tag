@@ -12,11 +12,11 @@ log = "0.4"
 
 # Optionale Abhängigkeiten (nur kompiliert, wenn Feature aktiv)
 libsql = { version = "0.9.29", default-features = false, features = ["core"], optional = true }
-chromiumoxide = { version = "0.8", optional = true }
-reqwest = { version = "0.11", optional = true }
-rig-core = { version = "0.1", optional = true }
-askama = { version = "0.12", optional = true }
-typst = { version = "0.11", optional = true }
+chromiumoxide = { version = "0.9", optional = true }
+reqwest = { version = "0.13", optional = true }
+rig-core = { version = "0.32", optional = true }
+askama = { version = "0.15", optional = true }
+typst = { version = "0.14", optional = true }
 futures = "0.3"
 
 [features]

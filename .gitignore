@@ -19,6 +19,9 @@ Thumbs.db
 *.sqlite
 *.sqlite3
 
+*.html
+
+
 # Log files
 *.log
 
