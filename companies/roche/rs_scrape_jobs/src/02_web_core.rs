@@ -1,5 +1,5 @@
 use anyhow::Result;
-use chromiumoxide::{Browser, BrowserConfig};
+use chromiumoxide::{Browser, BrowserConfig, Page};
 use futures::StreamExt;
 
 pub async fn test_browser_title() -> Result<String> {
@@ -39,4 +39,29 @@ pub async fn test_browser_title() -> Result<String> {
     println!("Handler finished.");
 
     Ok(title)
+}
+
+/// Setup browser with headless Chrome and return a page
+pub async fn setup_browser() -> Result<(Browser, Page, tokio::task::JoinHandle<()>)> {
+    println!("Building browser config for scraper...");
+    let config = BrowserConfig::builder()
+        .arg("--headless=new")
+        .arg("--window-size=1920,1080")
+        .arg("--no-sandbox")
+        .build()
+        .map_err(anyhow::Error::msg)?;
+    println!("Launching browser...");
+    let (browser, mut handler) = Browser::launch(config).await?;
+    println!("Browser launched successfully.");
+
+    let handle = tokio::spawn(async move {
+        while let Some(h) = handler.next().await {
+            if h.is_err() {
+                eprintln!("Handler error: {:?}", h);
+            }
+        }
+    });
+
+    let page = browser.new_page("about:blank").await?;
+    Ok((browser, page, handle))
 }

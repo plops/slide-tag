@@ -4,5 +4,7 @@ pub mod db_repo;
 pub mod db_setup;
 #[path = "00_models.rs"]
 pub mod models;
+#[path = "03_scraper_roche.rs"]
+pub mod scraper_roche;
 #[path = "02_web_core.rs"]
 pub mod web_core;

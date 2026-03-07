@@ -9,7 +9,7 @@ echo "Running cargo fmt..."
 cargo fmt
 
 echo "Running cargo clippy..."
-#cargo clippy
+cargo clippy
 
 echo "Running cargo build $@..."
 cargo build "$@"
