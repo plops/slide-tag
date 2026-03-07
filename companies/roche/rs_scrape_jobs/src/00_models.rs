@@ -1,4 +1,6 @@
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "ai")]
+use schemars::JsonSchema;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Job {
@@ -32,6 +34,8 @@ pub struct Job {
     pub address_region: Option<String>,
     pub address_country: Option<String>,
     pub postal_code: Option<String>,
+    pub job_summary: Option<String>,
+    pub slide_tag_relevance: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -44,4 +48,31 @@ pub struct Skill {
 pub struct Location {
     pub id: Option<i64>,
     pub name: String,
+}
+
+#[cfg(feature = "ai")]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+pub struct JobAnnotation {
+    /// Concise summary of the job posting
+    pub summary: String,
+    /// Assessment of relevance to slide_tag tool (presentation creation)
+    pub relevance: String,
+}
+
+#[cfg(feature = "ai")]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+pub struct BatchAnnotationResult {
+    /// Mapping of job IDs to their annotations
+    pub results: std::collections::HashMap<u32, JobAnnotation>,
+}
+
+#[cfg(feature = "ai")]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+pub struct CandidateMatch {
+    /// Job identifier
+    pub job_id: String,
+    /// Matching score (e.g., 0.0 to 1.0)
+    pub score: f32,
+    /// Explanation for the match
+    pub explanation: String,
 }

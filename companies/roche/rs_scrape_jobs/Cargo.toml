@@ -9,20 +9,22 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 anyhow = "1.0"
 log = "0.4"
+async-trait = "0.1.89"
 
 # Optionale Abhängigkeiten (nur kompiliert, wenn Feature aktiv)
 libsql = { version = "0.9.29", default-features = false, features = ["core"], optional = true }
 chromiumoxide = { version = "0.9", optional = true }
 reqwest = { version = "0.13", optional = true, features = ["gzip", "brotli", "rustls"] }
-regex = "1.10"
+regex = "1.12"
 rig-core = { version = "0.32", optional = true }
 askama = { version = "0.15", optional = true }
 typst = { version = "0.14", optional = true }
 futures = "0.3"
+schemars = { version = "1.2", optional = true }
 
 [features]
 default = ["db", "scraper", "ai", "pdf"] # Für den finalen Build
 db = ["dep:libsql"]
 scraper = ["dep:chromiumoxide", "dep:reqwest"]
-ai = ["dep:rig-core"]
+ai = ["dep:rig-core", "dep:schemars"]
 pdf = ["dep:askama", "dep:typst"]

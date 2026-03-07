@@ -124,6 +124,8 @@ fn parse_roche_job(json_str: &str) -> Result<Job> {
         address_region,
         address_country,
         postal_code,
+        job_summary: None,
+        slide_tag_relevance: None,
     })
 }
 

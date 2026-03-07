@@ -41,6 +41,8 @@ async fn main() -> anyhow::Result<()> {
         address_region: None,
         address_country: None,
         postal_code: None,
+        job_summary: None,
+        slide_tag_relevance: None,
     };
     repo.insert_job(&job1).await?;
 
@@ -75,6 +77,8 @@ async fn main() -> anyhow::Result<()> {
         address_region: None,
         address_country: None,
         postal_code: None,
+        job_summary: None,
+        slide_tag_relevance: None,
     };
     repo.insert_job(&job2).await?;
 

@@ -38,7 +38,9 @@ pub async fn init_db(db_path: &str) -> anyhow::Result<libsql::Connection> {
             address_locality TEXT,
             address_region TEXT,
             address_country TEXT,
-            postal_code TEXT
+            postal_code TEXT,
+            job_summary TEXT,
+            slide_tag_relevance TEXT
         )",
         (),
     )
