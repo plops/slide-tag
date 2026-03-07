@@ -140,24 +140,17 @@ pub async fn collect_job_urls(page: &Page) -> Result<Vec<String>> {
 
         // Check for next button
         let next_result = page
-            .evaluate("!!document.querySelector('a[data-ph-at-id=\"pagination-next-link\"]')")
+            .evaluate(r#"
+            let nextBtn = document.querySelector('a[data-ph-at-id="pagination-next-link"]');
+            if (nextBtn && nextBtn.href && typeof nextBtn.href === 'string' && nextBtn.href.startsWith('https')) {
+                nextBtn.href
+            } else {
+                null
+            }
+            "#)
             .await?;
-        let next_exists = next_result.value().unwrap().as_bool().unwrap_or(false);
-        if next_exists {
-            let href_result = page.evaluate("!!document.querySelector('a[data-ph-at-id=\"pagination-next-link\"]').getAttribute('href')").await?;
-            let has_href = href_result.value().unwrap().as_bool().unwrap_or(false);
-            println!(
-                "Next button exists: {}, has href: {}",
-                next_exists, has_href
-            );
-            if has_href {
-                // Get href and navigate
-                let href_result = page
-                    .evaluate(
-                        "document.querySelector('a[data-ph-at-id=\"pagination-next-link\"]').href",
-                    )
-                    .await?;
-                let href: String = serde_json::from_value(href_result.value().unwrap().clone())?;
+        if let Some(val) = next_result.value() {
+            if let Some(href) = val.as_str() {
                 println!("Navigating to next page: {}", href);
                 page.goto(href).await?;
                 page.wait_for_navigation().await?;
@@ -170,11 +163,11 @@ pub async fn collect_job_urls(page: &Page) -> Result<Vec<String>> {
                 fs::write("page_after_click.html", &html_after)?;
                 println!("Dumped HTML to page_after_click.html");
             } else {
-                println!("Next button disabled, last page.");
+                println!("No valid next button href, last page.");
                 break;
             }
         } else {
-            println!("No next button, last page.");
+            println!("Evaluate failed, breaking.");
             break;
         }
     }
