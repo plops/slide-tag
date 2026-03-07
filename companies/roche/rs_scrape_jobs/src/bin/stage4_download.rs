@@ -17,14 +17,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let pages = downloader::download_pages(urls).await?;
 
     for (i, (url, html)) in pages.iter().enumerate() {
-        match json_extractor::extract_phapp_json(html) {
+        match json_extractor::extract_phapp_json_regex(html) {
             Ok(json) => {
                 let filename = format!("jobs_html/job_{}.json", i + 1);
                 std::fs::write(&filename, &json)?;
                 println!("Saved {} from {}", filename, url);
             }
             Err(e) => {
+                let filename = format!("jobs_html/job_{}_failed.html", i + 1);
+                std::fs::write(&filename, html)?;
                 eprintln!("Failed to extract JSON from {}: {}", url, e);
+                eprintln!("Saved HTML to {} for inspection", filename);
             }
         }
     }
