@@ -128,7 +128,7 @@ pub async fn collect_job_urls(page: &Page) -> Result<Vec<String>> {
             Array.from(document.querySelectorAll("a[data-ph-at-id='job-link']")).map(a => a.href).filter(href => href)
         "#).await?;
         let hrefs: Vec<String> = serde_json::from_value(result.value().unwrap().clone())?;
-        let prev_count = links.len();
+        let _prev_count = links.len();
         for href in hrefs {
             links.insert(href.clone());
         }

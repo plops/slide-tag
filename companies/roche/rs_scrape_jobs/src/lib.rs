@@ -2,6 +2,10 @@
 pub mod db_repo;
 #[path = "01_db_setup.rs"]
 pub mod db_setup;
+#[path = "04_downloader.rs"]
+pub mod downloader;
+#[path = "05_json_extractor.rs"]
+pub mod json_extractor;
 #[path = "00_models.rs"]
 pub mod models;
 #[path = "03_scraper_roche.rs"]
