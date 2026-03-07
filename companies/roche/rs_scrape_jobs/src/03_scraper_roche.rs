@@ -4,6 +4,7 @@ use std::collections::HashSet;
 use std::time::Duration;
 use std::time::Instant;
 use tokio::time::sleep;
+use std::fs;
 
 /// Navigate to Roche careers search results page
 pub async fn navigate_to_roche(page: &Page) -> Result<()> {
@@ -122,17 +123,20 @@ pub async fn collect_job_urls(page: &Page) -> Result<Vec<String>> {
         }
         visited_urls.insert(current_url.clone());
 
-        // Wait for job links
-        sleep(Duration::from_secs(1)).await;
-
-        // Collect hrefs
+        // Collect hrefs before clicking next
         let result = page.evaluate(r#"
             Array.from(document.querySelectorAll("a[data-ph-at-id='job-link']")).map(a => a.href).filter(href => href)
         "#).await?;
         let hrefs: Vec<String> = serde_json::from_value(result.value().unwrap().clone())?;
+        let prev_count = links.len();
         for href in hrefs {
-            links.insert(href);
+            links.insert(href.clone());
         }
+
+        // Dump HTML before click
+        let html_before = page.content().await?;
+        fs::write("page_before_click.html", &html_before)?;
+        println!("Dumped HTML to page_before_click.html");
 
         // Check for next button
         let next_result = page
@@ -142,15 +146,22 @@ pub async fn collect_job_urls(page: &Page) -> Result<Vec<String>> {
         if next_exists {
             let href_result = page.evaluate("!!document.querySelector('a[data-ph-at-id=\"pagination-next-link\"]').getAttribute('href')").await?;
             let has_href = href_result.value().unwrap().as_bool().unwrap_or(false);
+            println!(
+                "Next button exists: {}, has href: {}",
+                next_exists, has_href
+            );
             if has_href {
-                // Click next
-                page.evaluate("document.querySelector('a[data-ph-at-id=\"pagination-next-link\"]').scrollIntoView({block: 'center'});").await?;
-                page.evaluate(
-                    "document.querySelector('a[data-ph-at-id=\"pagination-next-link\"]').click();",
-                )
-                .await?;
-                // Wait for navigation
+                // Get href and navigate
+                let href_result = page.evaluate("document.querySelector('a[data-ph-at-id=\"pagination-next-link\"]').href").await?;
+                let href: String = serde_json::from_value(href_result.value().unwrap().clone())?;
+                println!("Navigating to next page: {}", href);
+                page.goto(href).await?;
                 page.wait_for_navigation().await?;
+                println!("Navigated to: {}", page.url().await?.unwrap_or_else(|| "No URL".to_string()));
+                // Dump HTML after wait
+                let html_after = page.content().await?;
+                fs::write("page_after_click.html", &html_after)?;
+                println!("Dumped HTML to page_after_click.html");
             } else {
                 println!("Next button disabled, last page.");
                 break;
