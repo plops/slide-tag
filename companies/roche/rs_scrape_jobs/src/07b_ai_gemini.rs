@@ -25,7 +25,7 @@ impl GeminiProvider {
 impl AiProvider for GeminiProvider {
     async fn annotate_jobs(&self, jobs: Vec<Job>) -> Result<Vec<JobAnnotation>> {
         let client = gemini::Client::from_env();
-        let extractor = client
+        let _extractor = client
             .extractor::<BatchAnnotationResult>("gemini-3.1-flash-lite-preview")
             .preamble("Analyze the following job postings and provide concise summaries and relevance assessments to slide_tag (a tool for creating presentations). For each job, give a brief summary and assess its relevance on a scale of 1-10 with explanation. You must respond with a valid JSON object in the exact format: {\"results\": {\"0\": {\"summary\": \"string\", \"relevance\": \"string\"}, \"1\": {...}, \"2\": {...}}} Do not include any other text.")
             .build();
@@ -80,7 +80,7 @@ impl AiProvider for GeminiProvider {
 
         let mut annotations = Vec::new();
 
-        for i in 0..jobs.len() {
+        for (i, _) in jobs.iter().enumerate() {
             if let Some(annotation) = batch.results.get(&(i as u32)) {
                 annotations.push(annotation.clone());
             } else {
