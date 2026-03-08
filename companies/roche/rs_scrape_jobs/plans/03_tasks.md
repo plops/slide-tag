@@ -1,8 +1,56 @@
-Hier ist ein umfassender, stufenweiser Implementierungsplan für den Rust-Port der Roche Job Scraper Pipeline. 
+# Architektur- & Implementierungs-Vorgaben (Für das ausführende LLM)
 
-Um deine Anforderungen zu erfüllen (isolierte Testbarkeit, minimale Abhängigkeiten, nummerierte Dateistruktur), wählen wir eine Architektur, die stark auf **Feature-Flags in Cargo** und **Modularisierung durch Traits** setzt.
+## 1. Datenbank-Abstraktion (Vorbereitung für PostgreSQL)
+Um von SQLite (aktuell `libsql`) später nahtlos auf PostgreSQL wechseln zu können, **muss** das *Repository Pattern* über Rust Traits (`async-trait`) implementiert werden. Die Geschäftslogik darf niemals direkte SQL-Queries ausführen.
 
----
+**Vorgabe an das LLM:** Erstelle eine Datei `src/01c_db_traits.rs`.
+```rust
+use async_trait::async_trait;
+use crate::models::{Job, Candidate, CandidateMatch};
+use anyhow::Result;
+
+#[async_trait]
+pub trait DatabaseProvider: Send + Sync {
+    async fn insert_job_history(&self, job: &Job) -> Result<()>;
+    async fn get_latest_jobs(&self) -> Result<Vec<Job>>;
+    async fn upsert_candidate(&self, candidate: &Candidate) -> Result<i64>;
+    async fn insert_candidate_match(&self, match_data: &CandidateMatch) -> Result<()>;
+    async fn get_matches_for_candidate(&self, candidate_id: i64) -> Result<Vec<CandidateMatch>>;
+}
+```
+*Anweisung:* Aktuell wird dieses Trait für SQLite implementiert. Später muss nur eine neue Datei `01d_db_postgres.rs` geschrieben werden, die dasselbe Trait implementiert.
+
+## 2. Scraper "Politeness" (Rate Limiting für HTTP)
+Um Roche nicht zu überlasten, **muss** ein konfigurierbarer Delay eingebaut werden.
+**Vorgabe an das LLM:** In `04_downloader.rs` muss eine Pause zwischen den Requests mit `rand` (Jitter) und `tokio::time::sleep` implementiert werden.
+```rust
+// Beispiel-Snippet für das LLM
+use rand::Rng;
+use tokio::time::{sleep, Duration};
+
+async fn polite_delay(min_sec: u64, max_sec: u64) {
+    let mut rng = rand::thread_rng();
+    let delay = rng.gen_range(min_sec..=max_sec);
+    sleep(Duration::from_secs(delay)).await;
+}
+```
+
+## 3. LLM Rate Limiting & Batching
+Die KI-Anfragen müssen streng limitiert werden (RPM, TPM, RPD). 
+**Vorgabe an das LLM:** Erstelle ein Config-Struct und einen Token-Tracker in `07d_ai_rate_limiter.rs`.
+
+```rust
+pub struct AiModelConfig {
+    pub name: String,
+    pub rpm_limit: u32,
+    pub tpm_limit: u32,
+    pub rpd_limit: u32,
+    pub assumed_words_per_token: f32, // z.B. 0.75
+}
+
+// Für gemini-3.1-flash-lite-preview: rpm=15, tpm=250_000, rpd=500
+```
+
 
 ### 1. Architektur & Programming Patterns für Rust
 
@@ -127,54 +175,63 @@ rs_scrape_jobs/
 *   **Kompilieren mit:** `cargo run --bin stage6_ai_test --features "db ai"`
 *   **Ziel:** Update der SQLite mit den AI-Annotationen. Strikte Typsicherheit (die KI *muss* einen JSON-Array zurückgeben, andernfalls wirft Rust einen sauberen Fehler und versucht es erneut).
 
-#### Stufe 7: Erweitertes DB-Schema & Job-Historisierung
-*   **Aktion:** Erstellen von `01c_db_schema_v2.rs` (oder Update von `01_db_setup.rs` / `01b_db_repo.rs`).
-*   **Fokus:** Anpassung der Datenbank für die neuen Anforderungen:
-    *   Tabelle `candidates` (id, oauth_id, name, profile_text, created_at).
-    *   Tabelle `candidate_job_matches` (id, candidate_id, job_identifier, ai_model, score, explanation, created_at). So können wir problemlos mehrere Auswertungen speichern und via `ORDER BY created_at DESC LIMIT 1` immer die aktuellste laden.
-    *   **Historisierung:** Anpassung der `jobs`-Tabelle oder Erstellung einer `job_history`-Tabelle, damit bei jedem nächtlichen Scraping Updates an Jobs (z.B. geänderte Deadlines) als neue Historien-Einträge gespeichert werden, anstatt sie hart zu überschreiben.
-*   **Test:** Ein isoliertes Test-Skript `bin/stage7_db_v2.rs`, das einen Dummy-Kandidaten und mehrfache Match-Ergebnisse schreibt und das aktuellste abfragt.
+### Stufe 7: Historisiertes DB-Schema & Traits
+*   **Dateien:** Erstelle `src/01c_db_traits.rs`, erweitere `src/00_models.rs` und `src/01_db_setup.rs`.
+*   **Aufgabe:** 
+    1. Definiere das `DatabaseProvider` Trait.
+    2. Erweitere das SQLite Setup: 
+       - Tabelle `candidates` (id INTEGER PRIMARY KEY, oauth_sub TEXT UNIQUE, name TEXT, profile_text TEXT).
+       - Tabelle `candidate_matches` (id INTEGER PRIMARY KEY, candidate_id INTEGER, job_identifier TEXT, model_used TEXT, score INTEGER, explanation TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP).
+       - Ändere die Job-Speicherung so ab, dass bei einem Update (z.B. geänderte Beschreibung) ein neuer Datensatz in einer `job_history` Tabelle angelegt wird oder ein `updated_at` Timestamp gesetzt wird.
+*   **Test:** Schreibe `bin/stage7_db_v2.rs`, um Dummy-Kandidaten und mehrere Matches für den gleichen Job zu speichern. Lese danach mit `ORDER BY created_at DESC LIMIT 1` das aktuellste Match aus.
 
-#### Stufe 8: Smart Batching & Token-Management für AI
-*   **Aktion:** Erstellen von `07d_ai_batching.rs` und Update von `07_ai_core.rs`.
-*   **Fokus:** Implementierung des "Wort-Zählers". 
-    *   Eine Funktion generiert für jeden Job/Kandidaten einen Sub-Prompt.
-    *   Eine Schleife sammelt diese Sub-Prompts, zählt die Wörter (`text.split_whitespace().count()`).
-    *   Sobald das Limit von z.B. 14.000 Wörtern erreicht ist, wird der Batch an Gemini gesendet, die JSON-Antwort verarbeitet und der nächste Batch gestartet.
-*   **Ziel:** Maximale Ausnutzung des Gemini Free Tiers ohne Risiko von `HTTP 429` (Too Many Requests) oder `400` (Token Limit exceeded).
+### Stufe 8: Scraper Politeness & In-Memory Pipeline
+*   **Dateien:** Erweitere `04_downloader.rs` und erstelle `06_pipeline_orchestrator.rs`.
+*   **Aufgabe:**
+    1. Baue `polite_delay(20, 60)` (20-60 Sekunden Pause) in den Downloader ein, um den nächtlichen Lauf auf ~20 Minuten zu strecken.
+    2. Verbinde den Downloader direkt mit dem JSON-Extractor, ohne Dateien auf die Festplatte zu schreiben.
+    3. **Debug-Logik:** Wenn die Pipeline mit `debug = true` gestartet wird, speichere das extrahierte JSON zusätzlich unter `debug_dumps/YYYY-MM-DD/job_{identifier}.json`.
+*   **Test:** `bin/stage8_polite_scrape.rs`.
 
-#### Stufe 9: In-Memory Pipeline & Debug-Dumps (Vorbereitung für Automatisierung)
-*   **Aktion:** Überarbeitung von `06_data_ingestion.rs` zu `06_pipeline_orchestrator.rs`.
-*   **Fokus:** Entfernen des Zwangs, HTML/JSON auf die Festplatte zu schreiben. Der Datenfluss ist nun: `Reqwest -> String -> Regex/JSON-Parser -> Struct -> DB`.
-*   **Debug-Feature:** Einbau einer Logik: Wenn die Applikation mit einem Debug-Flag gestartet wird, wird ein Ordner `debug_dumps/YYYY-MM-DD_HH-MM/` erstellt und rohe HTML/JSON-Dateien (benannt nach der Job-ID) abgelegt.
-*   **Test:** `bin/stage9_full_scrape.rs`, das einmal komplett im RAM läuft und nur am Ende in die SQLite schreibt.
+### Stufe 9: Smart Batching & Token Limiting für Gemini
+*   **Dateien:** Erstelle `07d_ai_rate_limiter.rs` und `07e_ai_batch_builder.rs`.
+*   **Aufgabe:** 
+    1. Implementiere Logik für die Gemini-Modelle aus der Konfigurationstabelle.
+    2. Die Funktion nimmt eine Liste von `Job`s und ein `Candidate` Profil.
+    3. Sie iteriert über die Jobs, zählt die Wörter des Prompts (`text.split_whitespace().count()`). Ein Wort = ~1.33 Token.
+    4. Wenn das Limit von `tpm_limit * 0.8` (Sicherheitspuffer) erreicht ist, wird der Request gesendet.
+    5. Implementiere einen Zähler, der `tokio::time::sleep` aufruft, wenn das `rpm` (Requests per Minute) Limit erreicht ist, bis die Minute abgelaufen ist.
+*   **Test:** `bin/stage9_rate_limit_test.rs`.
 
-#### Stufe 10: Web-Server Basis & OAuth Integration
-*   **Aktion:** Erstellen von `11_web_server.rs` und `12_auth.rs`.
-*   **Fokus:** Aufsetzen eines **Axum** Webservers. 
-    *   Einrichtung von Session-Management (z.B. mit `tower-sessions`).
-    *   Implementierung des OAuth-Flows (GitHub oder Google).
-    *   Routen: `/` (Landing Page), `/login`, `/auth/callback`, `/dashboard`.
-*   **Kompilieren mit:** `cargo run --bin stage10_web --features "web db"`
-*   **Ziel:** Du kannst im Browser `localhost:3000` öffnen, dich via Google/Github einloggen und siehst danach deine OAuth-ID in der Konsole / im Browser.
+### Stufe 10: Axum Web-Server & Authentifizierung
+*   **Dateien:** Erstelle `11_web_server.rs` und `12_auth.rs`.
+*   **Aufgabe:**
+    1. Nutze `axum`, `tokio` und `tower-sessions`.
+    2. Richte OAuth2 (GitHub oder Google) ein.
+    3. Erstelle minimale Routen: `/login`, `/auth/callback`, `/logout`.
+    4. Speichere den eingeloggten Nutzer über das `DatabaseProvider` Trait in der `candidates` Tabelle ab.
+*   **Cargo Features:** Sicherstellen, dass dies nur kompiliert, wenn das `web` Feature aktiv ist.
+*   **Test:** `bin/stage10_web.rs` (Sollte auf localhost:3000 lauschen und via Nginx unter `/app/` erreichbar sein).
 
-#### Stufe 11: Web-UI: Profilverwaltung & Job-Matching Dashboard
-*   **Aktion:** Erstellen von Askama-Templates (`templates/dashboard.html`, `templates/profile.html`) und Anbindung in `13_web_ui.rs`.
-*   **Fokus:** 
-    *   **Profil:** Ein Text-Feld im Browser, wo der eingeloggte Kandidat sein Profil/CV einkopieren kann. Speichern in der DB.
-    *   **Dashboard:** Eine Ansicht, die die Liste der `candidate_job_matches` für den aktuellen User aus der Datenbank lädt (nur die neuesten pro Job). 
-    *   UI-Elemente: Filter nach Score, Darstellung der historischen Entwicklung eines Jobs (Wann wurde er zuerst gepostet? Was hat sich geändert?).
-*   **Ziel:** Eine voll funktionsfähige Web-App. Die AI hat im Hintergrund gearbeitet, der Nutzer konsumiert nur noch das Ergebnis.
+### Stufe 11: Web-UI (Askama Templates)
+*   **Dateien:** Erstelle Ordner `templates/`, erstelle `13_web_ui.rs`.
+*   **Aufgabe:**
+    1. Nutze Askama für serverseitiges HTML-Rendering.
+    2. **Route `/app/profile`:** Ein Formular, in dem der User seinen Lebenslauf (Text) einkopieren kann.
+    3. **Route `/app/dashboard`:** Zeigt eine Tabelle/Liste der neuesten Auswertungen (`candidate_matches` verknüpft mit `jobs`), gefiltert für die `candidate_id` der aktuellen Session.
+    4. Baue einen "Re-Evaluate" Button, der einen asynchronen Task anwirft, um alle Jobs für diesen Kandidaten mit der KI neu zu bewerten (ideal, wenn das Profil geändert wurde).
 
-#### Stufe 12: Nightly Scheduler (Cron-Job in Rust)
-*   **Aktion:** Erstellen von `14_scheduler.rs`.
-*   **Fokus:** Wir brauchen keinen externen Linux-Cronjob. Tokio kann das selbst. Ein asynchroner Task läuft im Hintergrund (`tokio::spawn`), prüft die Uhrzeit (z.B. mithilfe der Crate `tokio-cron-scheduler`) und startet jede Nacht um 03:00 Uhr die Scraper-Pipeline aus Stufe 9.
-*   *Workflow Nachts:* Scrape Roche -> Lade DB Historie -> Identifiziere neue/geänderte Jobs -> Sende unbewertete Jobs an Gemini (Batching) -> Speichere in DB.
-*   **Ziel:** Ein Zero-Maintenance System. Der Server läuft durchgängig.
+### Stufe 12: Nightly Cron-Job
+*   **Dateien:** Erstelle `14_scheduler.rs`.
+*   **Aufgabe:**
+    1. Nutze `tokio-cron-scheduler`.
+    2. Richte einen Job ein, der jede Nacht um 02:00 Uhr triggert.
+    3. Ablauf: `Scrape Jobs -> Finde Deltas (Neue/Geänderte Jobs) -> Speichere in DB -> Hole alle Kandidaten -> Generiere AI Matches (mit Rate Limiting aus Stufe 9) -> Speichere Ergebnisse in DB`.
+*   **Test:** `bin/stage12_cron_test.rs` (Mit einem minütlichen Cron-Auslöser zum Testen).
 
-#### Stufe 13: Das finale Binary (CLI + Server)
-*   **Aktion:** Ausprogrammieren von `src/bin/main.rs`.
-*   **Fokus:** Alles kommt zusammen in einem mächtigen CLI (mithilfe von `clap`).
-    *   `rs-scrape serve` -> Startet Webserver & Nightly Scheduler.
-    *   `rs-scrape scrape-now --debug-dump` -> Triggert einen sofortigen Scrape-Vorgang und speichert HTMLs zur Fehleranalyse.
-    *   `rs-scrape evaluate-candidate <ID>` -> Erzwingt eine sofortige AI-Neubewertung für einen bestimmten Kandidaten (z.B. weil er sein Profil geändert hat).
+### Stufe 13: Main CLI Zusammenführung
+*   **Dateien:** Überarbeite `bin/main.rs`.
+*   **Aufgabe:** Nutze `clap`, um das Programm steuerbar zu machen:
+    *   `rs-scrape serve`: Startet Axum (Port 3000) UND den Background-Cron-Job.
+    *   `rs-scrape trigger-scrape --debug`: Startet den Scraper sofort im Debug-Modus.
+    *   `rs-scrape force-match --candidate-id <ID>`: Zwingt die KI, alle Jobs für einen spezifischen User sofort neu zu bewerten.
