@@ -7,13 +7,18 @@ pub struct BatchBuilder {
     jobs: Vec<Job>,
     current_tokens: u32,
     token_threshold: u32,
+    assumed_words_per_token: f32,
 }
 
 impl BatchBuilder {
-    pub fn new(rate_limiter: SharedRateLimiter) -> Self {
-        let token_threshold = {
-            let limiter = rate_limiter.try_lock().unwrap();
-            (limiter.config.tpm_limit as f32 * 0.8) as u32
+    pub async fn new(rate_limiter: SharedRateLimiter) -> Self {
+        // Acquire the limiter to read config values for thresholds, then drop the guard
+        let (token_threshold, assumed_words_per_token) = {
+            let guard = rate_limiter.lock().await;
+            (
+                (guard.config.tpm_limit as f32 * 0.8) as u32,
+                guard.config.assumed_words_per_token,
+            )
         };
 
         Self {
@@ -21,6 +26,7 @@ impl BatchBuilder {
             jobs: Vec::new(),
             current_tokens: 0,
             token_threshold,
+            assumed_words_per_token,
         }
     }
 
@@ -79,9 +85,8 @@ impl BatchBuilder {
             }
         }
 
-        // Estimate tokens using rate limiter's formula
-        let limiter = self.rate_limiter.try_lock().unwrap();
-        limiter.estimate_tokens(total_words)
+        // Estimate tokens using stored assumption to avoid locking
+        ((total_words as f32) / self.assumed_words_per_token) as u32
     }
 }
 
@@ -95,7 +100,7 @@ where
     F: FnMut(Vec<Job>) -> Fut,
     Fut: std::future::Future<Output = anyhow::Result<()>>,
 {
-    let mut builder = BatchBuilder::new(rate_limiter.clone());
+    let mut builder = BatchBuilder::new(rate_limiter.clone()).await;
     let mut remaining_jobs = jobs;
 
     while !remaining_jobs.is_empty() {
