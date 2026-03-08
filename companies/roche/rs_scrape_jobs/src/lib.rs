@@ -1,7 +1,11 @@
+#[path = "07e_ai_batch_builder.rs"]
+pub mod ai_batch_builder;
 #[path = "07_ai_core.rs"]
 pub mod ai_core;
 #[path = "07b_ai_gemini.rs"]
 pub mod ai_gemini;
+#[path = "07d_ai_rate_limiter.rs"]
+pub mod ai_rate_limiter;
 #[path = "06_data_ingestion.rs"]
 pub mod data_ingestion;
 #[path = "01b_db_repo.rs"]

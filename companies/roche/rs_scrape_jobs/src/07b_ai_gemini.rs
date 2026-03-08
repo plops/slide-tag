@@ -1,4 +1,6 @@
+use crate::ai_batch_builder::BatchBuilder;
 use crate::ai_core::AiProvider;
+use crate::ai_rate_limiter::{create_rate_limiter, AiModelConfig, SharedRateLimiter};
 use crate::models::{CandidateMatch, Job, JobAnnotation};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -9,21 +11,81 @@ use rig::telemetry::ProviderResponseExt;
 use serde_json;
 
 pub struct GeminiProvider {
-    // model: gemini::CompletionModel,
+    rate_limiter: SharedRateLimiter,
 }
 
 impl GeminiProvider {
     pub fn new(_api_key: &str) -> Result<Self> {
-        // let client = gemini::Client::new(api_key);
-        // let model = client.model("gemini-3.1-flash-preview").build();
-        // Ok(Self { model })
-        Ok(Self {})
+        // Gemini 3.1 flash lite preview limits
+        let config = AiModelConfig {
+            name: "gemini-3.1-flash-lite-preview".to_string(),
+            rpm_limit: 15,
+            tpm_limit: 250_000,
+            rpd_limit: 500,
+            assumed_words_per_token: 0.75, // 1 word ≈ 1.33 tokens, so 1/1.33 ≈ 0.75
+        };
+        let rate_limiter = create_rate_limiter(config);
+
+        Ok(Self { rate_limiter })
     }
 }
 
 #[async_trait]
 impl AiProvider for GeminiProvider {
     async fn annotate_jobs(&self, jobs: Vec<Job>) -> Result<Vec<JobAnnotation>> {
+        let mut all_annotations = Vec::new();
+        let mut batch_builder = BatchBuilder::new(self.rate_limiter.clone());
+        let mut remaining_jobs = jobs;
+
+        while !remaining_jobs.is_empty() {
+            // Fill the batch
+            while let Some(job) = remaining_jobs.pop() {
+                if !batch_builder.try_add_job(job.clone()) {
+                    // Job doesn't fit, put it back
+                    remaining_jobs.push(job);
+                    break;
+                }
+            }
+
+            // Process the current batch
+            if let Some(batch) = batch_builder.take_batch() {
+                let batch_tokens = batch
+                    .iter()
+                    .map(|j| batch_builder.estimate_job_tokens(j))
+                    .sum::<u32>();
+
+                // Wait for rate limiter
+                {
+                    let mut limiter = self.rate_limiter.lock().await;
+                    limiter.wait_for_request(batch_tokens).await;
+                    limiter.record_request(batch_tokens);
+                }
+
+                // Process the batch
+                let annotations = self.process_batch(batch).await?;
+                all_annotations.extend(annotations);
+            } else {
+                break;
+            }
+        }
+
+        Ok(all_annotations)
+    }
+
+    #[allow(dead_code)]
+    async fn match_candidate(
+        &self,
+        _profile: &str,
+        _jobs: Vec<Job>,
+    ) -> Result<Vec<CandidateMatch>> {
+        // Stub implementation - to be implemented with AI matching logic
+        Ok(vec![])
+    }
+}
+
+impl GeminiProvider {
+    /// Process a single batch of jobs and return annotations
+    async fn process_batch(&self, jobs: Vec<Job>) -> Result<Vec<JobAnnotation>> {
         let client = gemini::Client::from_env();
 
         let mut input = String::new();
@@ -77,8 +139,8 @@ The output should be a JSON array of objects, each with:
         let batch: Vec<JobAnnotation> = serde_json::from_str(cleaned)?;
         println!("Parsed results: {:?}", batch);
 
+        // Validate that we have annotations for all jobs in the batch
         let mut annotations = Vec::new();
-
         for (i, _) in jobs.iter().enumerate() {
             if let Some(annotation) = batch.iter().find(|a| a.idx == i as i32) {
                 annotations.push(annotation.clone());
@@ -92,14 +154,5 @@ The output should be a JSON array of objects, each with:
         }
 
         Ok(annotations)
-    }
-
-    async fn match_candidate(
-        &self,
-        _profile: &str,
-        _jobs: Vec<Job>,
-    ) -> Result<Vec<CandidateMatch>> {
-        // Stub implementation - to be implemented with AI matching logic
-        Ok(vec![])
     }
 }
