@@ -82,16 +82,16 @@ pub fn parse_roche_job(json_str: &str) -> Result<Job> {
     let run_id = job["metadata"]["runId"].as_str().map(|s| s.to_string());
     let address_locality = job["structureData"]["jobLocation"]["address"]["addressLocality"]
         .as_str()
-        .map(|s| s.to_string());
+        .map(|s: &str| s.to_string());
     let address_region = job["structureData"]["jobLocation"]["address"]["addressRegion"]
         .as_str()
-        .map(|s| s.to_string());
+        .map(|s: &str| s.to_string());
     let address_country = job["structureData"]["jobLocation"]["address"]["addressCountry"]
         .as_str()
-        .map(|s| s.to_string());
+        .map(|s: &str| s.to_string());
     let postal_code = job["structureData"]["jobLocation"]["address"]["postalCode"]
         .as_str()
-        .map(|s| s.to_string());
+        .map(|s: &str| s.to_string());
 
     Ok(Job {
         identifier,

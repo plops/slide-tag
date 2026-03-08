@@ -1,3 +1,24 @@
+# Integration testing of webserver
+
+The webserver needs a secret to be able to use github oauth. Run it like so:
+```
+source ~/rs_scrape_github.sh ; cargo run --bin stage10_web --features "db web"
+```
+
+Load the secret service account and password from this file:
+~/github-service-account.txt
+
+Don't leak these secrets by commiting it to the repository, printing it to logs or writting it in clear text to the website.
+
+Next, start a webbrowser and try the github oauth authorization.
+
+```
+/usr/bin/carboxyl http://127.0.0.1:3000
+```
+
+This webbrowser is text based so you should be able to use it.
+The next section gives details.
+
 # Carbonyl Mouse Input Events
 
 This note documents how to synthesize mouse events for a running `carbonyl` TTY session.
