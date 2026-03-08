@@ -1,5 +1,9 @@
 # Plan: Session-Persistenz im OAuth-Flow reparieren
 
+Referenzen: Hauptplan: plans/03_tasks.md. Wir sind dort gerade bei Schritt 10. Aber die Tests mit OAuth funktionieren irgendwie noch nicht.
+
+docs/carbonyl.md dokumentiert wie man einen Test starten kann. Die Text only browser habe ich noch nicht hinbekommen. Vermutlich ist es erstmal besser das mit curl und debug print statements zu machen.
+
 ## Problem
 
 Das Session-Cookie geht bei Redirects verloren, weil der `SessionManagerLayer` ohne korrekte Cookie-Konfiguration initialisiert wird. Nach GitHub-OAuth-Login existiert die Session nicht mehr, daher wird die Startseite ohne Authentifizierung angezeigt.
