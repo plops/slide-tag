@@ -8,6 +8,8 @@ pub mod data_ingestion;
 pub mod db_repo;
 #[path = "01_db_setup.rs"]
 pub mod db_setup;
+#[path = "01c_db_traits.rs"]
+pub mod db_traits;
 #[path = "04_downloader.rs"]
 pub mod downloader;
 #[path = "05_json_extractor.rs"]
