@@ -1,5 +1,6 @@
 use rs_scrape::{
-    ai_core::AiProvider, ai_gemini::GeminiProvider, db_repo::JobRepository, db_setup::init_db, models::JobAnnotation,
+    ai_core::AiProvider, ai_gemini::GeminiProvider, db_repo::JobRepository, db_setup::init_db,
+    models::JobAnnotation,
 };
 
 #[tokio::main]
@@ -24,6 +25,7 @@ async fn main() -> anyhow::Result<()> {
                 .to_string()
         }
     };
+    std::env::set_var("GEMINI_API_KEY", &api_key);
     let ai = GeminiProvider::new(&api_key)?;
 
     // Load up to 20 unannotated jobs
@@ -41,7 +43,8 @@ async fn main() -> anyhow::Result<()> {
 
     // Update database with annotations
     for (job, annotation) in jobs.iter().zip(annotations.iter()) {
-        repo.update_job_ai(&job.identifier, &annotation.summary, &annotation.relevance).await?;
+        repo.update_job_ai(&job.identifier, &annotation.summary, &annotation.relevance)
+            .await?;
         println!("Updated job {}", job.identifier);
     }
 

@@ -4,11 +4,9 @@ pub async fn init_db(db_path: &str) -> anyhow::Result<libsql::Connection> {
     let db = Builder::new_local(db_path).build().await?;
     let conn = db.connect()?;
 
-    // Drop and recreate jobs table with identifier as primary key
-    conn.execute("DROP TABLE IF EXISTS jobs", ()).await.ok();
-
+    // Create jobs table if it doesn't exist (preserve existing data)
     conn.execute(
-        "CREATE TABLE jobs (
+        "CREATE TABLE IF NOT EXISTS jobs (
             identifier TEXT PRIMARY KEY,
             title TEXT NOT NULL,
             description TEXT,

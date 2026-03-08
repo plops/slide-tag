@@ -1,4 +1,4 @@
-use crate::models::{Job, JobAnnotation, CandidateMatch};
+use crate::models::{CandidateMatch, Job, JobAnnotation};
 use anyhow::Result;
 use async_trait::async_trait;
 
