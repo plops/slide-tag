@@ -21,11 +21,11 @@ rig-core = { version = "0.32", optional = true }
 schemars = { version = "1.2", optional = true }
 
 # Web, Templates & Utilities
-askama = { version = "0.12", optional = true }
-axum = { version = "0.7", optional = true }
-tower-sessions = { version = "0.13", optional = true }
-tokio-cron-scheduler = { version = "0.13", optional = true }
-rand = { version = "0.8", optional = true }
+askama = { version = "0.15", optional = true }
+axum = { version = "0.8", optional = true }
+tower-sessions = { version = "0.15", optional = true }
+tokio-cron-scheduler = { version = "0.15", optional = true }
+rand = { version = "0.10", optional = true }
 
 [features]
 default = ["db", "scraper", "ai", "web"] # Für den finalen Build
