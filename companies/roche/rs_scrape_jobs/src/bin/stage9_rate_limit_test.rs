@@ -56,7 +56,6 @@ async fn main() -> anyhow::Result<()> {
             address_country: None,
             postal_code: None,
             job_summary: None,
-            slide_tag_relevance: None,
         },
         Job {
             identifier: "test-job-2".to_string(),
@@ -90,7 +89,6 @@ async fn main() -> anyhow::Result<()> {
             address_country: None,
             postal_code: None,
             job_summary: None,
-            slide_tag_relevance: None,
         },
         Job {
             identifier: "test-job-3".to_string(),
@@ -124,7 +122,6 @@ async fn main() -> anyhow::Result<()> {
             address_country: None,
             postal_code: None,
             job_summary: None,
-            slide_tag_relevance: None,
         },
     ];
 
@@ -143,9 +140,8 @@ async fn main() -> anyhow::Result<()> {
 
     for annotation in &annotations {
         println!(
-            "Job {}: relevance score {}, summary points: {}",
+            "Job {}: summary points: {}",
             annotation.idx,
-            annotation.slide_tag_relevance,
             annotation.job_summary.len()
         );
     }

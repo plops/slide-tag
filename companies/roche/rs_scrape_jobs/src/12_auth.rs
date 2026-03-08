@@ -23,7 +23,6 @@ pub struct AuthState {
 #[derive(Deserialize)]
 struct AuthCallback {
     code: String,
-    state: String,
 }
 
 #[cfg(feature = "web")]

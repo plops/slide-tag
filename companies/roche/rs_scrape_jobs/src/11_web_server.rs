@@ -1,6 +1,6 @@
-use axum::{routing::get, Router, Extension, response::Html};
+use axum::{response::Html, routing::get, Extension, Router};
 use std::{net::SocketAddr, sync::Arc};
-use tower_sessions::{MemoryStore, SessionManagerLayer, Session};
+use tower_sessions::{MemoryStore, Session, SessionManagerLayer};
 
 use crate::{auth, db_traits::DatabaseProvider};
 
@@ -42,12 +42,15 @@ async fn root(session: Session) -> Html<String> {
             user_name
         ))
     } else {
-        Html(r#"Hello from Roche Job Scraper Web Server!
+        Html(
+            r#"Hello from Roche Job Scraper Web Server!
             <br><br>
             <a href='/auth/login'>Login with GitHub</a>
             <br><br>
             <p>Authenticate to access job matching features.</p>
-            "#.to_string())
+            "#
+            .to_string(),
+        )
     }
 }
 

@@ -15,7 +15,7 @@ impl JobRepository {
     pub async fn insert_job(&self, job: &Job) -> anyhow::Result<()> {
         self.conn
             .execute(
-                "INSERT INTO jobs (identifier, title, description, location, organization, required_topics, nice_to_haves, pay_grade, sub_category, category_raw, employment_type, work_hours, worker_type, job_profile, supervisory_organization, target_hire_date, no_of_available_openings, grade_profile, recruiting_start_date, job_level, job_family, job_type, is_evergreen, standardised_country, run_date, run_id, address_locality, address_region, address_country, postal_code, job_summary, slide_tag_relevance) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30, ?31, ?32)",
+                "INSERT INTO jobs (identifier, title, description, location, organization, required_topics, nice_to_haves, pay_grade, sub_category, category_raw, employment_type, work_hours, worker_type, job_profile, supervisory_organization, target_hire_date, no_of_available_openings, grade_profile, recruiting_start_date, job_level, job_family, job_type, is_evergreen, standardised_country, run_date, run_id, address_locality, address_region, address_country, postal_code, job_summary) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30, ?31)",
                 params![
                     job.identifier.clone(),
                     job.title.clone(),
@@ -47,24 +47,18 @@ impl JobRepository {
                     job.address_region.as_deref(),
                     job.address_country.as_deref(),
                     job.postal_code.as_deref(),
-                    job.job_summary.as_deref(),
-                    job.slide_tag_relevance.as_deref()
+                    job.job_summary.as_deref()
                 ],
             )
             .await?;
         Ok(())
     }
 
-    pub async fn update_job_ai(
-        &self,
-        identifier: &str,
-        summary: &str,
-        relevance: &str,
-    ) -> anyhow::Result<()> {
+    pub async fn update_job_ai(&self, identifier: &str, summary: &str) -> anyhow::Result<()> {
         self.conn
             .execute(
-                "UPDATE jobs SET job_summary = ?, slide_tag_relevance = ? WHERE identifier = ?",
-                params![summary, relevance, identifier],
+                "UPDATE jobs SET job_summary = ? WHERE identifier = ?",
+                params![summary, identifier],
             )
             .await?;
         Ok(())
@@ -74,7 +68,7 @@ impl JobRepository {
         let mut rows = self
             .conn
             .query(
-                "SELECT identifier, title, description, location, organization, required_topics, nice_to_haves, pay_grade, sub_category, category_raw, employment_type, work_hours, worker_type, job_profile, supervisory_organization, target_hire_date, no_of_available_openings, grade_profile, recruiting_start_date, job_level, job_family, job_type, is_evergreen, standardised_country, run_date, run_id, address_locality, address_region, address_country, postal_code, job_summary, slide_tag_relevance FROM jobs WHERE job_summary IS NULL LIMIT ?",
+                "SELECT identifier, title, description, location, organization, required_topics, nice_to_haves, pay_grade, sub_category, category_raw, employment_type, work_hours, worker_type, job_profile, supervisory_organization, target_hire_date, no_of_available_openings, grade_profile, recruiting_start_date, job_level, job_family, job_type, is_evergreen, standardised_country, run_date, run_id, address_locality, address_region, address_country, postal_code, job_summary FROM jobs WHERE job_summary IS NULL LIMIT ?",
                 params![limit as i64],
             )
             .await?;
@@ -111,7 +105,6 @@ impl JobRepository {
             let address_country: Option<String> = row.get(28)?;
             let postal_code: Option<String> = row.get(29)?;
             let job_summary: Option<String> = row.get(30)?;
-            let slide_tag_relevance: Option<String> = row.get(31)?;
             let required_topics_parsed = required_topics
                 .as_ref()
                 .map(|s| serde_json::from_str(s))
@@ -156,7 +149,6 @@ impl JobRepository {
                 address_country,
                 postal_code,
                 job_summary,
-                slide_tag_relevance,
             });
         }
         Ok(jobs)
@@ -165,7 +157,7 @@ impl JobRepository {
     pub async fn get_all_jobs(&self) -> anyhow::Result<Vec<Job>> {
         let mut rows = self
             .conn
-            .query("SELECT identifier, title, description, location, organization, required_topics, nice_to_haves, pay_grade, sub_category, category_raw, employment_type, work_hours, worker_type, job_profile, supervisory_organization, target_hire_date, no_of_available_openings, grade_profile, recruiting_start_date, job_level, job_family, job_type, is_evergreen, standardised_country, run_date, run_id, address_locality, address_region, address_country, postal_code, job_summary, slide_tag_relevance FROM jobs", ())
+            .query("SELECT identifier, title, description, location, organization, required_topics, nice_to_haves, pay_grade, sub_category, category_raw, employment_type, work_hours, worker_type, job_profile, supervisory_organization, target_hire_date, no_of_available_openings, grade_profile, recruiting_start_date, job_level, job_family, job_type, is_evergreen, standardised_country, run_date, run_id, address_locality, address_region, address_country, postal_code, job_summary FROM jobs", ())
             .await?;
         let mut jobs = Vec::new();
         while let Some(row) = rows.next().await? {
@@ -200,7 +192,6 @@ impl JobRepository {
             let address_country: Option<String> = row.get(28)?;
             let postal_code: Option<String> = row.get(29)?;
             let job_summary: Option<String> = row.get(30)?;
-            let slide_tag_relevance: Option<String> = row.get(31)?;
             let required_topics_parsed = required_topics
                 .as_ref()
                 .map(|s| serde_json::from_str(s))
@@ -245,7 +236,6 @@ impl JobRepository {
                 address_country,
                 postal_code,
                 job_summary,
-                slide_tag_relevance,
             });
         }
         Ok(jobs)
@@ -313,7 +303,7 @@ impl DatabaseProvider for JobRepository {
         let created_at = Utc::now();
         self.conn
             .execute(
-                "INSERT INTO job_history (identifier, title, description, location, organization, required_topics, nice_to_haves, pay_grade, sub_category, category_raw, employment_type, work_hours, worker_type, job_profile, supervisory_organization, target_hire_date, no_of_available_openings, grade_profile, recruiting_start_date, job_level, job_family, job_type, is_evergreen, standardised_country, run_date, run_id, address_locality, address_region, address_country, postal_code, job_summary, slide_tag_relevance, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO job_history (identifier, title, description, location, organization, required_topics, nice_to_haves, pay_grade, sub_category, category_raw, employment_type, work_hours, worker_type, job_profile, supervisory_organization, target_hire_date, no_of_available_openings, grade_profile, recruiting_start_date, job_level, job_family, job_type, is_evergreen, standardised_country, run_date, run_id, address_locality, address_region, address_country, postal_code, job_summary, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 params![
                     job.identifier.clone(),
                     job.title.clone(),
@@ -346,7 +336,6 @@ impl DatabaseProvider for JobRepository {
                     job.address_country.as_deref(),
                     job.postal_code.as_deref(),
                     job.job_summary.as_deref(),
-                    job.slide_tag_relevance.as_deref(),
                     created_at.to_rfc3339()
                 ],
             )
@@ -355,7 +344,7 @@ impl DatabaseProvider for JobRepository {
     }
 
     async fn get_latest_jobs(&self) -> anyhow::Result<Vec<Job>> {
-        let sql = "SELECT jh.identifier, jh.title, jh.description, jh.location, jh.organization, jh.required_topics, jh.nice_to_haves, jh.pay_grade, jh.sub_category, jh.category_raw, jh.employment_type, jh.work_hours, jh.worker_type, jh.job_profile, jh.supervisory_organization, jh.target_hire_date, jh.no_of_available_openings, jh.grade_profile, jh.recruiting_start_date, jh.job_level, jh.job_family, jh.job_type, jh.is_evergreen, jh.standardised_country, jh.run_date, jh.run_id, jh.address_locality, jh.address_region, jh.address_country, jh.postal_code, jh.job_summary, jh.slide_tag_relevance FROM job_history jh INNER JOIN (SELECT identifier, MAX(id) as max_id FROM job_history GROUP BY identifier) latest ON jh.identifier = latest.identifier AND jh.id = latest.max_id";
+        let sql = "SELECT jh.identifier, jh.title, jh.description, jh.location, jh.organization, jh.required_topics, jh.nice_to_haves, jh.pay_grade, jh.sub_category, jh.category_raw, jh.employment_type, jh.work_hours, jh.worker_type, jh.job_profile, jh.supervisory_organization, jh.target_hire_date, jh.no_of_available_openings, jh.grade_profile, jh.recruiting_start_date, jh.job_level, jh.job_family, jh.job_type, jh.is_evergreen, jh.standardised_country, jh.run_date, jh.run_id, jh.address_locality, jh.address_region, jh.address_country, jh.postal_code, jh.job_summary FROM job_history jh INNER JOIN (SELECT identifier, MAX(id) as max_id FROM job_history GROUP BY identifier) latest ON jh.identifier = latest.identifier AND jh.id = latest.max_id";
         let mut rows = self.conn.query(sql, ()).await?;
         let mut jobs = Vec::new();
         while let Some(row) = rows.next().await? {
@@ -390,7 +379,6 @@ impl DatabaseProvider for JobRepository {
             let address_country: Option<String> = row.get(28)?;
             let postal_code: Option<String> = row.get(29)?;
             let job_summary: Option<String> = row.get(30)?;
-            let slide_tag_relevance: Option<String> = row.get(31)?;
             let required_topics_parsed = required_topics
                 .as_ref()
                 .map(|s| serde_json::from_str(s))
@@ -435,7 +423,6 @@ impl DatabaseProvider for JobRepository {
                 address_country,
                 postal_code,
                 job_summary,
-                slide_tag_relevance,
             });
         }
         Ok(jobs)

@@ -25,61 +25,67 @@ pub fn parse_roche_job(json_str: &str) -> Result<Job> {
         .to_string();
     let organization = job["structureData"]["identifier"]["name"]
         .as_str()
-        .map(|s| s.to_string());
+        .map(|s: &str| s.to_string());
     let required_topics = job["ml_skills"].as_array().map(|arr| {
         arr.iter()
             .filter_map(|v| v.as_str())
-            .map(|s| s.to_string())
+            .map(|s: &str| s.to_string())
             .collect()
     });
     let nice_to_haves = None; // No nice_to_haves in JSON
     let pay_grade = job["additionalFields"]["grade"]
         .as_str()
-        .map(|s| s.to_string());
-    let sub_category = job["subCategory"].as_str().map(|s| s.to_string());
-    let category_raw = job["category_raw"].as_str().map(|s| s.to_string());
+        .map(|s: &str| s.to_string());
+    let sub_category = job["subCategory"].as_str().map(|s: &str| s.to_string());
+    let category_raw = job["category_raw"].as_str().map(|s: &str| s.to_string());
     let employment_type = job["structureData"]["employmentType"]
         .as_str()
-        .map(|s| s.to_string());
+        .map(|s: &str| s.to_string());
     let work_hours = job["structureData"]["workHours"]
         .as_str()
-        .map(|s| s.to_string());
+        .map(|s: &str| s.to_string());
     let worker_type = job["additionalFields"]["workerType"]
         .as_str()
-        .map(|s| s.to_string());
+        .map(|s: &str| s.to_string());
     let job_profile = job["additionalFields"]["jobProfile"]
         .as_str()
-        .map(|s| s.to_string());
+        .map(|s: &str| s.to_string());
     let supervisory_organization = job["additionalFields"]["supervisoryOrganization"]
         .as_str()
-        .map(|s| s.to_string());
+        .map(|s: &str| s.to_string());
     let target_hire_date = job["additionalFields"]["targetHireDate"]
         .as_str()
-        .map(|s| s.to_string());
+        .map(|s: &str| s.to_string());
     let no_of_available_openings = job["additionalFields"]["noOfAvailableOpenings"]
         .as_str()
-        .map(|s| s.to_string());
+        .map(|s: &str| s.to_string());
     let grade_profile = job["additionalFields"]["gradeProfile"]
         .as_str()
-        .map(|s| s.to_string());
+        .map(|s: &str| s.to_string());
     let recruiting_start_date = job["additionalFields"]["recruitingStartDate"]
         .as_str()
-        .map(|s| s.to_string());
+        .map(|s: &str| s.to_string());
     let job_level = job["additionalFields"]["jobLevel"]
         .as_str()
-        .map(|s| s.to_string());
+        .map(|s: &str| s.to_string());
     let job_family = job["additionalFields"]["jobFamily"]
         .as_str()
-        .map(|s| s.to_string());
+        .map(|s: &str| s.to_string());
     let job_type = job["additionalFields"]["jobType"]
         .as_str()
-        .map(|s| s.to_string());
+        .map(|s: &str| s.to_string());
     let is_evergreen = job["additionalFields"]["isEvergreen"]
         .as_str()
-        .map(|s| s.to_string());
-    let standardised_country = job["standardisedCountry"].as_str().map(|s| s.to_string());
-    let run_date = job["metadata"]["runDate"].as_str().map(|s| s.to_string());
-    let run_id = job["metadata"]["runId"].as_str().map(|s| s.to_string());
+        .map(|s: &str| s.to_string());
+    let standardised_country = job["standardisedCountry"]
+        .as_str()
+        .map(|s: &str| s.to_string());
+    let run_date = job["metadata"]["runDate"]
+        .as_str()
+        .map(|s: &str| s.to_string());
+    let run_id = job["metadata"]["runId"]
+        .as_str()
+        .map(|s: &str| s.to_string());
     let address_locality = job["structureData"]["jobLocation"]["address"]["addressLocality"]
         .as_str()
         .map(|s: &str| s.to_string());
@@ -125,7 +131,6 @@ pub fn parse_roche_job(json_str: &str) -> Result<Job> {
         address_country,
         postal_code,
         job_summary: None,
-        slide_tag_relevance: None,
     })
 }
 

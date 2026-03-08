@@ -36,7 +36,6 @@ pub struct Job {
     pub address_country: Option<String>,
     pub postal_code: Option<String>,
     pub job_summary: Option<String>,
-    pub slide_tag_relevance: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -81,7 +80,6 @@ pub struct JobHistory {
     pub address_country: Option<String>,
     pub postal_code: Option<String>,
     pub job_summary: Option<String>,
-    pub slide_tag_relevance: Option<String>,
     pub created_at: DateTime<Utc>,
 }
 
@@ -102,8 +100,6 @@ pub struct Location {
 pub struct JobAnnotation {
     /// Bullet-point summary of key responsibilities and qualifications
     pub job_summary: Vec<String>,
-    /// Relevance score from 1 (unrelated) to 5 (highly relevant)
-    pub slide_tag_relevance: i32,
     /// Index of the job in the input list
     pub idx: i32,
 }

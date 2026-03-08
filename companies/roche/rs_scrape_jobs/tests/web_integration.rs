@@ -1,4 +1,4 @@
-use rs_scrape::{db_setup, db_repo, web_server};
+use rs_scrape::{db_repo, db_setup, web_server};
 use std::env;
 use std::sync::Arc;
 
@@ -19,7 +19,10 @@ async fn test_web_server_root_route() {
 
     // Verify environment variables are set
     assert_eq!(env::var("GITHUB_CLIENT_ID").unwrap(), "test_client_id");
-    assert_eq!(env::var("GITHUB_CLIENT_SECRET").unwrap(), "test_client_secret");
+    assert_eq!(
+        env::var("GITHUB_CLIENT_SECRET").unwrap(),
+        "test_client_secret"
+    );
 
     // Verify database connection works
     let candidate_count = repo.get_candidate_count().await.unwrap();
