@@ -1,7 +1,9 @@
 use anyhow::Result;
+use rand::prelude::*;
 use reqwest::{header, Client};
 use std::sync::Arc;
 use tokio::sync::mpsc;
+use tokio::time::{sleep, Duration};
 
 /// Build a reqwest client configured to mimic Google Chrome
 fn build_browser_client() -> Result<Client> {
@@ -62,8 +64,18 @@ fn build_browser_client() -> Result<Client> {
     Ok(client)
 }
 
+/// Polite delay to avoid overwhelming the server
+async fn polite_delay(min_sec: u64, max_sec: u64) {
+    let delay = {
+        let mut rng = rand::rng();
+        rng.random_range(min_sec..=max_sec)
+    };
+    sleep(Duration::from_secs(delay)).await;
+}
+
 /// Download a single page
 async fn download_page(client: Arc<Client>, url: String) -> Result<(String, String)> {
+    polite_delay(20, 60).await;
     let response = client.get(&url).send().await?;
     let html = response.text().await?;
     Ok((url, html))

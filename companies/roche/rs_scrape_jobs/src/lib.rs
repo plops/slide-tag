@@ -16,6 +16,8 @@ pub mod downloader;
 pub mod json_extractor;
 #[path = "00_models.rs"]
 pub mod models;
+#[path = "06b_pipeline_orchestrator.rs"]
+pub mod pipeline_orchestrator;
 #[path = "03_scraper_roche.rs"]
 pub mod scraper_roche;
 #[path = "02_web_core.rs"]

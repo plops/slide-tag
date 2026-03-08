@@ -20,6 +20,7 @@ chromiumoxide = { version = "0.9", optional = true }
 reqwest = { version = "0.13", optional = true, features = ["gzip", "brotli", "rustls"] }
 rig-core = { version = "0.32", optional = true }
 schemars = { version = "1.2", optional = true }
+clap = { version = "4.5", features = ["derive"] }
 
 # Web, Templates & Utilities
 askama = { version = "0.15", optional = true }
@@ -31,6 +32,6 @@ rand = { version = "0.10", optional = true }
 [features]
 default = ["db", "scraper", "ai", "web"] # Für den finalen Build
 db = ["dep:libsql"]
-scraper =["dep:chromiumoxide", "dep:reqwest"]
+scraper =["dep:chromiumoxide", "dep:reqwest", "dep:rand"]
 ai = ["dep:rig-core", "dep:schemars"]
 web =["dep:askama", "dep:axum", "dep:tower-sessions", "dep:tokio-cron-scheduler", "dep:rand"]

@@ -4,7 +4,7 @@ use anyhow::Result;
 use serde_json::Value;
 use std::fs;
 
-fn parse_roche_job(json_str: &str) -> Result<Job> {
+pub fn parse_roche_job(json_str: &str) -> Result<Job> {
     let value: Value = serde_json::from_str(json_str)?;
     let job = &value["jobDetail"]["data"]["job"];
 
