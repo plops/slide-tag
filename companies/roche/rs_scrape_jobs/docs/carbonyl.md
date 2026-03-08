@@ -187,3 +187,5 @@ https://github.githubassets.com/                                       [S-----]
 http://localhost:3000/auth/callback?error=access_denied&error_description=Th... 
 Failed to deserialize query string: missing field `code`                       
 ```
+
+I think i can only press the cancel button. Not sure why. Maybe related to javascript
