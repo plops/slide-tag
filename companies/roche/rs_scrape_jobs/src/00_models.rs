@@ -53,17 +53,19 @@ pub struct Location {
 #[cfg(feature = "ai")]
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 pub struct JobAnnotation {
-    /// Concise summary of the job posting
-    pub summary: String,
-    /// Assessment of relevance to slide_tag tool (presentation creation)
-    pub relevance: String,
+    /// Bullet-point summary of key responsibilities and qualifications
+    pub job_summary: Vec<String>,
+    /// Relevance score from 1 (unrelated) to 5 (highly relevant)
+    pub slide_tag_relevance: i32,
+    /// Index of the job in the input list
+    pub idx: i32,
 }
 
 #[cfg(feature = "ai")]
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 pub struct BatchAnnotationResult {
-    /// Mapping of job IDs to their annotations
-    pub results: std::collections::HashMap<u32, JobAnnotation>,
+    /// List of job annotations
+    pub results: Vec<JobAnnotation>,
 }
 
 #[cfg(feature = "ai")]

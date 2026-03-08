@@ -1,5 +1,5 @@
 use crate::ai_core::AiProvider;
-use crate::models::{BatchAnnotationResult, CandidateMatch, Job, JobAnnotation};
+use crate::models::{CandidateMatch, Job, JobAnnotation};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use rig::client::{CompletionClient, ProviderClient};
@@ -25,18 +25,11 @@ impl GeminiProvider {
 impl AiProvider for GeminiProvider {
     async fn annotate_jobs(&self, jobs: Vec<Job>) -> Result<Vec<JobAnnotation>> {
         let client = gemini::Client::from_env();
-        let _extractor = client
-            .extractor::<BatchAnnotationResult>("gemini-3.1-flash-lite-preview")
-            .preamble("Analyze the following job postings and provide concise summaries and relevance assessments to slide_tag (a tool for creating presentations). For each job, give a brief summary and assess its relevance on a scale of 1-10 with explanation. You must respond with a valid JSON object in the exact format: {\"results\": {\"0\": {\"summary\": \"string\", \"relevance\": \"string\"}, \"1\": {...}, \"2\": {...}}} Do not include any other text.")
-            .build();
 
         let mut input = String::new();
-        let mut id_to_identifier = std::collections::HashMap::new();
 
         for (i, job) in jobs.iter().enumerate() {
-            let id = i as u32;
-            id_to_identifier.insert(id, job.identifier.clone());
-            input.push_str(&format!("### JOB_{} ###\n", id));
+            input.push_str(&format!("### JOB_{} ###\n", i));
             input.push_str(&format!("Title: {}\n", job.title));
             input.push_str(&format!(
                 "Description: {}\n",
@@ -59,7 +52,13 @@ impl AiProvider for GeminiProvider {
 
         println!("Sending input to AI:\n{}", input);
         let completion_model = client.completion_model("gemini-3.1-flash-lite-preview");
-        let preamble = "Analyze the following job postings and provide concise summaries and relevance assessments to slide_tag (a tool for creating presentations). For each job, give a brief summary and assess its relevance on a scale of 1-10 with explanation. You must respond with a valid JSON object in the exact format: {\"results\": {\"0\": {\"summary\": \"string\", \"relevance\": \"string\"}}} Do not include any other text.";
+        let preamble = "Analyze the job descriptions below in the context of Slide-tag and related spatial genomics technologies. These technologies integrate techniques like Next-Generation Sequencing (NGS), single-cell/nucleus RNA sequencing (sc/snRNA-seq), molecular pathology, and complex bioinformatics to map gene activity in tissue.
+
+The output should be a JSON array of objects, each with:
+1. `job_summary`: A bullet-point summary (as an array of strings) of the key responsibilities and required qualifications.
+2. `slide_tag_relevance`: An integer score from 1 (unrelated) to 5 (highly relevant), rating the job's connection to the development or application of these technologies.
+3. `idx`: The index of the job in the input list (for tracking purposes).";
+
         let request = completion_model
             .completion_request(&input)
             .preamble(preamble.to_string())
@@ -75,13 +74,13 @@ impl AiProvider for GeminiProvider {
             .trim_start_matches("```json\n")
             .trim_end_matches("\n```")
             .trim();
-        let batch: BatchAnnotationResult = serde_json::from_str(&cleaned)?;
-        println!("Parsed results: {:?}", batch.results);
+        let batch: Vec<JobAnnotation> = serde_json::from_str(cleaned)?;
+        println!("Parsed results: {:?}", batch);
 
         let mut annotations = Vec::new();
 
         for (i, _) in jobs.iter().enumerate() {
-            if let Some(annotation) = batch.results.get(&(i as u32)) {
+            if let Some(annotation) = batch.iter().find(|a| a.idx == i as i32) {
                 annotations.push(annotation.clone());
             } else {
                 println!(

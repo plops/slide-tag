@@ -43,7 +43,9 @@ async fn main() -> anyhow::Result<()> {
 
     // Update database with annotations
     for (job, annotation) in jobs.iter().zip(annotations.iter()) {
-        repo.update_job_ai(&job.identifier, &annotation.summary, &annotation.relevance)
+        let summary = annotation.job_summary.join("\n");
+        let relevance = annotation.slide_tag_relevance.to_string();
+        repo.update_job_ai(&job.identifier, &summary, &relevance)
             .await?;
         println!("Updated job {}", job.identifier);
     }
