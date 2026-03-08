@@ -6,6 +6,8 @@ pub mod ai_core;
 pub mod ai_gemini;
 #[path = "07d_ai_rate_limiter.rs"]
 pub mod ai_rate_limiter;
+#[path = "12_auth.rs"]
+pub mod auth;
 #[path = "06_data_ingestion.rs"]
 pub mod data_ingestion;
 #[path = "01b_db_repo.rs"]
@@ -26,3 +28,5 @@ pub mod pipeline_orchestrator;
 pub mod scraper_roche;
 #[path = "02_web_core.rs"]
 pub mod web_core;
+#[path = "11_web_server.rs"]
+pub mod web_server;

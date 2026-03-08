@@ -17,7 +17,7 @@ chrono = { version = "0.4", features = ["serde"] }
 # Optionale Abhängigkeiten (nur kompiliert, wenn Feature aktiv)
 libsql = { version = "0.9.29", default-features = false, features = ["core"], optional = true }
 chromiumoxide = { version = "0.9", optional = true }
-reqwest = { version = "0.13", optional = true, features = ["gzip", "brotli", "rustls"] }
+reqwest = { version = "0.11", optional = true, features = ["gzip", "brotli", "rustls", "json"] }
 rig-core = { version = "0.32", optional = true }
 schemars = { version = "1.2", optional = true }
 clap = { version = "4.5", features = ["derive"] }
@@ -28,10 +28,11 @@ axum = { version = "0.8", optional = true }
 tower-sessions = { version = "0.15", optional = true }
 tokio-cron-scheduler = { version = "0.15", optional = true }
 rand = { version = "0.10", optional = true }
+oauth2 = { version = "4.4", optional = true }
 
 [features]
 default = ["db", "scraper", "ai", "web"] # Für den finalen Build
 db = ["dep:libsql"]
 scraper =["dep:chromiumoxide", "dep:reqwest", "dep:rand"]
 ai = ["dep:rig-core", "dep:schemars"]
-web =["dep:askama", "dep:axum", "dep:tower-sessions", "dep:tokio-cron-scheduler", "dep:rand"]
+web =["dep:askama", "dep:axum", "dep:tower-sessions", "dep:tokio-cron-scheduler", "dep:rand", "dep:oauth2"]
