@@ -59,7 +59,6 @@ Für diesen Anwendungsfall eignen sich folgende Architektur-Muster am besten:
 
 1.  **Ports and Adapters (Hexagonale Architektur):** 
     *   Wir trennen die reine Datenlogik (Domänenmodelle wie `Job`, `Candidate`) strikt von der Infrastruktur (Datenbank, Web-Scraper, AI-API).
-    *   *Vorteil:* Du kannst z.B. die Datenbank testen, ohne das Web-Scraping-Modul überhaupt kompilieren zu müssen.
 2.  **Trait-basierte Abstraktion (Strategy Pattern):**
     *   Anstatt harte Abhängigkeiten zu `rig` oder `genai` zu programmieren, definieren wir ein Trait `AiProvider`. So lässt sich das Agentic-Modell (Dateibasiert) und das API-Modell (Netzwerkbasiert) nahtlos austauschen.
 3.  **Repository Pattern für die Datenbank:**
@@ -96,11 +95,11 @@ axum = { version = "0.7", optional = true }
 askama = { version = "0.12", optional = true }
 
 [features]
-default = ["db", "scraper", "ai", "web"] # Für den finalen Build
+default =["db", "scraper", "ai", "web"] # Für den finalen Build
 db = ["dep:libsql"]
-scraper = ["dep:chromiumoxide", "dep:reqwest"]
+scraper =["dep:chromiumoxide", "dep:reqwest"]
 ai = ["dep:rig-core"]
-web = ["dep:axum", "dep:askama"]
+web =["dep:axum", "dep:askama"]
 ```
 
 ---
@@ -141,7 +140,40 @@ rs_scrape_jobs/
 
 ---
 
-## 5. Der Stufenweise Implementierungs- & Testplan
+## 5. Dokumentation & Fehlerbehebung (Für das ausführende LLM)
+
+Wenn du bei der Implementierung feststeckst, die API einer Bibliothek nicht genau kennst oder Compiler-Fehler bezüglich unbekannter Methoden erhältst, **rate nicht!** Nutze stattdessen das bereitgestellte **deepwiki MCP**, um die offizielle und aktuelle Dokumentation abzurufen.
+
+Um das Tool effektiv zu nutzen, benötigst du den exakten GitHub-Pfad der jeweiligen Bibliothek. Hier ist die Referenzliste aller Hauptabhängigkeiten in diesem Projekt:
+
+*   **Web & Async Runtime:**
+    *   `tokio` -> `tokio-rs/tokio`
+    *   `axum` -> `tokio-rs/axum`
+    *   `tower-sessions` -> `maxcountryman/tower-sessions`
+    *   `tokio-cron-scheduler` -> `mvniekerk/tokio-cron-scheduler`
+*   **Scraping & HTTP:**
+    *   `chromiumoxide` -> `mattsse/chromiumoxide`
+    *   `reqwest` -> `seanmonstar/reqwest`
+*   **AI & LLM:**
+    *   `rig-core` -> `0xPlaygrounds/rig`
+*   **Datenbank & Serialisierung:**
+    *   `libsql` -> `tursodatabase/libsql`
+    *   `serde` -> `serde-rs/serde`
+    *   `serde_json` -> `serde-rs/json`
+*   **Templates & CLI:**
+    *   `askama` -> `djc/askama`
+    *   `clap` -> `clap-rs/clap`
+*   **Error Handling & Utilities:**
+    *   `anyhow` -> `dtolnay/anyhow`
+    *   `async-trait` -> `dtolnay/async-trait`
+
+
+*Beispiel-Anweisung für dich selbst:*
+> "Ich brauche die Dokumentation für das Setup von tower-sessions. Ich frage deepwiki nach `maxcountryman/tower-sessions`."
+
+---
+
+## 6. Der Stufenweise Implementierungs- & Testplan
 
 #### Stufe 1: Datenmodelle & Datenbank-Infrastruktur
 *   **Aktion:** Erstellen von `00_models.rs`, `01_db_setup.rs` und `01b_db_repo.rs`.
