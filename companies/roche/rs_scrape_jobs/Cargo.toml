@@ -12,6 +12,7 @@ log = "0.4"
 async-trait = "0.1.89"
 futures = "0.3"
 regex = "1.12"
+chrono = { version = "0.4", features = ["serde"] }
 
 # Optionale Abhängigkeiten (nur kompiliert, wenn Feature aktiv)
 libsql = { version = "0.9.29", default-features = false, features = ["core"], optional = true }
