@@ -13,7 +13,7 @@ Don't leak these secrets by commiting it to the repository, printing it to logs 
 Next, start a webbrowser and try the github oauth authorization.
 
 ```
-/usr/bin/carboxyl http://127.0.0.1:3000
+/usr/bin/carbonyl http://127.0.0.1:3000
 ```
 
 This webbrowser is text based so you should be able to use it.
