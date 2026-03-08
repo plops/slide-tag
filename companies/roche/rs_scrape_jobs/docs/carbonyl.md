@@ -93,3 +93,97 @@ printf '\e[<65;40;20M'
 - Coordinates are terminal-cell based, not pixel based.
 - Resizing the terminal changes click targets.
 - UI repaint in this environment may be sparse, so confirm navigation via title/URL changes.
+
+
+
+# Alternative text browsers
+
+i tried a few more text based browsers with javascript support (lynx doesn't)
+
+
+## Chawan
+
+https://sr.ht/~bptato/chawan/
+
+works better with our website. you can actually click things with keyboard input but
+github returns
+
+```
+                              What‽
+
+    Your browser did something unexpected. Please try again. If
+     the error continues, try disabling all browser extensions.
+
+
+             Please contact us if the problem persists.
+
+
+        Contact Support  —  GitHub Status  —  @githubstatus
+
+                              [img]
+```
+
+## brow6el
+
+https://www.brow6el.dev/
+
+```
+$ ./brow6el-x86_64.AppImage
+./bin/brow6el: error while loading shared libraries: libgssapi_krb5.so.2: cannot open shared object file: No such file or directory
+```
+
+
+## edbrowse
+
+https://edbrowse.org/static/
+
+this is like ed. it only shows individual lines or something
+
+
+## elinks
+
+```
+                                                   Authorize application (2/3)
+                              Authorize rs_scrape
+
+   @plopsai rs_scrape by plops wants to access your plopsai account
+   Personal user data Full access Follow users, profile information
+   (read-only), email addresses (read-only) Follow users, email addresses
+   (read-only) Email addresses (read-only), profile information (read-only)
+   Follow users, profile information (read-only) Profile information
+   (read-only) Follow users Email addresses (read-only) No access
+
+   This application will be able to read your private email addresses and
+   read your private profile information.
+
+   Learn more
+   Cancel Authorize plops
+
+                         Authorizing will redirect to
+                             http://localhost:3000
+
+   Not owned or operated by GitHub
+   Created less than a day ago
+   Fewer than 10 GitHub users
+                            Learn more about OAuth
+
+Footer
+
+Post form to https://github.com/login/oauth/authorize                 [S-----]
+```
+
+
+```
+           You are being redirected to the authorized application.             
+                                                                                
+    If your browser does not redirect you back, please visit this setup page    
+                                  to continue.
+
+                                                                               
+https://github.githubassets.com/                                       [S-----]
+```
+
+```
+http://localhost:3000/auth/callback?error=access_denied&error_description=Th... 
+Failed to deserialize query string: missing field `code`                       
+```
