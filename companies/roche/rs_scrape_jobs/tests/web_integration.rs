@@ -1,4 +1,4 @@
-use rs_scrape::{db_repo, db_setup, web_server};
+use rs_scrape::{db_repo, db_setup};
 use std::env;
 use std::sync::Arc;
 

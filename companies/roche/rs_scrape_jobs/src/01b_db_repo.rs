@@ -295,6 +295,19 @@ impl JobRepository {
             .await?;
         Ok(())
     }
+
+    pub async fn get_candidate_count(&self) -> anyhow::Result<i64> {
+        let mut rows = self
+            .conn
+            .query("SELECT COUNT(*) FROM candidates", ())
+            .await?;
+        if let Some(row) = rows.next().await? {
+            let cnt: i64 = row.get(0)?;
+            Ok(cnt)
+        } else {
+            Ok(0)
+        }
+    }
 }
 
 #[async_trait::async_trait]

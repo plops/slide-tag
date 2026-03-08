@@ -3,7 +3,7 @@ use crate::models::Job;
 
 /// Builds batches of jobs to respect token limits
 pub struct BatchBuilder {
-    rate_limiter: SharedRateLimiter,
+    _rate_limiter: SharedRateLimiter,
     jobs: Vec<Job>,
     current_tokens: u32,
     token_threshold: u32,
@@ -22,7 +22,7 @@ impl BatchBuilder {
         };
 
         Self {
-            rate_limiter,
+            _rate_limiter: rate_limiter,
             jobs: Vec::new(),
             current_tokens: 0,
             token_threshold,
