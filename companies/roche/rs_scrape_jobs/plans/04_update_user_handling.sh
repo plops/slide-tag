@@ -74,6 +74,14 @@ ich sehe kein problem, die historische entwicklung der von roche geposteten jobs
 
 das waere vielleicht auch interessant, zu sehen wie sich so ein posting aendert.
 
+fuer den automatischen ablauf finde ich es wichtig, dass die daten alle in der datenbank bleiben und z.b. nicht irgendwelche html seiten in jobs_html gespeichert werden.
+die html dateien will ich aber glaube ich nicht in der datenbank halten.
+auch die json daten aus dem html sind recht umfassend. ich gehe einfach davon aus, dass unser json parser schon alle 
+wichtigen informationen extrahiert und in der datenbank speichert. also werden wir auch nicht das rohe json speichern
+
+vielleicht sollten wir debug optionen einrichten, um die json und/oder html daten zu speichern (mit identifier in einem ordner mit datetime, ich denke das sollte genuegen).
+
+
 
 EOF
 } | xclip -selection clipboard
