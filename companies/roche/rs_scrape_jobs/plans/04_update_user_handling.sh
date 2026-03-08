@@ -4,15 +4,15 @@
 # order to help changing the design before finalizing the implementation.
 
 
-ROOT_DIR="/home/kiel/stage/slide-tag/companies/roche/rs_scrape_jobs/"
-SCRAPE_JOBS_DIR="${ROOT_DIR}/scrape_jobs"
+ROOT_DIR="/home/kiel/stage/slide-tag/companies/roche/rs_scrape_jobs"
 
 {
 declare -a FILES=(
-    "plans/03_tasks.md"
-    "Cargo.toml"
-    "src/"*.rs
-    "src/bin/"*.rs
+    #"$ROOT_DIR/plans/03_tasks.md"
+    #"$ROOT_DIR/Cargo.toml"
+    #"$ROOT_DIR/src/"*.rs
+    #"$ROOT_DIR/src/bin/"*.rs
+    "/home/kiel/stage/cl-py-generator/example/143_helium_gemini/source04/tsum/nginx.conf"
 )
 
 for i in "${FILES[@]}"; do
@@ -82,6 +82,43 @@ wichtigen informationen extrahiert und in der datenbank speichert. also werden w
 vielleicht sollten wir debug optionen einrichten, um die json und/oder html daten zu speichern (mit identifier in einem ordner mit datetime, ich denke das sollte genuegen).
 
 
+weitere dinge die beruecksichtigt werden sollten:
+gemini limitiert requests per day (rpd), requests per minute (rpm) und tokens per minute (tpm).
+wir sollten dies beim absenden unserer anfragen beruecksichtigen.
+auch im scraper sollten wir configurierbare delays einbauen um den roche server nicht zu ueberlasten. das auslesen der jobs passiert ja ueber nacht, da kann man
+die anfragen ruhig auf 20min ausdehenen
+
+die folgende tabelle enthaelt die werte fuer die verschiedenen modelle:
+   '(;; --- Gemini 3.x Series (Latest) ---
+      (:name gemini-3.1-flash-lite-preview :input-price 0.25 :output-price 1.50 :context-length 1_000_000 :rpm 15 :tpm 250_000 :rpd 500)
+      (:name gemini-3-flash-preview :input-price 0.50 :output-price 3.00 :context-length 1_000_000 :rpm 5 :tpm 250_000 :rpd 20)
+
+      ;; --- Gemini 2.5 Series ---
+      (:name gemini-2.5-flash :input-price 0.30 :output-price 2.50 :context-length 1_000_000 :rpm 5 :tpm 250_000 :rpd 20)
+      (:name gemini-2.5-flash-lite :input-price 0.10 :output-price 0.40 :context-length 1_000_000 :rpm 10 :tpm 250_000 :rpd 20)
+
+      ;; --- Specialized Models ---
+      (:name gemini-robotics-er-1.5-preview :input-price 0.30 :output-price 2.50 :context-length 1_000_000 :rpm 10 :tpm 250_000 :rpd 20)
+
+      ;; --- Gemma 3 Series (Note: might not support structured output)
+      (:name gemma-3-27b :input-price 0.0 :output-price 0.0 :context-length 128_000 :rpm 30 :tpm 15_000 :rpd 14400)
+      (:name gemma-3-12b :input-price 0.0 :output-price 0.0 :context-length 128_000 :rpm 30 :tpm 15_000 :rpd 14400)
+      (:name gemma-3-4b :input-price 0.0 :output-price 0.0 :context-length 128_000 :rpm 30 :tpm 15_000 :rpd 14400)
+      (:name gemma-3-1b :input-price 0.0 :output-price 0.0 :context-length 128_000 :rpm 30 :tpm 15_000 :rpd 14400)
+      )
+
+
+beruecksichtige, dass wir fuer die umsetzung deines plans ein weitaus weniger maechtiges
+LLM verwenden als dich. daher musst du sehr explizite vorgaben machen bezueglich architektur,
+datentypen, programming patterns und anderen technischen details. am besten du sagst genau welche
+datei erzeugt werden soll und schreibst auch beispiel code.
+
+mein webserver wird nginx als reverse proxy verwenden und https ist mit letsencrypt eingerichtet.
+beschreibe wie man nginx konfiguriert um das rust programm zusaetzlich zum python zu hosten
+
+fuer den ersten prototypen werde ich als datenbank sqlite verwenden. beschreibe jedoch auch
+wie man spaeter auf eine postgresql datenbank umstellen kann. das design sollte so sein, dass so ein wechsel
+nicht erheblich erschwert wird.
 
 EOF
 } | xclip -selection clipboard
