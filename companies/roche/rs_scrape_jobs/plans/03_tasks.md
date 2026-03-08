@@ -138,7 +138,7 @@ Um das Tool effektiv zu nutzen, benötigst du den exakten GitHub-Pfad der jeweil
     *   `schemars` -> `GREsau/schemars` 
 
 *   **Templates & CLI:**
-    *   `askama` -> `djc/askama`
+    *   `askama` -> `askama-rs/askama`
     *   `clap` -> `clap-rs/clap`
 *   **Error Handling & Utilities:**
     *   `anyhow` -> `dtolnay/anyhow`
@@ -150,7 +150,7 @@ Um das Tool effektiv zu nutzen, benötigst du den exakten GitHub-Pfad der jeweil
 
 ## 6. Der Stufenweise Implementierungs- & Testplan
 
-*(Stufen 1-9 sind bereits abgeschlossen. Wir setzen bei Stufe 10 an.)*
+*(Stufen 1-10 sind bereits abgeschlossen. Wir setzen bei Stufe 11 an.)*
 
 #### Stufe 1: Datenmodelle & Datenbank-Infrastruktur
 *   **Aktion:** Erstellen von `00_models.rs`, `01_db_setup.rs` und `01b_db_repo.rs`.
