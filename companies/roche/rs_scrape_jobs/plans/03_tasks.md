@@ -127,28 +127,54 @@ rs_scrape_jobs/
 *   **Kompilieren mit:** `cargo run --bin stage6_ai_test --features "db ai"`
 *   **Ziel:** Update der SQLite mit den AI-Annotationen. Strikte Typsicherheit (die KI *muss* einen JSON-Array zurückgeben, andernfalls wirft Rust einen sauberen Fehler und versucht es erneut).
 
-#### Stufe 7: Kandidaten-Matching (Agentic vs. API)
-*   **Aktion:** Erstellen von `08_matcher.rs` und `07c_ai_agentic.rs`.
-*   **Fokus:** Implementierung der Logik für Phase 2 der Pipeline. 
-    *   *Weg A:* Über Gemini API direkt scoren.
-    *   *Weg B (Inbox/Outbox):* Jobs und Kandidatenprofil als `TODO_BATCH.md` auf die Platte schreiben, warten, `RESPONSES.json` lesen und DB updaten.
-*   **Ziel:** Die Datenbank enthält nun auch den `candidate_match_score` für einen spezifischen Kandidaten.
+#### Stufe 7: Erweitertes DB-Schema & Job-Historisierung
+*   **Aktion:** Erstellen von `01c_db_schema_v2.rs` (oder Update von `01_db_setup.rs` / `01b_db_repo.rs`).
+*   **Fokus:** Anpassung der Datenbank für die neuen Anforderungen:
+    *   Tabelle `candidates` (id, oauth_id, name, profile_text, created_at).
+    *   Tabelle `candidate_job_matches` (id, candidate_id, job_identifier, ai_model, score, explanation, created_at). So können wir problemlos mehrere Auswertungen speichern und via `ORDER BY created_at DESC LIMIT 1` immer die aktuellste laden.
+    *   **Historisierung:** Anpassung der `jobs`-Tabelle oder Erstellung einer `job_history`-Tabelle, damit bei jedem nächtlichen Scraping Updates an Jobs (z.B. geänderte Deadlines) als neue Historien-Einträge gespeichert werden, anstatt sie hart zu überschreiben.
+*   **Test:** Ein isoliertes Test-Skript `bin/stage7_db_v2.rs`, das einen Dummy-Kandidaten und mehrfache Match-Ergebnisse schreibt und das aktuellste abfragt.
 
-#### Stufe 8: Reporting & Typst-Generierung
-*   **Aktion:** Erstellen von `09_templating.rs` (Askama) und `10_typst_compiler.rs`.
-*   **Fokus:** Wir lesen Jobs mit Score >= 4 aus der DB. Wir übergeben die Typ-sicheren Structs an Askama, welches einen Typst-String erzeugt. Dieser wird direkt "in-memory" über `typst-as-library` zu einem PDF kompiliert.
-*   **Kompilieren mit:** `cargo run --bin stage8_report --features "db pdf"`
-*   **Ziel:** Es fällt ein fertiges `.pdf` Dokument heraus. Keine Zwischenschritte über die Typst-Kommandozeile mehr nötig.
+#### Stufe 8: Smart Batching & Token-Management für AI
+*   **Aktion:** Erstellen von `07d_ai_batching.rs` und Update von `07_ai_core.rs`.
+*   **Fokus:** Implementierung des "Wort-Zählers". 
+    *   Eine Funktion generiert für jeden Job/Kandidaten einen Sub-Prompt.
+    *   Eine Schleife sammelt diese Sub-Prompts, zählt die Wörter (`text.split_whitespace().count()`).
+    *   Sobald das Limit von z.B. 14.000 Wörtern erreicht ist, wird der Batch an Gemini gesendet, die JSON-Antwort verarbeitet und der nächste Batch gestartet.
+*   **Ziel:** Maximale Ausnutzung des Gemini Free Tiers ohne Risiko von `HTTP 429` (Too Many Requests) oder `400` (Token Limit exceeded).
 
-#### Stufe 9: Das finale CLI (Zusammenführung)
+#### Stufe 9: In-Memory Pipeline & Debug-Dumps (Vorbereitung für Automatisierung)
+*   **Aktion:** Überarbeitung von `06_data_ingestion.rs` zu `06_pipeline_orchestrator.rs`.
+*   **Fokus:** Entfernen des Zwangs, HTML/JSON auf die Festplatte zu schreiben. Der Datenfluss ist nun: `Reqwest -> String -> Regex/JSON-Parser -> Struct -> DB`.
+*   **Debug-Feature:** Einbau einer Logik: Wenn die Applikation mit einem Debug-Flag gestartet wird, wird ein Ordner `debug_dumps/YYYY-MM-DD_HH-MM/` erstellt und rohe HTML/JSON-Dateien (benannt nach der Job-ID) abgelegt.
+*   **Test:** `bin/stage9_full_scrape.rs`, das einmal komplett im RAM läuft und nur am Ende in die SQLite schreibt.
+
+#### Stufe 10: Web-Server Basis & OAuth Integration
+*   **Aktion:** Erstellen von `11_web_server.rs` und `12_auth.rs`.
+*   **Fokus:** Aufsetzen eines **Axum** Webservers. 
+    *   Einrichtung von Session-Management (z.B. mit `tower-sessions`).
+    *   Implementierung des OAuth-Flows (GitHub oder Google).
+    *   Routen: `/` (Landing Page), `/login`, `/auth/callback`, `/dashboard`.
+*   **Kompilieren mit:** `cargo run --bin stage10_web --features "web db"`
+*   **Ziel:** Du kannst im Browser `localhost:3000` öffnen, dich via Google/Github einloggen und siehst danach deine OAuth-ID in der Konsole / im Browser.
+
+#### Stufe 11: Web-UI: Profilverwaltung & Job-Matching Dashboard
+*   **Aktion:** Erstellen von Askama-Templates (`templates/dashboard.html`, `templates/profile.html`) und Anbindung in `13_web_ui.rs`.
+*   **Fokus:** 
+    *   **Profil:** Ein Text-Feld im Browser, wo der eingeloggte Kandidat sein Profil/CV einkopieren kann. Speichern in der DB.
+    *   **Dashboard:** Eine Ansicht, die die Liste der `candidate_job_matches` für den aktuellen User aus der Datenbank lädt (nur die neuesten pro Job). 
+    *   UI-Elemente: Filter nach Score, Darstellung der historischen Entwicklung eines Jobs (Wann wurde er zuerst gepostet? Was hat sich geändert?).
+*   **Ziel:** Eine voll funktionsfähige Web-App. Die AI hat im Hintergrund gearbeitet, der Nutzer konsumiert nur noch das Ergebnis.
+
+#### Stufe 12: Nightly Scheduler (Cron-Job in Rust)
+*   **Aktion:** Erstellen von `14_scheduler.rs`.
+*   **Fokus:** Wir brauchen keinen externen Linux-Cronjob. Tokio kann das selbst. Ein asynchroner Task läuft im Hintergrund (`tokio::spawn`), prüft die Uhrzeit (z.B. mithilfe der Crate `tokio-cron-scheduler`) und startet jede Nacht um 03:00 Uhr die Scraper-Pipeline aus Stufe 9.
+*   *Workflow Nachts:* Scrape Roche -> Lade DB Historie -> Identifiziere neue/geänderte Jobs -> Sende unbewertete Jobs an Gemini (Batching) -> Speichere in DB.
+*   **Ziel:** Ein Zero-Maintenance System. Der Server läuft durchgängig.
+
+#### Stufe 13: Das finale Binary (CLI + Server)
 *   **Aktion:** Ausprogrammieren von `src/bin/main.rs`.
-*   **Fokus:** Integration von `clap`. Alle Module werden nun hinter Subcommands (`collect`, `process`, `match`, `report`) orchestriert. Hier werden auch alle Cargo-Features beim Bauen (`cargo build --release --all-features`) verlinkt.
-*   **Ziel:** Ein einzelnes Binary (`rs-scrape`), das in der Lage ist, die gesamte Pipeline hochperformant auszuführen.
-
----
-
-### Warum dieser Plan so gut funktioniert:
-
-1.  **Sicherheit durch Isolation:** Du bleibst nicht in einem riesigen Monolithen stecken. Wenn das Scraping bricht, kannst du an der KI-Schnittstelle weiterarbeiten, da die JSONs auf der Platte (Stufe 4) oder in der SQLite (Stufe 5) zwischengespeichert sind.
-2.  **Kompilierzeiten:** Wenn du am CLI oder der Datenbank schraubst, machst du das ohne das `pdf` oder `scraper` Feature. Die Build-Zeit liegt dann bei wenigen Sekunden statt einer Minute.
-3.  **Klare Dateigrenzen:** Wenn die `03_scraper_roche.rs` zu lang wird (z.B. durch komplexe DOM-Abfragen), splitest du sie einfach in `03a_scraper_auth.rs` und `03b_scraper_search.rs`. Durch die Nummern bleibt die inhaltliche Abfolge sofort erkennbar.
+*   **Fokus:** Alles kommt zusammen in einem mächtigen CLI (mithilfe von `clap`).
+    *   `rs-scrape serve` -> Startet Webserver & Nightly Scheduler.
+    *   `rs-scrape scrape-now --debug-dump` -> Triggert einen sofortigen Scrape-Vorgang und speichert HTMLs zur Fehleranalyse.
+    *   `rs-scrape evaluate-candidate <ID>` -> Erzwingt eine sofortige AI-Neubewertung für einen bestimmten Kandidaten (z.B. weil er sein Profil geändert hat).
