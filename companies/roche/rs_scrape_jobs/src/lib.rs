@@ -32,3 +32,5 @@ pub mod web_core;
 pub mod web_server;
 #[path = "13_web_ui.rs"]
 pub mod web_ui;
+#[path = "14_scheduler.rs"]
+pub mod scheduler;

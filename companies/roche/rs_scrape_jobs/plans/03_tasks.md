@@ -150,7 +150,7 @@ Um das Tool effektiv zu nutzen, benötigst du den exakten GitHub-Pfad der jeweil
 
 ## 6. Der Stufenweise Implementierungs- & Testplan
 
-*(Stufen 1-10 sind bereits abgeschlossen. Wir setzen bei Stufe 11 an.)*
+*(Stufen 1-11 sind bereits abgeschlossen. Wir setzen bei Stufe 12 an.)*
 
 #### Stufe 1: Datenmodelle & Datenbank-Infrastruktur
 *   **Aktion:** Erstellen von `00_models.rs`, `01_db_setup.rs` und `01b_db_repo.rs`.

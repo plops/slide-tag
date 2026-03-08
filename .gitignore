@@ -21,6 +21,9 @@ Thumbs.db
 
 *.html
 
+# Allow html in template folder
+!templates/**/*.html
+!templates/
 
 # Log files
 *.log

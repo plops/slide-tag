@@ -50,3 +50,6 @@ db = ["dep:libsql"]
 scraper =["dep:chromiumoxide", "dep:reqwest", "dep:rand"]
 ai = ["dep:rig-core", "dep:schemars"]
 web =["dep:askama", "dep:axum", "dep:tower-sessions", "dep:tokio-cron-scheduler", "dep:rand", "dep:oauth2"]
+
+[profile.dev]
+debug = 0      # reduce memory consumption during build
