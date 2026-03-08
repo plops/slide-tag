@@ -142,6 +142,7 @@ async fn auth_callback(
                                 // Store user_id in session to maintain login state
                                 session.insert("user_id", candidate_id).await.unwrap();
                                 session.insert("user_name", name.clone()).await.unwrap();
+                                session.insert("oauth_sub", oauth_sub.clone()).await.unwrap();
 
                                 // Debug: Log session ID after insert and verify values
                                 println!("DEBUG: Session ID after insert: {:?}", session.id());

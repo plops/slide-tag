@@ -30,3 +30,5 @@ pub mod scraper_roche;
 pub mod web_core;
 #[path = "11_web_server.rs"]
 pub mod web_server;
+#[path = "13_web_ui.rs"]
+pub mod web_ui;

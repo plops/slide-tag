@@ -1,9 +1,12 @@
-use axum::{response::Html, routing::get, Extension, Router};
-use std::{net::SocketAddr, sync::Arc};
-use tower_sessions::{cookie::{SameSite, time::Duration as TsDuration}, MemoryStore, Session, SessionManagerLayer, Expiry};
+use axum::{response::{Html, Redirect}, routing::{get, post}, Extension, Router};
 use serde_json::json;
+use std::{net::SocketAddr, sync::Arc};
+use tower_sessions::{
+    cookie::{time::Duration as TsDuration, SameSite},
+    Expiry, MemoryStore, Session, SessionManagerLayer,
+};
 
-use crate::{auth, db_traits::DatabaseProvider};
+use crate::{auth, db_traits::DatabaseProvider, web_ui};
 
 #[cfg(feature = "web")]
 pub async fn create_app(db_provider: Arc<dyn DatabaseProvider>) -> Router {
@@ -32,7 +35,9 @@ pub async fn create_app(db_provider: Arc<dyn DatabaseProvider>) -> Router {
         .with_secure(session_secure)
         .with_path("/")
         .with_name("id")
-        .with_expiry(Expiry::OnInactivity(TsDuration::seconds(session_max_age_secs as i64)));
+        .with_expiry(Expiry::OnInactivity(TsDuration::seconds(
+            session_max_age_secs as i64,
+        )));
 
     if let Some(domain) = session_domain {
         // Move domain into layer if provided
@@ -53,42 +58,39 @@ pub async fn create_app(db_provider: Arc<dyn DatabaseProvider>) -> Router {
 
     let auth_router = auth::auth_routes();
 
+    // Router for routes that need database state
+    let db_routes = Router::new()
+        .route("/profile", get(web_ui::get_profile).post(web_ui::post_profile))
+        .route("/dashboard", get(web_ui::get_dashboard))
+        .route("/api/trigger-match", post(web_ui::trigger_match))
+        .with_state(db_provider);
+
+    // Main router with session and auth layers applied to everything
     Router::new()
         .route("/", get(root))
         .route("/debug/session", get(debug_session))
         .nest("/auth", auth_router)
+        .merge(db_routes)
         .layer(Extension(auth_state))
         .layer(session_layer)
 }
 
-async fn root(session: Session) -> Html<String> {
+async fn root(session: Session) -> Redirect {
     // Debug: Log session state
     println!("DEBUG root: Session ID: {:?}", session.id());
 
-    if let Some(user_name) = session.get::<String>("user_name").await.unwrap() {
-        let user_id = session.get::<i32>("user_id").await.unwrap();
-        println!("DEBUG root: Found user - ID: {:?}, Name: {}", user_id, user_name);
-
-        Html(format!(
-            r#"Hello {}! Welcome to Roche Job Scraper.
-            <br><br>
-            <a href='/auth/logout'>Logout</a>
-            <br><br>
-            <p>Future features: View job matches, update profile, etc.</p>
-            "#,
-            user_name
-        ))
+    if let Some(_user_name) = session.get::<String>("user_name").await.unwrap() {
+        let _user_id = session.get::<i64>("user_id").await.unwrap();
+        println!(
+            "DEBUG root: Found user - ID: {:?}, Name: {}",
+            _user_id, _user_name
+        );
+        // Redirect authenticated users to dashboard
+        Redirect::to("/dashboard")
     } else {
         println!("DEBUG root: No user found in session");
-        Html(
-            r#"Hello from Roche Job Scraper Web Server!
-            <br><br>
-            <a href='/auth/login'>Login with GitHub</a>
-            <br><br>
-            <p>Authenticate to access job matching features.</p>
-            "#
-            .to_string(),
-        )
+        // Redirect unauthenticated users to login
+        Redirect::to("/auth/login")
     }
 }
 

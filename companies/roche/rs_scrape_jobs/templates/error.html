@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Error - {{ title }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>⚠️ Error</h1>
+    <p>{{ error_message }}</p>
+    
+    <div style="margin-top: 2rem;">
+        <a href="/" class="btn btn-primary">Go to Home</a>
+        {% if user_name %}
+        <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

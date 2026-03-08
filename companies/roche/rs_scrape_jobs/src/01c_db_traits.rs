@@ -9,4 +9,6 @@ pub trait DatabaseProvider: Send + Sync {
     async fn upsert_candidate(&self, candidate: &Candidate) -> Result<i64>;
     async fn insert_candidate_match(&self, match_data: &CandidateMatch) -> Result<()>;
     async fn get_matches_for_candidate(&self, candidate_id: i64) -> Result<Vec<CandidateMatch>>;
+    async fn get_candidate_by_oauth_sub(&self, oauth_sub: &str) -> Result<Option<Candidate>>;
+    async fn get_candidate_by_id(&self, candidate_id: i64) -> Result<Option<Candidate>>;
 }

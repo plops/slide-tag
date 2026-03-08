@@ -501,4 +501,55 @@ impl DatabaseProvider for JobRepository {
         }
         Ok(matches)
     }
+
+    async fn get_candidate_by_oauth_sub(
+        &self,
+        oauth_sub: &str,
+    ) -> anyhow::Result<Option<Candidate>> {
+        let mut rows = self
+            .conn
+            .query(
+                "SELECT id, oauth_sub, name, profile_text FROM candidates WHERE oauth_sub = ?",
+                params![oauth_sub],
+            )
+            .await?;
+        if let Some(row) = rows.next().await? {
+            let id: i64 = row.get(0)?;
+            let oauth_sub: String = row.get(1)?;
+            let name: String = row.get(2)?;
+            let profile_text: String = row.get(3)?;
+            Ok(Some(Candidate {
+                id: Some(id),
+                oauth_sub,
+                name,
+                profile_text,
+            }))
+        } else {
+            Ok(None)
+        }
+    }
+
+    async fn get_candidate_by_id(&self, candidate_id: i64) -> anyhow::Result<Option<Candidate>> {
+        let mut rows = self
+            .conn
+            .query(
+                "SELECT id, oauth_sub, name, profile_text FROM candidates WHERE id = ?",
+                params![candidate_id],
+            )
+            .await?;
+        if let Some(row) = rows.next().await? {
+            let id: i64 = row.get(0)?;
+            let oauth_sub: String = row.get(1)?;
+            let name: String = row.get(2)?;
+            let profile_text: String = row.get(3)?;
+            Ok(Some(Candidate {
+                id: Some(id),
+                oauth_sub,
+                name,
+                profile_text,
+            }))
+        } else {
+            Ok(None)
+        }
+    }
 }

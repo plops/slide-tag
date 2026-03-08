@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block nav_links %}
+<li><a href="/profile">Profile</a></li>
+<li><a href="/dashboard">Dashboard</a></li>
+<li><a href="/auth/logout">Logout</a></li>
+{% endblock %}
+
+{% block user_info %}
+<div class="user-info">
+    <span>👤 {{ user_name }}</span>
+</div>
+{% endblock %}
+
+{% block head %}
+<style>
+    .profile-form {
+        max-width: 800px;
+    }
+    
+    .character-count {
+        text-align: right;
+        color: #666;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+    }
+    
+    .help-text {
+        color: #666;
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>My Profile</h1>
+    <p>Update your professional profile to improve job matching accuracy.</p>
+    
+    {% if success %}
+    <div class="alert alert-success">
+        ✅ Profile updated successfully!
+    </div>
+    {% endif %}
+    
+    <form method="post" class="profile-form">
+        <div class="form-group">
+            <label for="profile_text">Professional Profile / Resume</label>
+            <textarea 
+                name="profile_text" 
+                id="profile_text"
+                maxlength="5000"
+                placeholder="Enter your professional experience, skills, education, and career goals..."
+                required
+            >{{ profile_text }}</textarea>
+            <div class="help-text">
+                💡 Tip: Include your skills, experience, education, and what kind of roles you're looking for.
+            </div>
+            <div class="character-count">
+                <span id="char-count">{{ profile_text.len() }}</span> / 5000 characters
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Save Profile</button>
+            <a href="/dashboard" class="btn btn-secondary">View Dashboard</a>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Profile Guidelines</h2>
+    <ul style="margin-left: 20px; margin-top: 1rem;">
+        <li>Be specific about your technical skills and experience level</li>
+        <li>Include relevant certifications and education</li>
+        <li>Mention your preferred work environment (remote, hybrid, on-site)</li>
+        <li>Describe your career goals and ideal role</li>
+        <li>Keep it concise but comprehensive (500-2000 words recommended)</li>
+    </ul>
+</div>
+{% endblock %}
