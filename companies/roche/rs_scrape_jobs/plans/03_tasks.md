@@ -70,37 +70,7 @@ Für diesen Anwendungsfall eignen sich folgende Architektur-Muster am besten:
 
 ## 3. Strategie für minimale Abhängigkeiten (Cargo Features)
 
-Da Rust-Kompilierzeiten explodieren können, nutzen wir **Cargo Features**. Jedes Modul kann separat aktiviert und kompiliert werden.
-
-**Beispiel `Cargo.toml`:**
-```toml
-[package]
-name = "rs-scrape"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-tokio = { version = "1", features = ["full"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-anyhow = "1.0"
-log = "0.4"
-
-# Optionale Abhängigkeiten (nur kompiliert, wenn Feature aktiv)
-libsql = { version = "0.3", optional = true }
-chromiumoxide = { version = "0.5", optional = true }
-reqwest = { version = "0.11", optional = true }
-rig-core = { version = "0.1", optional = true }
-axum = { version = "0.7", optional = true }
-askama = { version = "0.12", optional = true }
-
-[features]
-default =["db", "scraper", "ai", "web"] # Für den finalen Build
-db = ["dep:libsql"]
-scraper =["dep:chromiumoxide", "dep:reqwest"]
-ai = ["dep:rig-core"]
-web =["dep:axum", "dep:askama"]
-```
+Da Rust-Kompilierzeiten explodieren können, nutzen wir **Cargo Features**. Jedes Modul kann separat aktiviert und kompiliert werden. Unser finales Binary verlinkt via `default` Feature auf die Gruppen: `db`, `scraper`, `ai` und `web`.
 
 ---
 
@@ -140,8 +110,13 @@ rs_scrape_jobs/
 
 ---
 
-## 5. Dokumentation & Fehlerbehebung (Für das ausführende LLM)
+## 5. Dokumentation, Fehlerbehebung & Code-Qualität (Für das ausführende LLM)
 
+### Code Qualität (Linter)
+Führe nach dem Implementieren größerer Blöcke, und immer wenn du ansonsten nicht weiterkommst, das bereitgestellte Skript **`./build.sh`** im Terminal aus. Dieses Skript ruft `cargo fmt` und `cargo clippy` auf. 
+**WICHTIG:** Ignoriere Warnungen von Clippy nicht! Analysiere sie und verbessere den Code entsprechend (z.B. unnötige Clones, ungenutzte Variablen, idiomatischere Konstrukte).
+
+### Dokumentation via MCP
 Wenn du bei der Implementierung feststeckst, die API einer Bibliothek nicht genau kennst oder Compiler-Fehler bezüglich unbekannter Methoden erhältst, **rate nicht!** Nutze stattdessen das bereitgestellte **deepwiki MCP**, um die offizielle und aktuelle Dokumentation abzurufen.
 
 Um das Tool effektiv zu nutzen, benötigst du den exakten GitHub-Pfad der jeweiligen Bibliothek. Hier ist die Referenzliste aller Hauptabhängigkeiten in diesem Projekt:
@@ -160,20 +135,22 @@ Um das Tool effektiv zu nutzen, benötigst du den exakten GitHub-Pfad der jeweil
     *   `libsql` -> `tursodatabase/libsql`
     *   `serde` -> `serde-rs/serde`
     *   `serde_json` -> `serde-rs/json`
+    *   `schemars` -> `GREsau/schemars` 
+
 *   **Templates & CLI:**
     *   `askama` -> `djc/askama`
     *   `clap` -> `clap-rs/clap`
 *   **Error Handling & Utilities:**
     *   `anyhow` -> `dtolnay/anyhow`
     *   `async-trait` -> `dtolnay/async-trait`
-
-
 *Beispiel-Anweisung für dich selbst:*
 > "Ich brauche die Dokumentation für das Setup von tower-sessions. Ich frage deepwiki nach `maxcountryman/tower-sessions`."
 
 ---
 
 ## 6. Der Stufenweise Implementierungs- & Testplan
+
+*(Stufen 1-6 sind bereits abgeschlossen. Wir setzen bei Stufe 7 an.)*
 
 #### Stufe 1: Datenmodelle & Datenbank-Infrastruktur
 *   **Aktion:** Erstellen von `00_models.rs`, `01_db_setup.rs` und `01b_db_repo.rs`.
