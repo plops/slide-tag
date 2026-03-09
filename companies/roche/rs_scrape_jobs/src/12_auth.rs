@@ -164,8 +164,8 @@ async fn auth_callback(
                                 // Debug: Log session ID after insert and verify values
                                 println!("DEBUG: Session ID after insert: {:?}", session.id());
                                 println!(
-                                    "DEBUG: Stored user_id: {}, user_name: {}",
-                                    candidate_id, name
+                                    "DEBUG: Stored user_id: {}, user_name: {}, oauth_sub: {}",
+                                    candidate_id, name, oauth_sub
                                 );
 
                                 // Force session save
