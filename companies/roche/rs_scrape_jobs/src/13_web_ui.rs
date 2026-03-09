@@ -73,21 +73,21 @@ impl IntoResponse for WebError {
     fn into_response(self) -> axum::response::Response {
         let (status, error_message) = match self {
             WebError::Database(e) => {
-                log::error!("Database error: {}", e);
+                tracing::error!("Database error: {}", e);
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "Database error occurred".to_string(),
                 )
             }
             WebError::Template(e) => {
-                log::error!("Template error: {}", e);
+                tracing::error!("Template error: {}", e);
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
                     "Template rendering error".to_string(),
                 )
             }
             WebError::Auth(msg) => {
-                log::warn!("Authentication error: {}", msg);
+                tracing::warn!("Authentication error: {}", msg);
                 (StatusCode::UNAUTHORIZED, msg)
             }
         };
@@ -194,7 +194,7 @@ pub async fn post_profile(
         .await
         .map_err(|_| WebError::Auth("Failed to set success flag".to_string()))?;
 
-    log::info!("Profile updated for user: {}", updated_candidate.oauth_sub);
+    tracing::info!("Profile updated for user: {}", updated_candidate.oauth_sub);
 
     // Redirect back to profile
     Ok(Redirect::to("/profile"))
@@ -246,7 +246,7 @@ pub async fn trigger_match(
 
     // Background Task (Fire and Forget)
     tokio::spawn(async move {
-        log::info!("Starte asynchrone KI-Evaluierung für User: {}", oauth_sub);
+        tracing::info!("Starte asynchrone KI-Evaluierung für User: {}", oauth_sub);
 
         // 1. Hole aktuelle Jobs
         if let Ok(jobs) = bg_state.db.get_latest_jobs().await {
@@ -258,8 +258,12 @@ pub async fn trigger_match(
                     final_match.candidate_id = candidate_id;
                     let _ = bg_state.db.insert_candidate_match(&final_match).await;
                 }
-                log::info!("KI-Evaluierung für User {} abgeschlossen.", oauth_sub);
+                tracing::info!("KI-Evaluierung für User {} abgeschlossen.", oauth_sub);
+            } else {
+                tracing::error!("KI-Matching fehlgeschlagen für User: {}", oauth_sub);
             }
+        } else {
+            tracing::error!("Konnte keine Jobs laden für User: {}", oauth_sub);
         }
     });
 
