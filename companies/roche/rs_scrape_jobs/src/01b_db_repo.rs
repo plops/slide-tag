@@ -455,13 +455,37 @@ impl DatabaseProvider for JobRepository {
     }
 
     async fn upsert_candidate(&self, candidate: &Candidate) -> anyhow::Result<i64> {
-        self.conn
-            .execute(
-                "INSERT OR REPLACE INTO candidates (oauth_sub, name, profile_text) VALUES (?, ?, ?)",
-                params![candidate.oauth_sub.clone(), candidate.name.clone(), candidate.profile_text.clone()],
-            )
-            .await?;
-        Ok(self.conn.last_insert_rowid())
+        if let Some(existing_id) = candidate.id {
+            // User existiert bereits -> Mache ein klassisches UPDATE, um die ID zu erhalten!
+            // Das verhindert, dass die Foreign Key Relation zu candidate_matches bricht.
+            self.conn
+                .execute(
+                    "UPDATE candidates SET name = ?, profile_text = ? WHERE id = ?",
+                    params![
+                        candidate.name.clone(), 
+                        candidate.profile_text.clone(), 
+                        existing_id
+                    ],
+                )
+                .await?;
+            
+            // Gebe die existierende und beibehaltene ID zurück
+            Ok(existing_id)
+        } else {
+            // Neuer User -> Normales INSERT
+            self.conn
+                .execute(
+                    "INSERT INTO candidates (oauth_sub, name, profile_text) VALUES (?, ?, ?)",
+                    params![
+                        candidate.oauth_sub.clone(), 
+                        candidate.name.clone(), 
+                        candidate.profile_text.clone()
+                    ],
+                )
+                .await?;
+            
+            Ok(self.conn.last_insert_rowid())
+        }
     }
 
     async fn insert_candidate_match(&self, match_data: &CandidateMatch) -> anyhow::Result<()> {
