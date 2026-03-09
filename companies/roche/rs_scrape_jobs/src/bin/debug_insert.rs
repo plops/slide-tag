@@ -1,15 +1,13 @@
-use rs_scrape::{
-    db_setup::init_db,
-};
 use libsql::params;
+use rs_scrape::db_setup::init_db;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     println!("Debugging database insertion...");
-    
+
     // Create fresh database
     let conn = init_db("debug_insert.db").await?;
-    
+
     // Check actual table schema
     println!("Checking table schema...");
     let mut rows = conn.query("PRAGMA table_info(job_history)", ()).await?;
@@ -20,7 +18,7 @@ async fn main() -> anyhow::Result<()> {
         column_count += 1;
     }
     println!("Total columns: {}", column_count);
-    
+
     // Try with fewer parameters first
     println!("Trying INSERT with just required columns...");
     let result = conn.execute(
@@ -32,12 +30,12 @@ async fn main() -> anyhow::Result<()> {
             "2023-01-01T00:00:00Z"
         ],
     ).await;
-    
+
     match result {
         Ok(_) => println!("✅ Simple INSERT successful!"),
         Err(e) => println!("❌ Simple INSERT failed: {}", e),
     }
-    
+
     // Try with more columns to see where it breaks
     println!("Trying INSERT with 10 columns...");
     let result = conn.execute(
@@ -56,11 +54,11 @@ async fn main() -> anyhow::Result<()> {
             "2023-01-01T00:00:00Z"
         ],
     ).await;
-    
+
     match result {
         Ok(_) => println!("✅ 10-column INSERT successful!"),
         Err(e) => println!("❌ 10-column INSERT failed: {}", e),
     }
-    
+
     Ok(())
 }

@@ -1,18 +1,15 @@
 use rs_scrape::{
-    db_repo::JobRepository,
-    db_setup::init_db,
-    db_traits::DatabaseProvider,
-    models::Job,
+    db_repo::JobRepository, db_setup::init_db, db_traits::DatabaseProvider, models::Job,
 };
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     println!("Testing database insertion...");
-    
+
     // Create fresh database
     let conn = init_db("test_insert.db").await?;
     let repo = JobRepository::new(conn);
-    
+
     // Create a simple test job
     let job = Job {
         identifier: "test_job_1".to_string(),
@@ -47,15 +44,15 @@ async fn main() -> anyhow::Result<()> {
         postal_code: None,
         job_summary: None,
     };
-    
+
     println!("Inserting test job...");
     repo.insert_job_history(&job).await?;
-    
+
     println!("✅ Insert successful!");
-    
+
     // Test retrieval
     let jobs = repo.get_latest_jobs().await?;
     println!("Retrieved {} jobs", jobs.len());
-    
+
     Ok(())
 }
