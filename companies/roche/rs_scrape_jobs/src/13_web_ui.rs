@@ -10,7 +10,8 @@ use std::sync::Arc;
 use tower_sessions::Session;
 
 use crate::{
-    app_state::AppState, db_traits::DatabaseProvider, models::Candidate, models::CandidateMatch, models::JobHistory,
+    app_state::AppState, db_traits::DatabaseProvider, models::Candidate, models::CandidateMatch,
+    models::JobHistory,
 };
 
 // Template structs for Askama
@@ -181,7 +182,8 @@ pub async fn post_profile(
         profile_text: form_data.profile_text.clone(),
     };
 
-    state.db
+    state
+        .db
         .upsert_candidate(&updated_candidate)
         .await
         .map_err(WebError::Database)?;
@@ -206,7 +208,8 @@ pub async fn get_dashboard(
     let candidate = get_current_user(&session, &*state.db).await?;
 
     // Get matches for this candidate
-    let matches = state.db
+    let matches = state
+        .db
         .get_matches_for_candidate(candidate.id.unwrap_or(0))
         .await
         .map_err(WebError::Database)?;
@@ -235,16 +238,16 @@ pub async fn trigger_match(
 ) -> Result<Redirect, WebError> {
     let candidate = get_current_user(&session, &*state.db).await?;
     let candidate_id = candidate.id.unwrap_or(0);
-    
+
     // Klone den State für den Hintergrund-Task
     let bg_state = state.clone();
     let profile_text = candidate.profile_text.clone();
     let oauth_sub = candidate.oauth_sub.clone();
-    
+
     // Background Task (Fire and Forget)
     tokio::spawn(async move {
         log::info!("Starte asynchrone KI-Evaluierung für User: {}", oauth_sub);
-        
+
         // 1. Hole aktuelle Jobs
         if let Ok(jobs) = bg_state.db.get_latest_jobs().await {
             // 2. Starte KI Matching
@@ -262,7 +265,7 @@ pub async fn trigger_match(
 
     // Setze eine Flash-Message für das UI (optional, falls implementiert)
     let _ = session.insert("success", true).await;
-    
+
     // Sofortiger Redirect, während die KI im Hintergrund rechnet
     Ok(Redirect::to("/dashboard"))
 }

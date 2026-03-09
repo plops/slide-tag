@@ -1,4 +1,7 @@
-use rs_scrape::{app_state::AppState, ai_gemini::GeminiProvider, db_repo::JobRepository, db_setup::init_db, web_server};
+use rs_scrape::{
+    ai_gemini::GeminiProvider, app_state::AppState, db_repo::JobRepository, db_setup::init_db,
+    web_server,
+};
 use std::sync::Arc;
 use tokio::net::TcpListener;
 
@@ -11,11 +14,11 @@ async fn main() -> anyhow::Result<()> {
     let conn = init_db("jobs_stage11.db").await?;
     let repo = JobRepository::new(conn);
     let db_provider = Arc::new(repo);
-    
+
     // Initialize AI provider (mock for testing)
     let api_key = std::env::var("GEMINI_API_KEY").unwrap_or_else(|_| "test_key".to_string());
     let ai_provider = Arc::new(GeminiProvider::new(&api_key)?);
-    
+
     // Create app state
     let app_state = Arc::new(AppState {
         db: db_provider,

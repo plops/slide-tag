@@ -11,4 +11,5 @@ pub trait DatabaseProvider: Send + Sync {
     async fn get_matches_for_candidate(&self, candidate_id: i64) -> Result<Vec<CandidateMatch>>;
     async fn get_candidate_by_oauth_sub(&self, oauth_sub: &str) -> Result<Option<Candidate>>;
     async fn get_candidate_by_id(&self, candidate_id: i64) -> Result<Option<Candidate>>;
+    async fn get_all_candidates(&self) -> Result<Vec<Candidate>>;
 }

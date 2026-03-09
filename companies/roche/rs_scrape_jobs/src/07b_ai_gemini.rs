@@ -4,6 +4,7 @@ use crate::ai_rate_limiter::{create_rate_limiter, AiModelConfig, SharedRateLimit
 use crate::models::{CandidateMatch, Job, JobAnnotation};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
+use chrono::Utc;
 use rig::client::{CompletionClient, ProviderClient};
 use rig::completion::CompletionModel;
 use rig::providers::gemini;
@@ -76,13 +77,51 @@ where
     }
 
     #[allow(dead_code)]
-    async fn match_candidate(
-        &self,
-        _profile: &str,
-        _jobs: Vec<Job>,
-    ) -> Result<Vec<CandidateMatch>> {
-        // Stub implementation - to be implemented with AI matching logic
-        Ok(vec![])
+    async fn match_candidate(&self, profile: &str, jobs: Vec<Job>) -> Result<Vec<CandidateMatch>> {
+        if jobs.is_empty() {
+            return Ok(vec![]);
+        }
+
+        let mut all_matches = Vec::new();
+        let mut batch_builder = BatchBuilder::new(self.rate_limiter.clone()).await;
+        let mut remaining_jobs = jobs;
+
+        // Process jobs in batches to respect rate limits
+        while !remaining_jobs.is_empty() {
+            // Fill the batch
+            while let Some(job) = remaining_jobs.pop() {
+                if !batch_builder.try_add_job(job.clone()) {
+                    // Job doesn't fit, put it back
+                    remaining_jobs.push(job);
+                    break;
+                }
+            }
+
+            // Process the current batch
+            if let Some(batch) = batch_builder.take_batch() {
+                let batch_tokens = batch
+                    .iter()
+                    .map(|j| batch_builder.estimate_job_tokens(j))
+                    .sum::<u32>();
+
+                // Wait for rate limiter
+                {
+                    let mut limiter = self.rate_limiter.lock().await;
+                    limiter.wait_for_request(batch_tokens).await;
+                    limiter.record_request(batch_tokens);
+                }
+
+                // Process the batch
+                let matches = self
+                    .process_candidate_matching_batch(profile, batch)
+                    .await?;
+                all_matches.extend(matches);
+            } else {
+                break;
+            }
+        }
+
+        Ok(all_matches)
     }
 }
 
@@ -157,5 +196,104 @@ The output should be a JSON array of objects, each with:
         }
 
         Ok(annotations)
+    }
+
+    /// Process a single batch of jobs for candidate matching
+    async fn process_candidate_matching_batch(
+        &self,
+        profile: &str,
+        jobs: Vec<Job>,
+    ) -> Result<Vec<CandidateMatch>> {
+        let client = gemini::Client::from_env();
+
+        let mut input = String::new();
+        input.push_str(&format!("### CANDIDATE PROFILE ###\n{}\n\n", profile));
+
+        input.push_str("### JOBS ###\n");
+        for (i, job) in jobs.iter().enumerate() {
+            input.push_str(&format!("### JOB_{} ###\n", i));
+            input.push_str(&format!("Identifier: {}\n", job.identifier));
+            input.push_str(&format!("Title: {}\n", job.title));
+            input.push_str(&format!(
+                "Description: {}\n",
+                job.description
+                    .as_deref()
+                    .unwrap_or("N/A")
+                    .chars()
+                    .take(800)
+                    .collect::<String>()
+            ));
+            input.push_str(&format!("Location: {}\n", job.location));
+            input.push_str(&format!(
+                "Organization: {}\n",
+                job.organization.as_deref().unwrap_or("N/A")
+            ));
+            input.push_str(&format!("Required Topics: {:?}\n", job.required_topics));
+            input.push_str(&format!("Nice to Haves: {:?}\n", job.nice_to_haves));
+            input.push('\n');
+        }
+
+        println!("Sending candidate matching input to AI...");
+        let completion_model = client.completion_model("gemini-3.1-flash-lite-preview");
+        let preamble = "You are an expert recruiter matching candidates to job opportunities. 
+
+Analyze the candidate profile against the provided jobs and determine which jobs are the best matches.
+
+The output should be a JSON array of objects, each with:
+1. `job_identifier`: The identifier of the job (string)
+2. `score`: A match score from 0.0 to 1.0 indicating how well the candidate matches the job
+3. `explanation`: A brief explanation (max 200 characters) of why this job is a good or bad match
+4. `idx`: The index of the job in the input list (for tracking purposes)
+
+Only include jobs that have at least a 0.3 (30%) match score. Focus on relevant skills, experience, and qualifications.";
+
+        let request = completion_model
+            .completion_request(&input)
+            .preamble(preamble.to_string())
+            .build();
+        let response = completion_model.completion(request).await?;
+        let raw = response
+            .raw_response
+            .get_text_response()
+            .unwrap_or("No text response".to_string());
+        println!("AI matching raw response: {}", raw);
+
+        let cleaned = raw
+            .trim_start_matches("```json\n")
+            .trim_end_matches("\n```")
+            .trim();
+
+        // Parse the AI response
+        let batch: Vec<serde_json::Value> = serde_json::from_str(cleaned).map_err(|e| {
+            anyhow!(
+                "Failed to parse AI response as JSON: {}. Raw response: {}",
+                e,
+                raw
+            )
+        })?;
+
+        println!("Parsed matching results: {:?}", batch);
+
+        // Convert to CandidateMatch objects
+        let mut matches = Vec::new();
+        for item in batch {
+            if let (Some(job_identifier), Some(score), Some(explanation)) = (
+                item.get("job_identifier").and_then(|v| v.as_str()),
+                item.get("score").and_then(|v| v.as_f64()),
+                item.get("explanation").and_then(|v| v.as_str()),
+            ) {
+                matches.push(CandidateMatch {
+                    id: None,
+                    candidate_id: 0, // Will be set by caller
+                    job_identifier: job_identifier.to_string(),
+                    model_used: "gemini-3.1-flash-lite-preview".to_string(),
+                    score: score as f32,
+                    explanation: explanation.chars().take(200).collect::<String>(),
+                    created_at: Utc::now(),
+                });
+            }
+        }
+
+        Ok(matches)
     }
 }

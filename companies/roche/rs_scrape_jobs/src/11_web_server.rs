@@ -10,7 +10,7 @@ use tower_sessions::{
     Expiry, MemoryStore, Session, SessionManagerLayer,
 };
 
-use crate::{auth, app_state::AppState, web_ui};
+use crate::{app_state::AppState, auth, web_ui};
 
 #[cfg(feature = "web")]
 pub async fn create_app(app_state: Arc<AppState>) -> Router {
@@ -126,10 +126,7 @@ async fn debug_session(session: Session) -> Html<String> {
 }
 
 #[cfg(feature = "web")]
-pub async fn run_server(
-    addr: SocketAddr,
-    app_state: Arc<AppState>,
-) -> anyhow::Result<()> {
+pub async fn run_server(addr: SocketAddr, app_state: Arc<AppState>) -> anyhow::Result<()> {
     let app = create_app(app_state).await;
 
     println!("Starting web server on {}", addr);

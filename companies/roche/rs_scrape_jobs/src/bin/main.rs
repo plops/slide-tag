@@ -12,13 +12,15 @@ use rs_scrape::pipeline_orchestrator;
 
 #[cfg(feature = "web")]
 use rs_scrape::{
-    app_state::AppState, ai_core::AiProvider, ai_gemini::GeminiProvider, scheduler::{NightlyScheduler, SchedulerConfig},
+    ai_core::AiProvider,
+    ai_gemini::GeminiProvider,
+    app_state::AppState,
+    scheduler::{NightlyScheduler, SchedulerConfig},
     web_server,
 };
 
 #[cfg(feature = "ai")]
 // No additional imports needed - already imported above
-
 #[derive(Parser)]
 #[command(name = "rs-scrape")]
 #[command(about = "Roche Job Scraper - Rust implementation")]
@@ -63,12 +65,12 @@ async fn main() -> Result<()> {
 
                 // Initialize database
                 let db_provider = init_database().await?;
-                
+
                 // Initialize AI provider
                 let api_key = std::env::var("GEMINI_API_KEY")
                     .map_err(|_| anyhow::anyhow!("GEMINI_API_KEY environment variable not set"))?;
                 let ai_provider = Arc::new(GeminiProvider::new(&api_key)?);
-                
+
                 // Create app state
                 let app_state = Arc::new(AppState {
                     db: db_provider.clone(),
@@ -84,7 +86,7 @@ async fn main() -> Result<()> {
 
                 // Initialize and start scheduler
                 let scheduler_config = SchedulerConfig::default();
-                let scheduler = NightlyScheduler::new(scheduler_config).await?;
+                let scheduler = NightlyScheduler::new(scheduler_config, app_state.clone()).await?;
 
                 // Start both server and scheduler concurrently
                 let server_handle =

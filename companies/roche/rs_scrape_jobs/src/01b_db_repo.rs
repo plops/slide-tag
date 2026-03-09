@@ -553,4 +553,28 @@ impl DatabaseProvider for JobRepository {
             Ok(None)
         }
     }
+
+    async fn get_all_candidates(&self) -> anyhow::Result<Vec<Candidate>> {
+        let mut rows = self
+            .conn
+            .query(
+                "SELECT id, oauth_sub, name, profile_text FROM candidates ORDER BY name",
+                (),
+            )
+            .await?;
+        let mut candidates = Vec::new();
+        while let Some(row) = rows.next().await? {
+            let id: i64 = row.get(0)?;
+            let oauth_sub: String = row.get(1)?;
+            let name: String = row.get(2)?;
+            let profile_text: String = row.get(3)?;
+            candidates.push(Candidate {
+                id: Some(id),
+                oauth_sub,
+                name,
+                profile_text,
+            });
+        }
+        Ok(candidates)
+    }
 }
