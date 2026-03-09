@@ -13,4 +13,5 @@ pub trait DatabaseProvider: Send + Sync {
     async fn get_candidate_by_id(&self, candidate_id: i64) -> Result<Option<Candidate>>;
     async fn get_all_candidates(&self) -> Result<Vec<Candidate>>;
     async fn get_match_detail(&self, match_id: i64) -> Result<Option<(CandidateMatch, JobHistory)>>;
+    async fn get_jobs_paginated(&self, limit: i64, offset: i64, search_query: Option<String>) -> Result<(Vec<JobHistory>, i64)>;
 }

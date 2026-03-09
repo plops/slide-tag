@@ -1,6 +1,6 @@
 use askama::Template;
 use axum::{
-    extract::{Form, Path, State},
+    extract::{Form, Path, Query, State},
     http::StatusCode,
     response::{Html, IntoResponse, Redirect},
     routing::{get, post},
@@ -52,6 +52,19 @@ pub struct MatchDetailTemplate {
     pub job_family: Option<String>,
 }
 
+#[derive(Template)]
+#[template(path = "jobs.html")]
+pub struct JobsTemplate {
+    pub title: String,
+    pub user_name: String,
+    pub jobs: Vec<JobHistory>,
+    pub current_page: i64,
+    pub total_pages: i64,
+    pub search_query: String,
+    pub total_count: i64,
+    pub has_search: bool,
+}
+
 // Data structure for dashboard - simplified for Askama
 #[derive(Serialize)]
 pub struct MatchWithJob {
@@ -65,6 +78,12 @@ pub struct MatchWithJob {
 #[derive(Deserialize)]
 pub struct ProfileForm {
     pub profile_text: String,
+}
+
+#[derive(Deserialize)]
+pub struct JobQuery {
+    pub page: Option<i64>,
+    pub q: Option<String>,
 }
 
 // Error handling
@@ -386,11 +405,53 @@ pub async fn get_match_detail(
     Ok(Html(template.render()?))
 }
 
+pub async fn get_jobs(
+    Query(params): Query<JobQuery>,
+    session: Session,
+    State(state): State<Arc<AppState>>,
+) -> Result<Html<String>, WebError> {
+    // Get current user
+    let candidate = get_current_user(&session, &*state.db).await?;
+
+    // Pagination parameters
+    let page = params.page.unwrap_or(1).max(1); // Default to page 1, minimum 1
+    let limit = 20; // 20 items per page
+    let offset = (page - 1) * limit;
+
+    // Get jobs from database
+    let (jobs, total_count) = state
+        .db
+        .get_jobs_paginated(limit, offset, params.q.clone())
+        .await
+        .map_err(WebError::Database)?;
+
+    // Calculate pagination
+    let total_pages = ((total_count as f64) / (limit as f64)).ceil() as i64;
+    let total_pages = total_pages.max(1); // At least 1 page
+
+    let search_query = params.q.clone().unwrap_or_default();
+    let has_search = params.q.is_some();
+
+    let template = JobsTemplate {
+        title: "All Jobs".to_string(),
+        user_name: candidate.name,
+        jobs,
+        current_page: page,
+        total_pages,
+        search_query,
+        total_count,
+        has_search,
+    };
+
+    Ok(Html(template.render()?))
+}
+
 // Router configuration
 pub fn web_ui_routes() -> axum::Router<Arc<AppState>> {
     axum::Router::new()
         .route("/profile", get(get_profile).post(post_profile))
         .route("/dashboard", get(get_dashboard))
-        .route("/match/:id", get(get_match_detail))
+        .route("/match/{id}", get(get_match_detail))
+        .route("/jobs", get(get_jobs))
         .route("/api/trigger-match", post(trigger_match))
 }

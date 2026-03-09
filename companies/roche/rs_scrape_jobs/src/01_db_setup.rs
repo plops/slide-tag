@@ -138,5 +138,13 @@ pub async fn init_db(db_path: &str) -> anyhow::Result<libsql::Connection> {
     )
     .await?;
 
+    // Create indexes for better query performance
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_matches_candidate_id ON candidate_matches(candidate_id)", ()).await?;
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_matches_score ON candidate_matches(score DESC)", ()).await?;
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_job_hist_identifier ON job_history(identifier)", ()).await?;
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_job_hist_title ON job_history(title)", ()).await?;
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_job_hist_description ON job_history(description)", ()).await?;
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_job_hist_created_at ON job_history(created_at DESC)", ()).await?;
+
     Ok(conn)
 }

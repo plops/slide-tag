@@ -705,4 +705,136 @@ impl DatabaseProvider for JobRepository {
             Ok(None)
         }
     }
+
+    async fn get_jobs_paginated(&self, limit: i64, offset: i64, search_query: Option<String>) -> anyhow::Result<(Vec<JobHistory>, i64)> {
+        // Build the base query and parameters
+        let (base_where_clause, search_params) = if let Some(query) = &search_query {
+            let search_pattern = format!("%{}%", query);
+            (
+                "WHERE LOWER(title) LIKE LOWER(?) OR LOWER(description) LIKE LOWER(?)",
+                vec![search_pattern.clone(), search_pattern]
+            )
+        } else {
+            ("", vec![])
+        };
+
+        // Get total count
+        let count_sql = format!("SELECT COUNT(*) FROM job_history {}", base_where_clause);
+        let count_params = search_params.clone();
+        let mut count_rows = self.conn.query(&count_sql, libsql::params_from_iter(count_params)).await?;
+        let total_count = if let Some(row) = count_rows.next().await? {
+            row.get(0)?
+        } else {
+            0
+        };
+
+        // Get paginated results
+        let sql = format!(
+            "SELECT id, identifier, title, description, location, organization, required_topics, nice_to_haves, 
+                    pay_grade, sub_category, category_raw, employment_type, work_hours, worker_type, 
+                    job_profile, supervisory_organization, target_hire_date, no_of_available_openings, grade_profile, 
+                    recruiting_start_date, job_level, job_family, job_type, is_evergreen, standardised_country, 
+                    run_date, run_id, address_locality, address_region, address_country, postal_code, 
+                    job_summary, created_at 
+             FROM job_history {} 
+             ORDER BY created_at DESC 
+             LIMIT ? OFFSET ?", 
+            base_where_clause
+        );
+
+        let mut params = search_params;
+        params.push(limit.to_string());
+        params.push(offset.to_string());
+
+        let mut rows = self.conn.query(&sql, libsql::params_from_iter(params)).await?;
+        let mut jobs = Vec::new();
+
+        while let Some(row) = rows.next().await? {
+            let id: i64 = row.get(0)?;
+            let identifier: String = row.get(1)?;
+            let title: String = row.get(2)?;
+            let description: Option<String> = row.get(3)?;
+            let location: String = row.get(4)?;
+            let organization: Option<String> = row.get(5)?;
+            let required_topics: Option<String> = row.get(6)?;
+            let nice_to_haves: Option<String> = row.get(7)?;
+            let pay_grade: Option<String> = row.get(8)?;
+            let sub_category: Option<String> = row.get(9)?;
+            let category_raw: Option<String> = row.get(10)?;
+            let employment_type: Option<String> = row.get(11)?;
+            let work_hours: Option<String> = row.get(12)?;
+            let worker_type: Option<String> = row.get(13)?;
+            let job_profile: Option<String> = row.get(14)?;
+            let supervisory_organization: Option<String> = row.get(15)?;
+            let target_hire_date: Option<String> = row.get(16)?;
+            let no_of_available_openings: Option<String> = row.get(17)?;
+            let grade_profile: Option<String> = row.get(18)?;
+            let recruiting_start_date: Option<String> = row.get(19)?;
+            let job_level: Option<String> = row.get(20)?;
+            let job_family: Option<String> = row.get(21)?;
+            let job_type: Option<String> = row.get(22)?;
+            let is_evergreen: Option<String> = row.get(23)?;
+            let standardised_country: Option<String> = row.get(24)?;
+            let run_date: Option<String> = row.get(25)?;
+            let run_id: Option<String> = row.get(26)?;
+            let address_locality: Option<String> = row.get(27)?;
+            let address_region: Option<String> = row.get(28)?;
+            let address_country: Option<String> = row.get(29)?;
+            let postal_code: Option<String> = row.get(30)?;
+            let job_summary: Option<String> = row.get(31)?;
+            let created_at_str: String = row.get(32)?;
+            let created_at = DateTime::parse_from_rfc3339(&created_at_str)?.with_timezone(&Utc);
+
+            let required_topics_parsed = required_topics
+                .as_ref()
+                .map(|s| serde_json::from_str(s))
+                .transpose()
+                .ok()
+                .flatten();
+            let nice_to_haves_parsed = nice_to_haves
+                .as_ref()
+                .map(|s| serde_json::from_str(s))
+                .transpose()
+                .ok()
+                .flatten();
+
+            jobs.push(JobHistory {
+                id: Some(id),
+                identifier,
+                title,
+                description,
+                location,
+                organization,
+                required_topics: required_topics_parsed,
+                nice_to_haves: nice_to_haves_parsed,
+                pay_grade,
+                sub_category,
+                category_raw,
+                employment_type,
+                work_hours,
+                worker_type,
+                job_profile,
+                supervisory_organization,
+                target_hire_date,
+                no_of_available_openings,
+                grade_profile,
+                recruiting_start_date,
+                job_level,
+                job_family,
+                job_type,
+                is_evergreen,
+                standardised_country,
+                run_date,
+                run_id,
+                address_locality,
+                address_region,
+                address_country,
+                postal_code,
+                job_summary,
+                created_at,
+            });
+        }
+
+        Ok((jobs, total_count))
+    }
 }

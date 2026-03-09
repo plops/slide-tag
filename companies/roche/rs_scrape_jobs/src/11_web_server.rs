@@ -69,6 +69,8 @@ pub async fn create_app(app_state: Arc<AppState>) -> Router {
             get(web_ui::get_profile).post(web_ui::post_profile),
         )
         .route("/dashboard", get(web_ui::get_dashboard))
+        .route("/match/{id}", get(web_ui::get_match_detail))
+        .route("/jobs", get(web_ui::get_jobs))
         .route("/api/trigger-match", post(web_ui::trigger_match))
         .with_state(app_state.clone());
 
