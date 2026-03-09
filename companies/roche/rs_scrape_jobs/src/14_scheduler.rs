@@ -21,7 +21,7 @@ pub struct SchedulerConfig {
 impl Default for SchedulerConfig {
     fn default() -> Self {
         Self {
-            cron_schedule: "0 2 * * *".to_string(), // 2:00 AM daily
+            cron_schedule: "0 0 2 * * *".to_string(), // 2:00 AM daily (sec min hour day month weekday)
             debug: false,
             max_candidate_batch_size: 5,
             batch_delay_seconds: 30,
@@ -221,7 +221,7 @@ mod tests {
     #[test]
     fn test_scheduler_config_default() {
         let config = SchedulerConfig::default();
-        assert_eq!(config.cron_schedule, "0 2 * * *");
+        assert_eq!(config.cron_schedule, "0 0 2 * * *");
         assert!(!config.debug);
         assert_eq!(config.max_candidate_batch_size, 5);
         assert_eq!(config.batch_delay_seconds, 30);
