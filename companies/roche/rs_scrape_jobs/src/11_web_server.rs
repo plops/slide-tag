@@ -1,4 +1,8 @@
-use axum::{response::{Html, Redirect}, routing::{get, post}, Extension, Router};
+use axum::{
+    response::{Html, Redirect},
+    routing::{get, post},
+    Extension, Router,
+};
 use serde_json::json;
 use std::{net::SocketAddr, sync::Arc};
 use tower_sessions::{
@@ -60,7 +64,10 @@ pub async fn create_app(db_provider: Arc<dyn DatabaseProvider>) -> Router {
 
     // Router for routes that need database state
     let db_routes = Router::new()
-        .route("/profile", get(web_ui::get_profile).post(web_ui::post_profile))
+        .route(
+            "/profile",
+            get(web_ui::get_profile).post(web_ui::post_profile),
+        )
         .route("/dashboard", get(web_ui::get_dashboard))
         .route("/api/trigger-match", post(web_ui::trigger_match))
         .with_state(db_provider);

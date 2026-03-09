@@ -24,6 +24,8 @@ pub mod json_extractor;
 pub mod models;
 #[path = "06b_pipeline_orchestrator.rs"]
 pub mod pipeline_orchestrator;
+#[path = "14_scheduler.rs"]
+pub mod scheduler;
 #[path = "03_scraper_roche.rs"]
 pub mod scraper_roche;
 #[path = "02_web_core.rs"]
@@ -32,5 +34,3 @@ pub mod web_core;
 pub mod web_server;
 #[path = "13_web_ui.rs"]
 pub mod web_ui;
-#[path = "14_scheduler.rs"]
-pub mod scheduler;

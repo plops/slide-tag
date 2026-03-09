@@ -146,6 +146,34 @@ Um das Tool effektiv zu nutzen, benötigst du den exakten GitHub-Pfad der jeweil
 *Beispiel-Anweisung für dich selbst:*
 > "Ich brauche die Dokumentation für das Setup von tower-sessions. Ich frage deepwiki nach `maxcountryman/tower-sessions`."
 
+
+### 5.1 Hinzufuegen neuer Abhaengigkeiten
+
+Wenn du neue Abhaengigkeiten hinzufuegen moechtest, dann gehe wie folgt vor:
+
+1) Trage das Packet mit irgendeiner Versionsnummer die du kennst in die Cargo.toml ein
+2) Schreibe das github verzeichnis bestehend aus <organisation>/<repository> oben in die Liste, so das Deepwiki MCP updates klappen.
+3) Verwende bitte das cargo upgrade tool um die neuesten (auch inkompatiblen versionen) zu finden, so dass wir mit der Entwicklung gleich mit einer aktuellen Version anfangen.
+
+```
+kiel@e14 ~/stage/slide-tag/companies/roche/rs_scrape_jobs $ cargo upgrade --verbose
+    Checking rs-scrape's dependencies
+name    old req compatible latest new req note        
+====    ======= ========== ====== ======= ====        
+reqwest 0.11    0.11.27    0.13.2 0.11    incompatible
+oauth2  4.4     4.4.2      5.0.0  4.4     incompatible
+note: Re-run with `--incompatible` to upgrade incompatible version requirements
+note: Re-run with `--verbose` to show more dependencies
+  latest: 19 packages
+kiel@e14 ~/stage/slide-tag/companies/roche/rs_scrape_jobs $ cargo upgrade --verbose --incompatible
+    Checking rs-scrape's dependencies
+name    old req compatible latest new req
+====    ======= ========== ====== =======
+reqwest 0.11    0.11.27    0.13.2 0.13   
+oauth2  4.4     4.4.2      5.0.0  5.0    
+   Upgrading recursive dependencies
+     Locking 0 packages to latest compatible versions
+```
 ---
 
 ## 6. Der Stufenweise Implementierungs- & Testplan

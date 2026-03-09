@@ -1,0 +1,13 @@
+{
+  // Checke den Code erst beim Speichern, nicht bei jedem Tastenanschlag!
+  "rust-analyzer.checkOnSave.enable": true,
+  // Nutze 'clippy' nur manuell über das ./build.sh Skript, lass RA nur 'check' machen
+  "rust-analyzer.check.command": "check",
+  // Limitiere den RAM, den RA für Makros nutzen darf
+  "rust-analyzer.server.extraEnv": {
+    "CARGO_BUILD_JOBS": "2"
+  },
+      "chat.tools.terminal.autoApprove": {
+        "./build.sh": true
+    }
+}

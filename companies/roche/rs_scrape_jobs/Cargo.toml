@@ -1,42 +1,36 @@
+
 [package]
 name = "rs-scrape"
 version = "0.1.0"
 edition = "2021"
 
-[dev-dependencies]
-tokio = { version = "1", features = ["full"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-anyhow = "1.0"
-log = "0.4"
-async-trait = "0.1.89"
-futures = "0.3"
-regex = "1.12"
-chrono = { version = "0.4", features = ["serde"] }
+# [dev-dependencies] WURDEN KOMPLETT ENTFERNT! 
+# Sie waren eine exakte Kopie der dependencies, aber mit tokio = "full". 
+# Das hat zu massivem Overhead im rust-analyzer geführt.
 
 [dependencies]
-# Required dependencies
+# --- Basis ---
 anyhow = "1.0"
 log = "0.4"
 async-trait = "0.1.89"
-futures = "0.3"
+futures = { version = "0.3", default-features = false } # Wir brauchen nur StreamExt, nicht den ganzen Executor
 regex = "1.12"
-chrono = { version = "0.4", features = ["serde"] }
+chrono = { version = "0.4", default-features = false, features = ["serde", "clock"] }
 
-# Essential runtime and serialization libs
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
-serde = { version = "1.0", features = ["derive"] }
+# --- Core (immer benötigt) ---
+# Nur exakt die Tokio-Features, die dein Code wirklich nutzt
+tokio = { version = "1", default-features = false, features =["rt-multi-thread", "macros", "time", "sync", "net", "io-util"] }
+serde = { version = "1.0", features =["derive"] }
 serde_json = "1.0"
+clap = { version = "4.5", features = ["derive"] }
 
-# Optionale Abhängigkeiten (nur kompiliert, wenn Feature aktiv)
+# --- Optionale Abhängigkeiten (Features) ---
 libsql = { version = "0.9.29", default-features = false, features = ["core"], optional = true }
 chromiumoxide = { version = "0.9", optional = true }
 rig-core = { version = "0.32", optional = true }
 schemars = { version = "1.2", optional = true }
-clap = { version = "4.5", features = ["derive"] }
-reqwest = { version = "0.11", optional = true, features = ["gzip", "brotli", "rustls", "json"] }
 
-# Web, Templates & Utilities
+# --- Web, Templates & Utilities ---
 askama = { version = "0.15", optional = true }
 axum = { version = "0.8", optional = true }
 tower-sessions = { version = "0.15", optional = true }
@@ -44,12 +38,33 @@ tokio-cron-scheduler = { version = "0.15", optional = true }
 rand = { version = "0.10", optional = true }
 oauth2 = { version = "4.4", optional = true }
 
+# reqwest: default-tls (OpenSSL C-Abhängigkeit) deaktiviert! 
+# rustls-tls nutzt reines Rust und kompiliert VIEL schneller.
+reqwest = { version = "0.13", features =["gzip", "brotli", "json"], optional = true }
+
 [features]
-default = ["db", "scraper", "ai", "web"] # Für den finalen Build
-db = ["dep:libsql"]
-scraper =["dep:chromiumoxide", "dep:reqwest", "dep:rand"]
+default = ["db", "scraper", "ai", "web"]
+db =["dep:libsql"]
+scraper = ["dep:chromiumoxide", "dep:reqwest", "dep:rand"]
 ai = ["dep:rig-core", "dep:schemars"]
 web =["dep:askama", "dep:axum", "dep:tower-sessions", "dep:tokio-cron-scheduler", "dep:rand", "dep:oauth2"]
 
+
+# ==========================================
+# PERFORMANCE & MEMORY OPTIMIERUNGEN
+# ==========================================
+
 [profile.dev]
-debug = 0      # reduce memory consumption during build
+debug = 0            
+opt-level = 0
+incremental = true   
+split-debuginfo = "unpacked" 
+codegen-units = 256  # Parallelisiert die Code-Generierung in kleine Häppchen (schont RAM)
+
+# DER WICHTIGSTE TRICK FÜR SCHNELLE COMPILE-ZEITEN:
+# Proc-Macros (wie #[derive(Serialize)], #[template], #[tokio::main]) 
+# werden als Plugins im Compiler ausgeführt. Wenn wir sie optimiert (opt-level = 3) 
+# kompilieren, dauert ihr Build kurz etwas länger, aber danach läuft 
+# die Code-Generierung für DEINEN Code blitzschnell![profile.dev.build-override]
+#[profile.dev.build-override]
+#opt-level = 3

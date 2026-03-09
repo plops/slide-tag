@@ -38,7 +38,7 @@ impl NightlyScheduler {
     /// Create a new scheduler instance
     pub async fn new(config: SchedulerConfig) -> Result<Self, JobSchedulerError> {
         let scheduler = JobScheduler::new().await?;
-        
+
         Ok(Self {
             scheduler: Arc::new(Mutex::new(scheduler)),
             config,
@@ -50,7 +50,7 @@ impl NightlyScheduler {
         let config = self.config.clone();
 
         // Create the main nightly job
-        let job = CronJob::new_async(&config.cron_schedule.clone(), move |_uuid, _l| {
+        let job = CronJob::new_async(config.cron_schedule.clone(), move |_uuid, _l| {
             let config = config.clone();
 
             Box::pin(async move {
@@ -73,7 +73,10 @@ impl NightlyScheduler {
             scheduler.start().await?;
         }
 
-        println!("Nightly scheduler started with schedule: {}", self.config.cron_schedule);
+        println!(
+            "Nightly scheduler started with schedule: {}",
+            self.config.cron_schedule
+        );
         Ok(())
     }
 
@@ -104,7 +107,7 @@ async fn execute_nightly_pipeline(config: SchedulerConfig) -> Result<()> {
     // Step 2: Get all candidates for matching
     println!("Step 2: Fetching candidates for AI matching...");
     let candidates = get_all_candidates().await?;
-    
+
     if candidates.is_empty() {
         println!("No candidates found, skipping AI matching");
         return Ok(());
@@ -115,7 +118,7 @@ async fn execute_nightly_pipeline(config: SchedulerConfig) -> Result<()> {
     // Step 3: Get latest jobs for matching
     println!("Step 3: Fetching latest jobs for matching...");
     let jobs = get_latest_jobs().await?;
-    
+
     if jobs.is_empty() {
         println!("No jobs found, skipping AI matching");
         return Ok(());
@@ -130,7 +133,7 @@ async fn execute_nightly_pipeline(config: SchedulerConfig) -> Result<()> {
     let end_time = Utc::now();
     let duration = end_time - start_time;
     println!("Nightly pipeline completed successfully in {}", duration);
-    
+
     Ok(())
 }
 
@@ -138,7 +141,7 @@ async fn execute_nightly_pipeline(config: SchedulerConfig) -> Result<()> {
 async fn scrape_jobs_and_store(debug: bool) -> Result<()> {
     println!("Job scraping would be executed here");
     println!("Debug mode: {}", debug);
-    
+
     // In the actual implementation, this would:
     // 1. Setup browser using web_core::setup_browser()
     // 2. Scrape URLs using scraper_roche::scrape_roche_jobs()
@@ -146,7 +149,7 @@ async fn scrape_jobs_and_store(debug: bool) -> Result<()> {
     // 4. Extract JSON using json_extractor::extract_phapp_json_regex()
     // 5. Parse jobs using data_ingestion::parse_roche_job()
     // 6. Store in database using DatabaseProvider::insert_job_history()
-    
+
     Ok(())
 }
 
@@ -163,7 +166,11 @@ async fn get_latest_jobs() -> Result<Vec<String>> {
     // For now, return mock job identifiers
     // In the actual implementation, this would use DatabaseProvider::get_latest_jobs()
     println!("Would fetch latest jobs from database");
-    Ok(vec!["job1".to_string(), "job2".to_string(), "job3".to_string()])
+    Ok(vec![
+        "job1".to_string(),
+        "job2".to_string(),
+        "job3".to_string(),
+    ])
 }
 
 /// Process candidate matches with rate limiting
@@ -173,31 +180,45 @@ async fn process_candidate_matches(
     config: &SchedulerConfig,
 ) -> Result<()> {
     let mut processed_count = 0;
-    
-    for (batch_idx, candidate_batch) in candidates.chunks(config.max_candidate_batch_size).enumerate() {
-        println!("Processing batch {} ({} candidates)", batch_idx + 1, candidate_batch.len());
-        
+
+    for (batch_idx, candidate_batch) in candidates
+        .chunks(config.max_candidate_batch_size)
+        .enumerate()
+    {
+        println!(
+            "Processing batch {} ({} candidates)",
+            batch_idx + 1,
+            candidate_batch.len()
+        );
+
         for candidate in candidate_batch {
             // Simulate rate limiting delay
             println!("Processing candidate: {}", candidate);
             tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
-            
+
             // Generate AI matches (simulated)
-            println!("  Generated {} matches for candidate {}", jobs.len(), candidate);
-            
+            println!(
+                "  Generated {} matches for candidate {}",
+                jobs.len(),
+                candidate
+            );
+
             // Store matches in database (simulated)
             println!("  Stored matches in database");
-            
+
             processed_count += 1;
         }
-        
+
         // Add delay between batches
         if batch_idx < candidates.len().saturating_sub(1) / config.max_candidate_batch_size {
-            println!("Waiting {} seconds before next batch...", config.batch_delay_seconds);
+            println!(
+                "Waiting {} seconds before next batch...",
+                config.batch_delay_seconds
+            );
             tokio::time::sleep(tokio::time::Duration::from_secs(config.batch_delay_seconds)).await;
         }
     }
-    
+
     println!("Processed {} candidates total", processed_count);
     Ok(())
 }
@@ -205,7 +226,7 @@ async fn process_candidate_matches(
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_scheduler_config_default() {
         let config = SchedulerConfig::default();
@@ -214,7 +235,7 @@ mod tests {
         assert_eq!(config.max_candidate_batch_size, 5);
         assert_eq!(config.batch_delay_seconds, 30);
     }
-    
+
     #[tokio::test]
     async fn test_scheduler_creation() -> Result<()> {
         let config = SchedulerConfig::default();
@@ -222,7 +243,7 @@ mod tests {
         println!("Scheduler created successfully");
         Ok(())
     }
-    
+
     #[tokio::test]
     async fn test_manual_trigger() -> Result<()> {
         let config = SchedulerConfig {
@@ -231,7 +252,7 @@ mod tests {
             max_candidate_batch_size: 2,
             batch_delay_seconds: 1,
         };
-        
+
         let scheduler = NightlyScheduler::new(config.clone()).await?;
         scheduler.trigger_manual().await?;
         println!("Manual trigger test completed");

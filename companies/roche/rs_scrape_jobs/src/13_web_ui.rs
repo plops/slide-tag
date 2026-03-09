@@ -134,7 +134,7 @@ async fn get_current_user(
     db_provider
         .get_candidate_by_oauth_sub(&oauth_sub)
         .await
-        .map_err(|e| WebError::Database(e))?
+        .map_err(WebError::Database)?
         .ok_or_else(|| WebError::Auth("Candidate not found".to_string()))
 }
 
@@ -184,7 +184,7 @@ pub async fn post_profile(
     db_provider
         .upsert_candidate(&updated_candidate)
         .await
-        .map_err(|e| WebError::Database(e))?;
+        .map_err(WebError::Database)?;
 
     // Set success flag in session
     session
@@ -209,7 +209,7 @@ pub async fn get_dashboard(
     let matches = db_provider
         .get_matches_for_candidate(candidate.id.unwrap_or(0))
         .await
-        .map_err(|e| WebError::Database(e))?;
+        .map_err(WebError::Database)?;
 
     // Calculate statistics
     let matches_count = matches.len();
