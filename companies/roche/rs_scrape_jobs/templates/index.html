@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome{% endblock %}
+
+{% block nav_links %}
+{% if user_name.is_some() %}
+    <li><a href="/profile">Profile</a></li>
+    <li><a href="/dashboard">Dashboard</a></li>
+    <li><a href="/jobs">Jobs</a></li>
+    <li><a href="/auth/logout">Logout</a></li>
+{% else %}
+    <li><a href="/auth/login" class="btn btn-primary">Sign in with GitHub</a></li>
+{% endif %}
+{% endblock %}
+
+{% block user_info %}
+{% if let Some(name) = user_name %}
+    <div class="user-info">
+        <span>👤 {{ name }}</span>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="card hero-card">
+        <div class="hero-content">
+            <h1 class="hero-title">🧬 Roche Job Scraper</h1>
+            <p class="hero-description">
+                Your intelligent job matching platform for Roche career opportunities. 
+                Get AI-powered job recommendations tailored to your profile.
+            </p>
+            
+            {% if user_name.is_some() %}
+                <div class="logged-in-actions">
+                    <h2>Welcome back, {{ user_name.as_ref().unwrap() }}! 👋</h2>
+                    <p>Ready to discover your next career opportunity at Roche?</p>
+                    <div class="action-buttons">
+                        <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
+                        <a href="/jobs" class="btn btn-secondary">Browse Jobs</a>
+                        <a href="/profile" class="btn btn-secondary">Update Profile</a>
+                    </div>
+                </div>
+            {% else %}
+                <div class="guest-actions">
+                    <h2>Discover Your Perfect Match</h2>
+                    <p>Sign in with your GitHub account to get personalized job recommendations and track your applications.</p>
+                    <div class="action-buttons">
+                        <a href="/auth/login" class="btn btn-primary btn-large">Sign in with GitHub</a>
+                    </div>
+                    <div class="features">
+                        <h3>What you'll get:</h3>
+                        <ul class="feature-list">
+                            <li>🤖 AI-powered job matching</li>
+                            <li>📊 Personalized recommendations</li>
+                            <li>📈 Match scoring and insights</li>
+                            <li>💼 Detailed job information</li>
+                            <li>🔒 Secure authentication</li>
+                        </ul>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.hero-section {
+    padding: 3rem 0;
+}
+
+.hero-card {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 3rem;
+}
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: bold;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+}
+
+.hero-description {
+    font-size: 1.2rem;
+    color: #666;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.logged-in-actions h2,
+.guest-actions h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.logged-in-actions p,
+.guest-actions p {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+}
+
+.btn-large {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+}
+
+.features {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 8px;
+    margin-top: 2rem;
+    text-align: left;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.features h3 {
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.feature-list {
+    list-style: none;
+    padding: 0;
+}
+
+.feature-list li {
+    padding: 0.5rem 0;
+    font-size: 1rem;
+    color: #555;
+}
+
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .hero-card {
+        padding: 2rem 1rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+</style>
+{% endblock %}

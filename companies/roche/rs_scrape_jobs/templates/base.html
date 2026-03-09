@@ -220,12 +220,14 @@
                 <nav>
                     <ul>
                         <li><a href="/">Home</a></li>
-                        {% block nav_links %}
-                        <li><a href="/profile">Profile</a></li>
-                        <li><a href="/dashboard">Dashboard</a></li>
                         <li><a href="/jobs">Jobs</a></li>
-                        <li><a href="/auth/logout">Logout</a></li>
-                        {% endblock %}
+                        {% if user_name.is_some() %}
+                            <li><a href="/dashboard">Dashboard</a></li>
+                            <li><a href="/profile">Profile</a></li>
+                            <li><a href="/auth/logout">Logout</a></li>
+                        {% else %}
+                            <li><a href="/auth/login" class="btn btn-primary">Sign in with GitHub</a></li>
+                        {% endif %}
                     </ul>
                 </nav>
                 {% block user_info %}
