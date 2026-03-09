@@ -38,6 +38,11 @@ tokio-cron-scheduler = { version = "0.15", optional = true }
 rand = { version = "0.10", optional = true }
 oauth2 = { version = "4.4", optional = true }
 
+# --- Logging & Configuration ---
+tracing = "0.1"
+tracing-subscriber = "0.3"
+dotenvy = "0.15"
+
 # reqwest: default-tls (OpenSSL C-Abhängigkeit) deaktiviert! 
 # rustls-tls nutzt reines Rust und kompiliert VIEL schneller.
 reqwest = { version = "0.13", features =["gzip", "brotli", "json"], optional = true }
