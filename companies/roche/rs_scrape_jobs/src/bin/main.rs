@@ -105,7 +105,15 @@ async fn main() -> Result<()> {
                 let server_handle =
                     tokio::spawn(async move { web_server::run_server(addr, app_state).await });
 
-                let scheduler_handle = tokio::spawn(async move { scheduler.start().await });
+                let scheduler_handle = tokio::spawn(async move { 
+                    if let Err(e) = scheduler.start().await {
+                        tracing::error!("Scheduler error: {}", e);
+                    }
+                    // Keep the scheduler task alive indefinitely with yielding
+                    loop {
+                        tokio::time::sleep(tokio::time::Duration::from_secs(3600)).await;
+                    }
+                });
 
                 // Wait for either task to complete (or error)
                 tokio::select! {
@@ -118,8 +126,7 @@ async fn main() -> Result<()> {
                     }
                     result = scheduler_handle => {
                         match result {
-                            Ok(Ok(())) => tracing::info!("Scheduler shutdown gracefully"),
-                            Ok(Err(e)) => tracing::error!("Scheduler error: {}", e),
+                            Ok(()) => tracing::info!("Scheduler task completed"),
                             Err(e) => tracing::error!("Scheduler task error: {}", e),
                         }
                     }
