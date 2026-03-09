@@ -33,7 +33,9 @@ schemars = { version = "1.2", optional = true }
 # --- Web, Templates & Utilities ---
 askama = { version = "0.15", optional = true }
 axum = { version = "0.8", optional = true }
-tower-sessions = { version = "0.15", optional = true }
+tower-sessions = { version = "0.14", optional = true }
+tower-sessions-core = { version = "0.14", features = ["deletion-task"], optional = true }
+time = { version = "0.3", optional = true }
 tokio-cron-scheduler = { version = "0.15", optional = true }
 rand = { version = "0.10", optional = true }
 oauth2 = { version = "4.4", optional = true }
@@ -52,7 +54,7 @@ default = ["db", "scraper", "ai", "web"]
 db =["dep:libsql"]
 scraper = ["dep:chromiumoxide", "dep:reqwest", "dep:rand"]
 ai = ["dep:rig-core", "dep:schemars"]
-web =["dep:askama", "dep:axum", "dep:tower-sessions", "dep:tokio-cron-scheduler", "dep:rand", "dep:oauth2"]
+web =["dep:askama", "dep:axum", "dep:tower-sessions", "dep:tower-sessions-core", "dep:time", "dep:tokio-cron-scheduler", "dep:rand", "dep:oauth2"]
 
 
 # ==========================================

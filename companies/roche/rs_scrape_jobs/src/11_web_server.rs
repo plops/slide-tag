@@ -7,15 +7,36 @@ use serde_json::json;
 use std::{net::SocketAddr, sync::Arc};
 use tower_sessions::{
     cookie::{time::Duration as TsDuration, SameSite},
-    Expiry, MemoryStore, Session, SessionManagerLayer,
+    Expiry, Session, SessionManagerLayer,
 };
 
-use crate::{app_state::AppState, auth, web_ui};
+use crate::{
+    app_state::AppState, 
+    auth, 
+    web_ui,
+    custom_session_store::LibsqlSessionStore,
+};
 
 #[cfg(feature = "web")]
 pub async fn create_app(app_state: Arc<AppState>) -> Router {
-    // Use MemoryStore for now - TODO: Implement custom libsql session store for production
-    let session_store = MemoryStore::default();
+    // Use custom LibsqlSessionStore for persistent sessions
+    let session_store = LibsqlSessionStore::new(app_state.db.clone());
+    
+    // Run migration to create sessions table
+    session_store.migrate().await
+        .expect("Failed to migrate session store table");
+    
+    // Start background cleanup task
+    let cleanup_store = session_store.clone();
+    tokio::spawn(async move {
+        let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(3600)); // Every hour
+        loop {
+            interval.tick().await;
+            if let Err(e) = cleanup_store.cleanup_expired().await {
+                eprintln!("Failed to cleanup expired sessions: {}", e);
+            }
+        }
+    });
 
     // Configure session cookie using environment variables where appropriate
     let session_secure = std::env::var("SESSION_SECURE")

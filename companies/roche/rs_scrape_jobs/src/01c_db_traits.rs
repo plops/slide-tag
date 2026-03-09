@@ -1,6 +1,7 @@
 use crate::models::{Candidate, CandidateMatch, Job, JobHistory};
 use anyhow::Result;
 use async_trait::async_trait;
+use libsql::Connection;
 
 #[async_trait]
 pub trait DatabaseProvider: Send + Sync {
@@ -21,4 +22,7 @@ pub trait DatabaseProvider: Send + Sync {
         search_query: Option<String>,
     ) -> Result<(Vec<JobHistory>, i64)>;
     async fn get_job_by_identifier(&self, identifier: &str) -> Result<Option<JobHistory>>;
+    
+    /// Get a cloned libsql connection for session store usage
+    fn get_connection(&self) -> Connection;
 }

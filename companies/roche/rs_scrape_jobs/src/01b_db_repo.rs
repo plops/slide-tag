@@ -968,4 +968,8 @@ impl DatabaseProvider for JobRepository {
             Ok(None)
         }
     }
+    
+    fn get_connection(&self) -> libsql::Connection {
+        self.conn.clone()
+    }
 }
