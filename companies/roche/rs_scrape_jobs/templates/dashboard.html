@@ -125,11 +125,95 @@
 </div>
 
 <div class="card">
-    <h2>Job Match Status</h2>
+    <h2>Recent Job Matches</h2>
     
     {% if has_matches %}
-    <div class="alert alert-success">
-        ✅ You have {{ matches_count }} job matches! View them in detail once the AI evaluation is complete.
+    <p>You have <strong>{{ matches_count }}</strong> job matches ready for review!</p>
+    <p><strong>{{ high_score_count }}</strong> high-score matches (>80%) and <strong>{{ good_fit_count }}</strong> good fits (>60%).</p>
+    
+    <div class="match-list">
+        <div class="filter-bar">
+            <button class="filter-btn active" data-filter="all">All Matches ({{ matches_count }})</button>
+            <button class="filter-btn" data-filter="high">High Score ({{ high_score_count }})</button>
+            <button class="filter-btn" data-filter="medium">Good Fit ({{ good_fit_count }})</button>
+        </div>
+        
+        {% for match_item in matches_with_jobs %}
+        <div class="match-card" data-score="{{ match_item.match_data.score }}">
+            <div class="match-header">
+                <div>
+                    <div class="job-title">
+                        {% if let Some(job) = match_item.job %}
+                            <a href="/match/{{ match_item.match_data.id.unwrap() }}" style="text-decoration: none; color: inherit;">
+                                {{ job.title }}
+                            </a>
+                        {% else %}
+                            <a href="/match/{{ match_item.match_data.id.unwrap() }}" style="text-decoration: none; color: inherit;">
+                                Unknown Job
+                            </a>
+                        {% endif %}
+                    </div>
+                    {% if let Some(job) = match_item.job %}
+                        <div class="job-location">📍 {{ job.location }}</div>
+                    {% endif %}
+                </div>
+                <div>
+                    {% if match_item.match_data.score >= 0.8 %}
+                        <div class="match-score" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                            {{ match_item.match_score_percent }}% Match
+                        </div>
+                    {% elif match_item.match_data.score >= 0.6 %}
+                        <div class="match-score" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                            {{ match_item.match_score_percent }}% Match
+                        </div>
+                    {% else %}
+                        <div class="match-score" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                            {{ match_item.match_score_percent }}% Match
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if let Some(job) = match_item.job %}
+                {% if let Some(topics) = job.required_topics %}
+                    {% if topics.len() > 0 %}
+                    <div class="job-meta">
+                        {% for topic in topics %}
+                            <span class="meta-item">{{ topic }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+            
+            <div class="match-explanation">
+                <strong>Why this matches:</strong> {{ match_item.match_data.explanation }}
+            </div>
+            
+            <div class="match-date">
+                Match found on {{ match_item.match_date_formatted }}
+                <span style="float: right;">
+                    <a href="/match/{{ match_item.match_data.id.unwrap() }}" class="btn btn-primary" style="text-decoration: none; padding: 0.5rem 1rem; font-size: 0.9rem;">
+                        View Details →
+                    </a>
+                </span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div style="margin-top: 2rem;">
+        <h3>Next Steps</h3>
+        <ol style="margin-left: 20px; margin-top: 1rem; line-height: 1.8;">
+            <li><strong>View your detailed matches</strong> - Click on individual matches to see full job details and AI explanations</li>
+            <li><strong>Focus on high-score matches</strong> - These have the best alignment with your profile</li>
+            <li><strong>Read AI explanations</strong> - Understand why each job was recommended for you</li>
+            <li><strong>Apply directly</strong> - Visit Roche careers to apply for positions that interest you</li>
+        </ol>
+        
+        <div style="margin-top: 2rem; text-align: center;">
+            <p style="color: #666; font-style: italic;">Detailed match views with job descriptions and AI analysis are now available!</p>
+        </div>
     </div>
     {% else %}
     <div class="empty-state">
@@ -149,4 +233,35 @@
         <li><strong>Apply directly</strong> - Visit Roche careers to apply for positions that interest you</li>
     </ol>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const buttons = document.querySelectorAll('.filter-btn');
+    const cards = document.querySelectorAll('.match-card');
+
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Active state togglen
+            buttons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const filterType = btn.getAttribute('data-filter');
+
+            cards.forEach(card => {
+                const score = parseFloat(card.getAttribute('data-score'));
+                
+                if (filterType === 'all') {
+                    card.style.display = 'block';
+                } else if (filterType === 'high' && score >= 0.8) {
+                    card.style.display = 'block';
+                } else if (filterType === 'medium' && score >= 0.6 && score < 0.8) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+});
+</script>
 {% endblock %}

@@ -1,4 +1,4 @@
-use crate::models::{Candidate, CandidateMatch, Job};
+use crate::models::{Candidate, CandidateMatch, Job, JobHistory};
 use anyhow::Result;
 use async_trait::async_trait;
 
@@ -12,4 +12,5 @@ pub trait DatabaseProvider: Send + Sync {
     async fn get_candidate_by_oauth_sub(&self, oauth_sub: &str) -> Result<Option<Candidate>>;
     async fn get_candidate_by_id(&self, candidate_id: i64) -> Result<Option<Candidate>>;
     async fn get_all_candidates(&self) -> Result<Vec<Candidate>>;
+    async fn get_match_detail(&self, match_id: i64) -> Result<Option<(CandidateMatch, JobHistory)>>;
 }

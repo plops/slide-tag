@@ -1,6 +1,6 @@
 use askama::Template;
 use axum::{
-    extract::{Form, State},
+    extract::{Form, Path, State},
     http::StatusCode,
     response::{Html, IntoResponse, Redirect},
     routing::{get, post},
@@ -34,6 +34,22 @@ pub struct DashboardTemplate {
     pub high_score_count: usize,
     pub good_fit_count: usize,
     pub has_matches: bool,
+    pub matches_with_jobs: Vec<MatchWithJob>,
+}
+
+#[derive(Template)]
+#[template(path = "match_detail.html")]
+pub struct MatchDetailTemplate {
+    pub title: String,
+    pub user_name: String,
+    pub match_data: CandidateMatch,
+    pub job_title: String,
+    pub job_location: String,
+    pub job_description: Option<String>,
+    pub job_organization: Option<String>,
+    pub job_employment_type: Option<String>,
+    pub job_level: Option<String>,
+    pub job_family: Option<String>,
 }
 
 // Data structure for dashboard - simplified for Askama
@@ -214,10 +230,71 @@ pub async fn get_dashboard(
         .await
         .map_err(WebError::Database)?;
 
+    // Get latest jobs for mapping
+    let jobs = state
+        .db
+        .get_latest_jobs()
+        .await
+        .map_err(WebError::Database)?;
+
+    // Create job lookup map
+    let mut job_map = std::collections::HashMap::new();
+    for job in jobs {
+        let job_history = JobHistory {
+            id: None,
+            identifier: job.identifier.clone(),
+            title: job.title.clone(),
+            description: job.description.clone(),
+            location: job.location.clone(),
+            organization: job.organization.clone(),
+            required_topics: job.required_topics.clone(),
+            nice_to_haves: job.nice_to_haves.clone(),
+            pay_grade: job.pay_grade.clone(),
+            sub_category: job.sub_category.clone(),
+            category_raw: job.category_raw.clone(),
+            employment_type: job.employment_type.clone(),
+            work_hours: job.work_hours.clone(),
+            worker_type: job.worker_type.clone(),
+            job_profile: job.job_profile.clone(),
+            supervisory_organization: job.supervisory_organization.clone(),
+            target_hire_date: job.target_hire_date.clone(),
+            no_of_available_openings: job.no_of_available_openings.clone(),
+            grade_profile: job.grade_profile.clone(),
+            recruiting_start_date: job.recruiting_start_date.clone(),
+            job_level: job.job_level.clone(),
+            job_family: job.job_family.clone(),
+            job_type: job.job_type.clone(),
+            is_evergreen: job.is_evergreen.clone(),
+            standardised_country: job.standardised_country.clone(),
+            run_date: job.run_date.clone(),
+            run_id: job.run_id.clone(),
+            address_locality: job.address_locality.clone(),
+            address_region: job.address_region.clone(),
+            address_country: job.address_country.clone(),
+            postal_code: job.postal_code.clone(),
+            job_summary: job.job_summary.clone(),
+            created_at: chrono::Utc::now(), // Default current time since Job doesn't have created_at
+        };
+        job_map.insert(job.identifier.clone(), job_history);
+    }
+
+    // Create MatchWithJob objects
+    let mut matches_with_jobs = Vec::new();
+    for candidate_match in matches {
+        let job = job_map.get(&candidate_match.job_identifier).cloned();
+        let match_with_job = MatchWithJob {
+            match_data: candidate_match.clone(),
+            job,
+            match_score_percent: (candidate_match.score * 100.0) as i32,
+            match_date_formatted: candidate_match.created_at.format("%Y-%m-%d").to_string(),
+        };
+        matches_with_jobs.push(match_with_job);
+    }
+
     // Calculate statistics
-    let matches_count = matches.len();
-    let high_score_count = matches.iter().filter(|m| m.score > 0.8).count();
-    let good_fit_count = matches.iter().filter(|m| m.score > 0.6).count();
+    let matches_count = matches_with_jobs.len();
+    let high_score_count = matches_with_jobs.iter().filter(|m| m.match_data.score > 0.8).count();
+    let good_fit_count = matches_with_jobs.iter().filter(|m| m.match_data.score > 0.6).count();
     let has_matches = matches_count > 0;
 
     let template = DashboardTemplate {
@@ -227,6 +304,7 @@ pub async fn get_dashboard(
         high_score_count,
         good_fit_count,
         has_matches,
+        matches_with_jobs,
     };
 
     Ok(Html(template.render()?))
@@ -274,10 +352,45 @@ pub async fn trigger_match(
     Ok(Redirect::to("/dashboard"))
 }
 
+pub async fn get_match_detail(
+    Path(match_id): Path<i64>,
+    session: Session,
+    State(state): State<Arc<AppState>>,
+) -> Result<Html<String>, WebError> {
+    let candidate = get_current_user(&session, &*state.db).await?;
+    
+    // Rufe die Daten ab
+    let (match_data, job) = state.db.get_match_detail(match_id)
+        .await
+        .map_err(WebError::Database)?
+        .ok_or_else(|| WebError::Database(anyhow::anyhow!("Match not found")))?;
+
+    // Sicherheitscheck: Gehört das Match dem User?
+    if match_data.candidate_id != candidate.id.unwrap_or(0) {
+        return Err(WebError::Auth("Unauthorized access to match".to_string()));
+    }
+
+    let template = MatchDetailTemplate {
+        title: format!("Match: {}", job.title),
+        user_name: candidate.name,
+        match_data,
+        job_title: job.title,
+        job_location: job.location,
+        job_description: job.description,
+        job_organization: job.organization,
+        job_employment_type: job.employment_type,
+        job_level: job.job_level,
+        job_family: job.job_family,
+    };
+
+    Ok(Html(template.render()?))
+}
+
 // Router configuration
 pub fn web_ui_routes() -> axum::Router<Arc<AppState>> {
     axum::Router::new()
         .route("/profile", get(get_profile).post(post_profile))
         .route("/dashboard", get(get_dashboard))
+        .route("/match/:id", get(get_match_detail))
         .route("/api/trigger-match", post(trigger_match))
 }

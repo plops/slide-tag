@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block nav_links %}
+<li><a href="/profile">Profile</a></li>
+<li><a href="/dashboard">Dashboard</a></li>
+<li><a href="/auth/logout">Logout</a></li>
+{% endblock %}
+
+{% block user_info %}
+<div class="user-info">
+    <span>👤 {{ user_name }}</span>
+</div>
+{% endblock %}
+
+{% block head %}
+<style>
+    .match-detail-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .job-title-section {
+        flex: 1;
+        min-width: 300px;
+    }
+    
+    .job-title {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 0.5rem;
+        line-height: 1.2;
+    }
+    
+    .job-location {
+        font-size: 1.1rem;
+        color: #666;
+        margin-bottom: 1rem;
+    }
+    
+    .match-score-large {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        font-weight: bold;
+        font-size: 1.2rem;
+        text-align: center;
+        min-width: 150px;
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    }
+    
+    .match-score-medium {
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        font-weight: bold;
+        font-size: 1.2rem;
+        text-align: center;
+        min-width: 150px;
+        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+    }
+    
+    .match-score-low {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        font-weight: bold;
+        font-size: 1.2rem;
+        text-align: center;
+        min-width: 150px;
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+    
+    .job-meta {
+        display: flex;
+        gap: 1rem;
+        margin: 1.5rem 0;
+        flex-wrap: wrap;
+    }
+    
+    .meta-item {
+        background: #f8f9fa;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        color: #666;
+        border: 1px solid #e9ecef;
+    }
+    
+    .required-topics {
+        margin: 2rem 0;
+    }
+    
+    .topics-title {
+        font-weight: bold;
+        margin-bottom: 1rem;
+        color: #333;
+    }
+    
+    .topic-badges {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .topic-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.4rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .section {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 1.5rem;
+        color: #333;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 0.5rem;
+    }
+    
+    .job-description {
+        line-height: 1.8;
+        color: #444;
+        white-space: pre-wrap;
+        font-size: 1rem;
+    }
+    
+    .ai-explanation {
+        background: #f8f9fa;
+        border-left: 4px solid #667eea;
+        padding: 1.5rem;
+        border-radius: 4px;
+        line-height: 1.6;
+        color: #555;
+    }
+    
+    .match-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e9ecef;
+        font-size: 0.9rem;
+        color: #666;
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+        margin-bottom: 2rem;
+        transition: color 0.3s;
+    }
+    
+    .back-link:hover {
+        color: #764ba2;
+    }
+    
+    @media (max-width: 768px) {
+        .match-detail-header {
+            flex-direction: column;
+        }
+        
+        .job-title {
+            font-size: 1.5rem;
+        }
+        
+        .match-score-large, .match-score-medium, .match-score-low {
+            align-self: flex-start;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="/dashboard" class="back-link">
+    ← Back to Dashboard
+</a>
+
+<div class="match-detail-header">
+    <div class="job-title-section">
+        <div class="job-title">{{ job_title }}</div>
+        <div class="job-location">📍 {{ job_location }}</div>
+        
+        <div class="job-meta">
+            {% if let Some(org) = job_organization %}
+            <span class="meta-item">🏢 {{ org }}</span>
+            {% endif %}
+            {% if let Some(emp_type) = job_employment_type %}
+            <span class="meta-item">💼 {{ emp_type }}</span>
+            {% endif %}
+            {% if let Some(job_level) = job_level %}
+            <span class="meta-item">📊 {{ job_level }}</span>
+            {% endif %}
+            {% if let Some(job_family) = job_family %}
+            <span class="meta-item">👥 {{ job_family }}</span>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if match_data.score >= 0.8 %}
+    <div class="match-score-large">{{ (match_data.score * 100.0) as i32 }}% Match</div>
+    {% elif match_data.score >= 0.6 %}
+    <div class="match-score-medium">{{ (match_data.score * 100.0) as i32 }}% Match</div>
+    {% else %}
+    <div class="match-score-low">{{ (match_data.score * 100.0) as i32 }}% Match</div>
+    {% endif %}
+</div>
+
+<div class="section">
+    <div class="section-title">📋 Job Description</div>
+    {% if let Some(description) = job_description %}
+    <div class="job-description">{{ description }}</div>
+    {% else %}
+    <p style="color: #666; font-style: italic;">No detailed description available for this position.</p>
+    {% endif %}
+</div>
+
+<div class="section">
+    <div class="section-title">🤖 AI Analysis</div>
+    <div class="ai-explanation">
+        <strong>Why this job matches your profile:</strong><br><br>
+        {{ match_data.explanation }}
+    </div>
+    
+    <div class="match-meta">
+        <div>
+            <strong>Model:</strong> {{ match_data.model_used }}
+        </div>
+        <div>
+            <strong>Analysis Date:</strong> {{ match_data.created_at }}
+        </div>
+    </div>
+</div>
+
+<div class="section">
+    <div class="section-title">📈 Next Steps</div>
+    <ol style="margin-left: 20px; line-height: 1.8;">
+        <li><strong>Review the AI analysis above</strong> - Understand why this position was recommended for you</li>
+        <li><strong>Compare your skills</strong> - Check how your profile aligns with the required topics</li>
+        <li><strong>Research the role</strong> - Learn more about the team and department at Roche</li>
+        <li><strong>Apply directly</strong> - Visit the Roche careers portal to submit your application</li>
+    </ol>
+    
+    <div style="margin-top: 2rem; text-align: center;">
+        <a href="#" class="btn btn-primary" style="text-decoration: none;">Apply on Roche Careers</a>
+        <a href="/dashboard" class="btn btn-secondary" style="text-decoration: none; margin-left: 1rem;">View More Matches</a>
+    </div>
+</div>
+{% endblock %}

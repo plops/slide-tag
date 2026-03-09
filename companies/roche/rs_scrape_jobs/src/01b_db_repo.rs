@@ -1,5 +1,5 @@
 use crate::db_traits::DatabaseProvider;
-use crate::models::{Candidate, CandidateMatch, Job, Location, Skill};
+use crate::models::{Candidate, CandidateMatch, Job, JobHistory, Location, Skill};
 use chrono::{DateTime, Utc};
 use libsql::{params, Connection};
 
@@ -576,5 +576,133 @@ impl DatabaseProvider for JobRepository {
             });
         }
         Ok(candidates)
+    }
+
+    async fn get_match_detail(&self, match_id: i64) -> anyhow::Result<Option<(CandidateMatch, JobHistory)>> {
+        let mut rows = self.conn.query(
+            "SELECT cm.id, cm.candidate_id, cm.job_identifier, cm.model_used, cm.score, cm.explanation, cm.created_at,
+                    jh.id, jh.identifier, jh.title, jh.description, jh.location, jh.organization, jh.required_topics, jh.nice_to_haves, 
+                    jh.pay_grade, jh.sub_category, jh.category_raw, jh.employment_type, jh.work_hours, jh.worker_type, 
+                    jh.job_profile, jh.supervisory_organization, jh.target_hire_date, jh.no_of_available_openings, jh.grade_profile, 
+                    jh.recruiting_start_date, jh.job_level, jh.job_family, jh.job_type, jh.is_evergreen, jh.standardised_country, 
+                    jh.run_date, jh.run_id, jh.address_locality, jh.address_region, jh.address_country, jh.postal_code, 
+                    jh.job_summary, jh.created_at
+             FROM candidate_matches cm
+             INNER JOIN job_history jh ON cm.job_identifier = jh.identifier
+             WHERE cm.id = ?",
+            params![match_id],
+        ).await?;
+
+        if let Some(row) = rows.next().await? {
+            // CandidateMatch data
+            let id: i64 = row.get(0)?;
+            let candidate_id: i64 = row.get(1)?;
+            let job_identifier: String = row.get(2)?;
+            let model_used: String = row.get(3)?;
+            let score_f64: f64 = row.get(4)?;
+            let score = score_f64 as f32;
+            let explanation: String = row.get(5)?;
+            let created_at_str: String = row.get(6)?;
+            let created_at = DateTime::parse_from_rfc3339(&created_at_str)?.with_timezone(&Utc);
+
+            let candidate_match = CandidateMatch {
+                id: Some(id),
+                candidate_id,
+                job_identifier,
+                model_used,
+                score,
+                explanation,
+                created_at,
+            };
+
+            // JobHistory data
+            let job_id: i64 = row.get(7)?;
+            let identifier: String = row.get(8)?;
+            let title: String = row.get(9)?;
+            let description: Option<String> = row.get(10)?;
+            let location: String = row.get(11)?;
+            let organization: Option<String> = row.get(12)?;
+            let required_topics: Option<String> = row.get(13)?;
+            let nice_to_haves: Option<String> = row.get(14)?;
+            let pay_grade: Option<String> = row.get(15)?;
+            let sub_category: Option<String> = row.get(16)?;
+            let category_raw: Option<String> = row.get(17)?;
+            let employment_type: Option<String> = row.get(18)?;
+            let work_hours: Option<String> = row.get(19)?;
+            let worker_type: Option<String> = row.get(20)?;
+            let job_profile: Option<String> = row.get(21)?;
+            let supervisory_organization: Option<String> = row.get(22)?;
+            let target_hire_date: Option<String> = row.get(23)?;
+            let no_of_available_openings: Option<String> = row.get(24)?;
+            let grade_profile: Option<String> = row.get(25)?;
+            let recruiting_start_date: Option<String> = row.get(26)?;
+            let job_level: Option<String> = row.get(27)?;
+            let job_family: Option<String> = row.get(28)?;
+            let job_type: Option<String> = row.get(29)?;
+            let is_evergreen: Option<String> = row.get(30)?;
+            let standardised_country: Option<String> = row.get(31)?;
+            let run_date: Option<String> = row.get(32)?;
+            let run_id: Option<String> = row.get(33)?;
+            let address_locality: Option<String> = row.get(34)?;
+            let address_region: Option<String> = row.get(35)?;
+            let address_country: Option<String> = row.get(36)?;
+            let postal_code: Option<String> = row.get(37)?;
+            let job_summary: Option<String> = row.get(38)?;
+            let job_created_at_str: String = row.get(39)?;
+            let job_created_at = DateTime::parse_from_rfc3339(&job_created_at_str)?.with_timezone(&Utc);
+
+            let required_topics_parsed = required_topics
+                .as_ref()
+                .map(|s| serde_json::from_str(s))
+                .transpose()
+                .ok()
+                .flatten();
+            let nice_to_haves_parsed = nice_to_haves
+                .as_ref()
+                .map(|s| serde_json::from_str(s))
+                .transpose()
+                .ok()
+                .flatten();
+
+            let job_history = JobHistory {
+                id: Some(job_id),
+                identifier,
+                title,
+                description,
+                location,
+                organization,
+                required_topics: required_topics_parsed,
+                nice_to_haves: nice_to_haves_parsed,
+                pay_grade,
+                sub_category,
+                category_raw,
+                employment_type,
+                work_hours,
+                worker_type,
+                job_profile,
+                supervisory_organization,
+                target_hire_date,
+                no_of_available_openings,
+                grade_profile,
+                recruiting_start_date,
+                job_level,
+                job_family,
+                job_type,
+                is_evergreen,
+                standardised_country,
+                run_date,
+                run_id,
+                address_locality,
+                address_region,
+                address_country,
+                postal_code,
+                job_summary,
+                created_at: job_created_at,
+            };
+
+            Ok(Some((candidate_match, job_history)))
+        } else {
+            Ok(None)
+        }
     }
 }
