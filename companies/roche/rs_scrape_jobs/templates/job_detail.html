@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+
+{% block title %}{{ job.title }}{% endblock %}
+
+{% block nav_links %}
+{% if user_name != "Guest" %}
+    <li><a href="/profile">Profile</a></li>
+    <li><a href="/dashboard">Dashboard</a></li>
+    <li><a href="/jobs">Jobs</a></li>
+    <li><a href="/auth/logout">Logout</a></li>
+{% else %}
+    <li><a href="/auth/login" class="btn btn-primary">Sign in with GitHub</a></li>
+{% endif %}
+{% endblock %}
+
+{% block user_info %}
+{% if user_name != "Guest" %}
+<div class="user-info">
+    <span>👤 {{ user_name }}</span>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="job-detail-container">
+    <div class="job-detail-header">
+        <div class="job-title-section">
+            <h1 class="job-title">{{ job.title }}</h1>
+            <div class="job-meta-primary">
+                <span class="job-location">📍 {{ job.location }}</span>
+                {% if let Some(org) = job.organization %}
+                    <span class="job-organization">🏢 {{ org }}</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if user_name != "Guest" %}
+        <div class="job-actions">
+            <a href="/api/trigger-match" class="btn btn-primary">Get AI Match Analysis</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="job-detail-content">
+        <div class="job-detail-main">
+            <section class="job-description">
+                <h2>Job Description</h2>
+                <div class="description-content">
+                    {% if let Some(desc) = job.description %}
+                        {{ desc|safe }}
+                    {% else %}
+                        <p class="no-description">No detailed description available.</p>
+                    {% endif %}
+                </div>
+            </section>
+
+            {% if let Some(summary) = job.job_summary %}
+            <section class="ai-summary">
+                <h2>🤖 AI Summary</h2>
+                <div class="summary-content">
+                    {{ summary }}
+                </div>
+            </section>
+            {% endif %}
+        </div>
+
+        <div class="job-detail-sidebar">
+            <section class="job-metadata">
+                <h2>Job Details</h2>
+                <div class="metadata-grid">
+                    {% if let Some(pay_grade) = job.pay_grade %}
+                    <div class="metadata-item">
+                        <strong>Pay Grade:</strong>
+                        <span>{{ pay_grade }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if let Some(employment_type) = job.employment_type %}
+                    <div class="metadata-item">
+                        <strong>Employment Type:</strong>
+                        <span>{{ employment_type }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if let Some(work_hours) = job.work_hours %}
+                    <div class="metadata-item">
+                        <strong>Work Hours:</strong>
+                        <span>{{ work_hours }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if let Some(worker_type) = job.worker_type %}
+                    <div class="metadata-item">
+                        <strong>Worker Type:</strong>
+                        <span>{{ worker_type }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if let Some(job_level) = job.job_level %}
+                    <div class="metadata-item">
+                        <strong>Job Level:</strong>
+                        <span>{{ job_level }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if let Some(job_family) = job.job_family %}
+                    <div class="metadata-item">
+                        <strong>Job Family:</strong>
+                        <span>{{ job_family }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if let Some(job_type) = job.job_type %}
+                    <div class="metadata-item">
+                        <strong>Job Type:</strong>
+                        <span>{{ job_type }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if let Some(sub_category) = job.sub_category %}
+                    <div class="metadata-item">
+                        <strong>Category:</strong>
+                        <span>{{ sub_category }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if let Some(no_of_openings) = job.no_of_available_openings %}
+                    <div class="metadata-item">
+                        <strong>Open Positions:</strong>
+                        <span>{{ no_of_openings }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if let Some(is_evergreen) = job.is_evergreen %}
+                    <div class="metadata-item">
+                        <strong>Evergreen Position:</strong>
+                        <span>{{ is_evergreen }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+
+            <section class="job-dates">
+                <h2>Important Dates</h2>
+                <div class="dates-grid">
+                    {% if let Some(target_date) = job.target_hire_date %}
+                    <div class="date-item">
+                        <strong>Target Hire Date:</strong>
+                        <span>{{ target_date }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if let Some(recruiting_start) = job.recruiting_start_date %}
+                    <div class="date-item">
+                        <strong>Recruiting Start:</strong>
+                        <span>{{ recruiting_start }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="date-item">
+                        <strong>Posted:</strong>
+                        <span>{{ job.created_at.format("%Y-%m-%d") }}</span>
+                    </div>
+                </div>
+            </section>
+
+            {% if let Some(grade_profile) = job.grade_profile %}
+            <section class="grade-profile">
+                <h2>Grade Profile</h2>
+                <p>{{ grade_profile }}</p>
+            </section>
+            {% endif %}
+
+            {% if let Some(supervisory_org) = job.supervisory_organization %}
+            <section class="supervisory">
+                <h2>Supervisory Organization</h2>
+                <p>{{ supervisory_org }}</p>
+            </section>
+            {% endif %}
+
+            <section class="location-details">
+                <h2>Location Details</h2>
+                <div class="location-info">
+                    {% if let Some(locality) = job.address_locality %}
+                    <div class="location-item">
+                        <strong>City:</strong>
+                        <span>{{ locality }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if let Some(region) = job.address_region %}
+                    <div class="location-item">
+                        <strong>Region:</strong>
+                        <span>{{ region }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if let Some(country) = job.address_country %}
+                    <div class="location-item">
+                        <strong>Country:</strong>
+                        <span>{{ country }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if let Some(postal) = job.postal_code %}
+                    <div class="location-item">
+                        <strong>Postal Code:</strong>
+                        <span>{{ postal }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<style>
+.job-detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.job-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.job-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+.job-meta-primary {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.job-location, .job-organization {
+    font-size: 1.1rem;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.job-actions {
+    flex-shrink: 0;
+    margin-left: 2rem;
+}
+
+.job-detail-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+.job-detail-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.job-detail-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+section h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.description-content {
+    line-height: 1.6;
+    color: #555;
+    white-space: pre-wrap;
+}
+
+.no-description {
+    font-style: italic;
+    color: #999;
+}
+
+.ai-summary {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.ai-summary h2 {
+    color: #667eea;
+}
+
+.summary-content {
+    line-height: 1.6;
+    color: #555;
+}
+
+.metadata-grid, .dates-grid, .location-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.metadata-item, .date-item, .location-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.metadata-item strong, .date-item strong, .location-item strong {
+    color: #333;
+    font-weight: 600;
+}
+
+.metadata-item span, .date-item span, .location-item span {
+    color: #666;
+    text-align: right;
+}
+
+.grade-profile p, .supervisory p {
+    line-height: 1.6;
+    color: #555;
+}
+
+@media (max-width: 768px) {
+    .job-detail-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .job-title {
+        font-size: 2rem;
+    }
+    
+    .job-meta-primary {
+        gap: 1rem;
+    }
+    
+    .job-actions {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .job-actions .btn {
+        width: 100%;
+    }
+    
+    .job-detail-content {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .metadata-item, .date-item, .location-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .metadata-item span, .date-item span, .location-item span {
+        text-align: left;
+    }
+}
+</style>
+{% endblock %}

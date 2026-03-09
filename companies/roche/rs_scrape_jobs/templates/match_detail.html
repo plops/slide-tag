@@ -232,7 +232,7 @@
 <div class="section">
     <div class="section-title">📋 Job Description</div>
     {% if let Some(description) = job_description %}
-    <div class="job-description">{{ description }}</div>
+    <div class="job-description">{{ description|safe }}</div>
     {% else %}
     <p style="color: #666; font-style: italic;">No detailed description available for this position.</p>
     {% endif %}
