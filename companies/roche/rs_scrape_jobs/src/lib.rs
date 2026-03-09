@@ -6,6 +6,8 @@ pub mod ai_core;
 pub mod ai_gemini;
 #[path = "07d_ai_rate_limiter.rs"]
 pub mod ai_rate_limiter;
+#[path = "15_app_state.rs"]
+pub mod app_state;
 #[path = "12_auth.rs"]
 pub mod auth;
 #[path = "08_config.rs"]

@@ -12,12 +12,12 @@ use rs_scrape::pipeline_orchestrator;
 
 #[cfg(feature = "web")]
 use rs_scrape::{
-    scheduler::{NightlyScheduler, SchedulerConfig},
+    app_state::AppState, ai_core::AiProvider, ai_gemini::GeminiProvider, scheduler::{NightlyScheduler, SchedulerConfig},
     web_server,
 };
 
 #[cfg(feature = "ai")]
-use rs_scrape::{ai_core::AiProvider, ai_gemini::GeminiProvider};
+// No additional imports needed - already imported above
 
 #[derive(Parser)]
 #[command(name = "rs-scrape")]
@@ -63,6 +63,17 @@ async fn main() -> Result<()> {
 
                 // Initialize database
                 let db_provider = init_database().await?;
+                
+                // Initialize AI provider
+                let api_key = std::env::var("GEMINI_API_KEY")
+                    .map_err(|_| anyhow::anyhow!("GEMINI_API_KEY environment variable not set"))?;
+                let ai_provider = Arc::new(GeminiProvider::new(&api_key)?);
+                
+                // Create app state
+                let app_state = Arc::new(AppState {
+                    db: db_provider.clone(),
+                    ai: ai_provider,
+                });
 
                 // Start web server
                 let addr: SocketAddr = format!("{}:{}", host, port)
@@ -77,7 +88,7 @@ async fn main() -> Result<()> {
 
                 // Start both server and scheduler concurrently
                 let server_handle =
-                    tokio::spawn(async move { web_server::run_server(addr, db_provider).await });
+                    tokio::spawn(async move { web_server::run_server(addr, app_state).await });
 
                 let scheduler_handle = tokio::spawn(async move { scheduler.start().await });
 

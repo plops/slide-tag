@@ -10,10 +10,10 @@ use tower_sessions::{
     Expiry, MemoryStore, Session, SessionManagerLayer,
 };
 
-use crate::{auth, db_traits::DatabaseProvider, web_ui};
+use crate::{auth, app_state::AppState, web_ui};
 
 #[cfg(feature = "web")]
-pub async fn create_app(db_provider: Arc<dyn DatabaseProvider>) -> Router {
+pub async fn create_app(app_state: Arc<AppState>) -> Router {
     let session_store = MemoryStore::default();
 
     // Configure session cookie using environment variables where appropriate
@@ -57,7 +57,7 @@ pub async fn create_app(db_provider: Arc<dyn DatabaseProvider>) -> Router {
     let oauth_client = auth::create_github_oauth_client(client_id, client_secret, redirect_url);
     let auth_state = auth::AuthState {
         oauth_client: std::sync::Arc::new(oauth_client),
-        db_provider: db_provider.clone(),
+        db_provider: app_state.db.clone(),
     };
 
     let auth_router = auth::auth_routes();
@@ -70,7 +70,7 @@ pub async fn create_app(db_provider: Arc<dyn DatabaseProvider>) -> Router {
         )
         .route("/dashboard", get(web_ui::get_dashboard))
         .route("/api/trigger-match", post(web_ui::trigger_match))
-        .with_state(db_provider);
+        .with_state(app_state.clone());
 
     // Main router with session and auth layers applied to everything
     Router::new()
@@ -128,9 +128,9 @@ async fn debug_session(session: Session) -> Html<String> {
 #[cfg(feature = "web")]
 pub async fn run_server(
     addr: SocketAddr,
-    db_provider: Arc<dyn DatabaseProvider>,
+    app_state: Arc<AppState>,
 ) -> anyhow::Result<()> {
-    let app = create_app(db_provider).await;
+    let app = create_app(app_state).await;
 
     println!("Starting web server on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await?;

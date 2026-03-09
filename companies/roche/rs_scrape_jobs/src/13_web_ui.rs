@@ -10,7 +10,7 @@ use std::sync::Arc;
 use tower_sessions::Session;
 
 use crate::{
-    db_traits::DatabaseProvider, models::Candidate, models::CandidateMatch, models::JobHistory,
+    app_state::AppState, db_traits::DatabaseProvider, models::Candidate, models::CandidateMatch, models::JobHistory,
 };
 
 // Template structs for Askama
@@ -123,7 +123,7 @@ impl From<askama::Error> for WebError {
 // Helper functions
 async fn get_current_user(
     session: &Session,
-    db_provider: &Arc<dyn DatabaseProvider>,
+    db_provider: &dyn DatabaseProvider,
 ) -> Result<Candidate, WebError> {
     let oauth_sub = session
         .get::<String>("oauth_sub")
@@ -141,10 +141,10 @@ async fn get_current_user(
 // Route handlers
 pub async fn get_profile(
     session: Session,
-    State(db_provider): State<Arc<dyn DatabaseProvider>>,
+    State(state): State<Arc<AppState>>,
 ) -> Result<Html<String>, WebError> {
     // Get current user
-    let candidate = get_current_user(&session, &db_provider).await?;
+    let candidate = get_current_user(&session, &*state.db).await?;
 
     let success = session
         .get::<bool>("success")
@@ -167,11 +167,11 @@ pub async fn get_profile(
 
 pub async fn post_profile(
     session: Session,
-    State(db_provider): State<Arc<dyn DatabaseProvider>>,
+    State(state): State<Arc<AppState>>,
     Form(form_data): Form<ProfileForm>,
 ) -> Result<Redirect, WebError> {
     // Get current user
-    let candidate = get_current_user(&session, &db_provider).await?;
+    let candidate = get_current_user(&session, &*state.db).await?;
 
     // Update candidate profile in database
     let updated_candidate = Candidate {
@@ -181,7 +181,7 @@ pub async fn post_profile(
         profile_text: form_data.profile_text.clone(),
     };
 
-    db_provider
+    state.db
         .upsert_candidate(&updated_candidate)
         .await
         .map_err(WebError::Database)?;
@@ -200,13 +200,13 @@ pub async fn post_profile(
 
 pub async fn get_dashboard(
     session: Session,
-    State(db_provider): State<Arc<dyn DatabaseProvider>>,
+    State(state): State<Arc<AppState>>,
 ) -> Result<Html<String>, WebError> {
     // Get current user
-    let candidate = get_current_user(&session, &db_provider).await?;
+    let candidate = get_current_user(&session, &*state.db).await?;
 
     // Get matches for this candidate
-    let matches = db_provider
+    let matches = state.db
         .get_matches_for_candidate(candidate.id.unwrap_or(0))
         .await
         .map_err(WebError::Database)?;
@@ -231,23 +231,44 @@ pub async fn get_dashboard(
 
 pub async fn trigger_match(
     session: Session,
-    State(db_provider): State<Arc<dyn DatabaseProvider>>,
+    State(state): State<Arc<AppState>>,
 ) -> Result<Redirect, WebError> {
-    // Get current user
-    let candidate = get_current_user(&session, &db_provider).await?;
+    let candidate = get_current_user(&session, &*state.db).await?;
+    let candidate_id = candidate.id.unwrap_or(0);
+    
+    // Klone den State für den Hintergrund-Task
+    let bg_state = state.clone();
+    let profile_text = candidate.profile_text.clone();
+    let oauth_sub = candidate.oauth_sub.clone();
+    
+    // Background Task (Fire and Forget)
+    tokio::spawn(async move {
+        log::info!("Starte asynchrone KI-Evaluierung für User: {}", oauth_sub);
+        
+        // 1. Hole aktuelle Jobs
+        if let Ok(jobs) = bg_state.db.get_latest_jobs().await {
+            // 2. Starte KI Matching
+            if let Ok(matches) = bg_state.ai.match_candidate(&profile_text, jobs).await {
+                // 3. Speichere Ergebnisse
+                for match_data in matches {
+                    let mut final_match = match_data.clone();
+                    final_match.candidate_id = candidate_id;
+                    let _ = bg_state.db.insert_candidate_match(&final_match).await;
+                }
+                log::info!("KI-Evaluierung für User {} abgeschlossen.", oauth_sub);
+            }
+        }
+    });
 
-    // Trigger AI evaluation (placeholder for now)
-    log::info!("Triggering AI evaluation for user: {}", candidate.oauth_sub);
-
-    // TODO: Implement actual AI evaluation trigger
-    // This would call the AI infrastructure to evaluate jobs for this candidate
-
-    // Redirect back to dashboard
+    // Setze eine Flash-Message für das UI (optional, falls implementiert)
+    let _ = session.insert("success", true).await;
+    
+    // Sofortiger Redirect, während die KI im Hintergrund rechnet
     Ok(Redirect::to("/dashboard"))
 }
 
 // Router configuration
-pub fn web_ui_routes() -> axum::Router<Arc<dyn DatabaseProvider>> {
+pub fn web_ui_routes() -> axum::Router<Arc<AppState>> {
     axum::Router::new()
         .route("/profile", get(get_profile).post(post_profile))
         .route("/dashboard", get(get_dashboard))

@@ -31,7 +31,10 @@ impl GeminiProvider {
 }
 
 #[async_trait]
-impl AiProvider for GeminiProvider {
+impl AiProvider for GeminiProvider
+where
+    Self: Send + Sync,
+{
     async fn annotate_jobs(&self, jobs: Vec<Job>) -> Result<Vec<JobAnnotation>> {
         let mut all_annotations = Vec::new();
         let mut batch_builder = BatchBuilder::new(self.rate_limiter.clone()).await;
