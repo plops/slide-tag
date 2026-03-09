@@ -68,3 +68,7 @@ codegen-units = 256  # Parallelisiert die Code-Generierung in kleine Häppchen (
 # die Code-Generierung für DEINEN Code blitzschnell![profile.dev.build-override]
 #[profile.dev.build-override]
 #opt-level = 3
+
+[[bin]]
+name = "main"
+path = "src/bin/main.rs"

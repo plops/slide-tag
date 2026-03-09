@@ -316,7 +316,7 @@ impl DatabaseProvider for JobRepository {
         let created_at = Utc::now();
         self.conn
             .execute(
-                "INSERT INTO job_history (identifier, title, description, location, organization, required_topics, nice_to_haves, pay_grade, sub_category, category_raw, employment_type, work_hours, worker_type, job_profile, supervisory_organization, target_hire_date, no_of_available_openings, grade_profile, recruiting_start_date, job_level, job_family, job_type, is_evergreen, standardised_country, run_date, run_id, address_locality, address_region, address_country, postal_code, job_summary, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO job_history (identifier, title, description, location, organization, required_topics, nice_to_haves, pay_grade, sub_category, category_raw, employment_type, work_hours, worker_type, job_profile, supervisory_organization, target_hire_date, no_of_available_openings, grade_profile, recruiting_start_date, job_level, job_family, job_type, is_evergreen, standardised_country, run_date, run_id, address_locality, address_region, address_country, postal_code, job_summary, slide_tag_relevance, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30, ?31, ?32, ?33)",
                 params![
                     job.identifier.clone(),
                     job.title.clone(),
@@ -349,6 +349,7 @@ impl DatabaseProvider for JobRepository {
                     job.address_country.as_deref(),
                     job.postal_code.as_deref(),
                     job.job_summary.as_deref(),
+                    None as Option<i32>, // slide_tag_relevance - will be set by AI later
                     created_at.to_rfc3339()
                 ],
             )
