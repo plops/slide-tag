@@ -21,16 +21,16 @@ Das System hat zwar eine `/match/:id` Route (die einen Job im Kontext eines Kand
 
 #### Phase 1: Kritische Fehler beheben (Must Have)
 *Fokus: Datenintegrität herstellen und Basis-UX reparieren.*
-1. **Auth-Logik reparieren:** `auth_callback` darf existierende Profile nicht überschreiben.
-2. **AI-Summary Sync reparieren:** `update_job_ai` muss auch die Tabelle `job_history` aktualisieren.
-3. **Session Store anpassen:** Einbindung von Sessions, die Neustarts überleben (Cookie-basiert oder DB-basiert).
-4. **Landing Page erstellen:** Eine echte `index.html` anstelle des harten Redirects.
-5. **Globale Navigation:** Umbau der `base.html` für eine konsistente Top-Bar.
+1. **[done] Auth-Logik reparieren:** `auth_callback` darf existierende Profile nicht überschreiben.
+2. **[done] AI-Summary Sync reparieren:** `update_job_ai` muss auch die Tabelle `job_history` aktualisieren.
+3. **[done] Session Store anpassen:** Einbindung von Sessions, die Neustarts überleben (Cookie-basiert oder DB-basiert).
+4. **[done] Landing Page erstellen:** Eine echte `index.html` anstelle des harten Redirects.
+5. **[done] Globale Navigation:** Umbau der `base.html` für eine konsistente Top-Bar.
 
 #### Phase 2: User Experience verbessern (Should Have)
-1. **Generische Job-Detailseite:** Eigene Route `/job/:identifier` implementieren.
-2. **Vollständige Metadaten:** Template `job_detail.html` erstellen, das `pay_grade`, `hiring_manager`, Daten etc. anzeigt.
-3. **Mobile Optimierung:** CSS Flexbox/Grid in `base.html` für Smartphones anpassen.
+1. **[done] Generische Job-Detailseite:** Eigene Route `/job/:identifier` implementieren.
+2. **[done] Vollständige Metadaten:** Template `job_detail.html` erstellen, das `pay_grade`, `hiring_manager`, Daten etc. anzeigt.
+3. **[done] Mobile Optimierung:** CSS Flexbox/Grid in `base.html` für Smartphones anpassen.
 
 #### Phase 3: Advanced Features (Nice to Have)
 1. Filter & Sortierung im Backend (derzeit nur Vanilla JS Frontend).
@@ -44,7 +44,7 @@ Das System hat zwar eine `/match/:id` Route (die einen Job im Kontext eines Kand
 Hier sind die exakten Architekturanweisungen und Code-Snippets, die das LLM Schritt-für-Schritt umsetzen muss.
 
 #### Schritt 1.1: Persistenz der Profile fixen (`src/12_auth.rs`)
-Das LLM muss den `auth_callback` anpassen. Anstatt blind zu überschreiben, muss zuerst geprüft werden, ob der User existiert.
+**[done]** Das LLM muss den `auth_callback` anpassen. Anstatt blind zu überschreiben, muss zuerst geprüft werden, ob der User existiert.
 
 ```rust
 // in src/12_auth.rs - auth_callback Funktion:
@@ -75,7 +75,7 @@ if let Ok(user_json) = resp.json::<serde_json::Value>().await {
 ```
 
 #### Schritt 1.2: KI-Zusammenfassungen in der Historie speichern (`src/01b_db_repo.rs`)
-Das LLM muss `update_job_ai` umschreiben, damit Frontend-Routen die KI-Daten sehen können.
+**[done]** Das LLM muss `update_job_ai` umschreiben, damit Frontend-Routen die KI-Daten sehen können.
 
 ```rust
 // in src/01b_db_repo.rs
@@ -99,7 +99,7 @@ pub async fn update_job_ai(&self, identifier: &str, summary: &str) -> anyhow::Re
 ```
 
 #### Schritt 1.3: Echte Startseite implementieren (`src/11_web_server.rs` & `13_web_ui.rs`)
-Die harte Weiterleitung muss weg.
+**[done]** Die harte Weiterleitung muss weg.
 1. Erstelle `templates/index.html` (Landing Page mit "Sign in with GitHub" Button).
 2. Passe die Root-Route an:
 
@@ -123,7 +123,7 @@ async fn root(session: Session) -> Result<Html<String>, WebError> {
 ```
 
 #### Schritt 1.4: Navigation konsistent machen (`templates/base.html`)
-Das LLM muss das struct-übergreifende Feld `is_logged_in` in Askama einführen (oder das `user_name` `Option<String>` nutzen) und den Header in `base.html` fixieren:
+**[done]** Das LLM muss das struct-übergreifende Feld `is_logged_in` in Askama einführen (oder das `user_name` `Option<String>` nutzen) und den Header in `base.html` fixieren:
 
 ```html
 <!-- In templates/base.html -->
@@ -144,7 +144,7 @@ Das LLM muss das struct-übergreifende Feld `is_logged_in` in Askama einführen 
 *Anweisung an das LLM:* Du musst `user_name: Option<String>` zu **jedem** Askama-Template-Struct in `13_web_ui.rs` hinzufügen.
 
 #### Schritt 1.5: Job-Detailseite hinzufügen (`src/13_web_ui.rs` & DB Traits)
-Das LLM muss eine saubere Detailseite für Jobs einbauen.
+**[done]** Das LLM muss eine saubere Detailseite für Jobs einbauen.
 
 1. **Trait erweitern (`01c_db_traits.rs`):**
    `async fn get_job_by_identifier(&self, identifier: &str) -> Result<Option<JobHistory>>;`
@@ -171,6 +171,12 @@ Das LLM muss eine saubere Detailseite für Jobs einbauen.
        Ok(Html(JobDetailTemplate { user_name, job }.render()?))
    }
    ```
+
+---
+
+### **Zusätzliche UX Fixes (ERLEDIGT):**
+- **[done] Dashboard Auto-Reload:** Nach "Re-evaluate Matches" wird automatisch zum Dashboard weitergeleitet
+- **[done] Match-Sortierung:** Beste Matches werden jetzt nach Score absteigend sortiert angezeigt
 
 ---
 
