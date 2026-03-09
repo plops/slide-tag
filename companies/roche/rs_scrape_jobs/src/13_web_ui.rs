@@ -239,8 +239,8 @@ pub async fn post_profile(
 
     tracing::info!("Profile updated for user: {}", updated_candidate.oauth_sub);
 
-    // Redirect back to profile
-    Ok(Redirect::to("/profile"))
+    // Redirect to dashboard to show updated matches
+    Ok(Redirect::to("/dashboard"))
 }
 
 pub async fn get_dashboard(
@@ -317,6 +317,9 @@ pub async fn get_dashboard(
         };
         matches_with_jobs.push(match_with_job);
     }
+
+    // Sort by score descending (best matches first)
+    matches_with_jobs.sort_by(|a, b| b.match_data.score.partial_cmp(&a.match_data.score).unwrap_or(std::cmp::Ordering::Equal));
 
     // Calculate statistics
     let matches_count = matches_with_jobs.len();
