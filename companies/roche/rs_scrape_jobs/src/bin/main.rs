@@ -105,7 +105,7 @@ async fn main() -> Result<()> {
                 let server_handle =
                     tokio::spawn(async move { web_server::run_server(addr, app_state).await });
 
-                let scheduler_handle = tokio::spawn(async move { 
+                let scheduler_handle = tokio::spawn(async move {
                     if let Err(e) = scheduler.start().await {
                         tracing::error!("Scheduler error: {}", e);
                     }

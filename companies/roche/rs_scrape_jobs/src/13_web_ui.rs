@@ -65,6 +65,14 @@ pub struct JobsTemplate {
     pub has_search: bool,
 }
 
+#[derive(Template)]
+#[template(path = "job_detail.html")]
+pub struct JobDetailTemplate {
+    pub title: String,
+    pub user_name: String,
+    pub job: JobHistory,
+}
+
 // Data structure for dashboard - simplified for Askama
 #[derive(Serialize)]
 pub struct MatchWithJob {
@@ -312,8 +320,14 @@ pub async fn get_dashboard(
 
     // Calculate statistics
     let matches_count = matches_with_jobs.len();
-    let high_score_count = matches_with_jobs.iter().filter(|m| m.match_data.score > 0.8).count();
-    let good_fit_count = matches_with_jobs.iter().filter(|m| m.match_data.score > 0.6).count();
+    let high_score_count = matches_with_jobs
+        .iter()
+        .filter(|m| m.match_data.score > 0.8)
+        .count();
+    let good_fit_count = matches_with_jobs
+        .iter()
+        .filter(|m| m.match_data.score > 0.6)
+        .count();
     let has_matches = matches_count > 0;
 
     let template = DashboardTemplate {
@@ -377,9 +391,11 @@ pub async fn get_match_detail(
     State(state): State<Arc<AppState>>,
 ) -> Result<Html<String>, WebError> {
     let candidate = get_current_user(&session, &*state.db).await?;
-    
+
     // Rufe die Daten ab
-    let (match_data, job) = state.db.get_match_detail(match_id)
+    let (match_data, job) = state
+        .db
+        .get_match_detail(match_id)
         .await
         .map_err(WebError::Database)?
         .ok_or_else(|| WebError::Database(anyhow::anyhow!("Match not found")))?;
@@ -410,8 +426,8 @@ pub async fn get_jobs(
     session: Session,
     State(state): State<Arc<AppState>>,
 ) -> Result<Html<String>, WebError> {
-    // Get current user
-    let candidate = get_current_user(&session, &*state.db).await?;
+    // Try to get current user, but don't require authentication for public access
+    let user_name = session.get::<String>("user_name").await.unwrap_or(None);
 
     // Pagination parameters
     let page = params.page.unwrap_or(1).max(1); // Default to page 1, minimum 1
@@ -434,7 +450,7 @@ pub async fn get_jobs(
 
     let template = JobsTemplate {
         title: "All Jobs".to_string(),
-        user_name: candidate.name,
+        user_name: user_name.unwrap_or_else(|| "Guest".to_string()),
         jobs,
         current_page: page,
         total_pages,
@@ -446,12 +462,37 @@ pub async fn get_jobs(
     Ok(Html(template.render()?))
 }
 
+pub async fn get_job_detail(
+    Path(identifier): Path<String>,
+    session: Session,
+    State(state): State<Arc<AppState>>,
+) -> Result<Html<String>, WebError> {
+    // Try to get current user, but don't require authentication for public access
+    let user_name = session.get::<String>("user_name").await.unwrap_or(None);
+
+    let job = state
+        .db
+        .get_job_by_identifier(&identifier)
+        .await
+        .map_err(WebError::Database)?
+        .ok_or_else(|| WebError::Database(anyhow::anyhow!("Job not found")))?;
+
+    let template = JobDetailTemplate {
+        title: format!("Job: {}", job.title),
+        user_name: user_name.unwrap_or_else(|| "Guest".to_string()),
+        job,
+    };
+
+    Ok(Html(template.render()?))
+}
+
 // Router configuration
 pub fn web_ui_routes() -> axum::Router<Arc<AppState>> {
     axum::Router::new()
         .route("/profile", get(get_profile).post(post_profile))
         .route("/dashboard", get(get_dashboard))
         .route("/match/{id}", get(get_match_detail))
+        .route("/job/{identifier}", get(get_job_detail))
         .route("/jobs", get(get_jobs))
         .route("/api/trigger-match", post(trigger_match))
 }

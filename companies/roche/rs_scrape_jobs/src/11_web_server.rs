@@ -1,5 +1,5 @@
 use axum::{
-    response::{Html, Redirect},
+    response::Html,
     routing::{get, post},
     Extension, Router,
 };
@@ -14,6 +14,7 @@ use crate::{app_state::AppState, auth, web_ui};
 
 #[cfg(feature = "web")]
 pub async fn create_app(app_state: Arc<AppState>) -> Router {
+    // Use MemoryStore for now - TODO: Implement custom libsql session store for production
     let session_store = MemoryStore::default();
 
     // Configure session cookie using environment variables where appropriate
@@ -70,6 +71,7 @@ pub async fn create_app(app_state: Arc<AppState>) -> Router {
         )
         .route("/dashboard", get(web_ui::get_dashboard))
         .route("/match/{id}", get(web_ui::get_match_detail))
+        .route("/job/{identifier}", get(web_ui::get_job_detail))
         .route("/jobs", get(web_ui::get_jobs))
         .route("/api/trigger-match", post(web_ui::trigger_match))
         .with_state(app_state.clone());
@@ -84,22 +86,43 @@ pub async fn create_app(app_state: Arc<AppState>) -> Router {
         .layer(session_layer)
 }
 
-async fn root(session: Session) -> Redirect {
+async fn root(session: Session) -> Result<Html<String>, axum::response::ErrorResponse> {
+    use askama::Template;
+
     // Debug: Log session state
     println!("DEBUG root: Session ID: {:?}", session.id());
 
-    if let Some(_user_name) = session.get::<String>("user_name").await.unwrap() {
+    let user_name = session.get::<String>("user_name").await.unwrap_or(None);
+
+    if let Some(ref name) = user_name {
         let _user_id = session.get::<i64>("user_id").await.unwrap();
         println!(
             "DEBUG root: Found user - ID: {:?}, Name: {}",
-            _user_id, _user_name
+            _user_id, name
         );
-        // Redirect authenticated users to dashboard
-        Redirect::to("/dashboard")
     } else {
         println!("DEBUG root: No user found in session");
-        // Redirect unauthenticated users to login
-        Redirect::to("/auth/login")
+    }
+
+    // Render index template
+    #[derive(askama::Template)]
+    #[template(path = "index.html")]
+    struct IndexTemplate {
+        user_name: String,
+    }
+
+    let template = IndexTemplate {
+        user_name: user_name.unwrap_or_else(|| "Guest".to_string()),
+    };
+    match template.render() {
+        Ok(html) => Ok(Html(html)),
+        Err(e) => {
+            eprintln!("Failed to render index template: {:?}", e);
+            Err(axum::response::ErrorResponse::from((
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                "Template error",
+            )))
+        }
     }
 }
 

@@ -126,12 +126,26 @@ async fn auth_callback(
                         let oauth_sub = user_json["id"].as_i64().unwrap().to_string();
                         let name = user_json["name"].as_str().unwrap_or("Unknown").to_string();
 
-                        // Upsert candidate
-                        let candidate = Candidate {
-                            id: None,
-                            oauth_sub: oauth_sub.clone(),
-                            name: name.clone(),
-                            profile_text: "".to_string(), // Will be filled later in profile
+                        // Check if candidate already exists to preserve profile_text
+                        let existing_candidate = state
+                            .db_provider
+                            .get_candidate_by_oauth_sub(&oauth_sub)
+                            .await
+                            .unwrap_or(None);
+
+                        let candidate = if let Some(existing) = existing_candidate {
+                            // Update name but preserve profile_text!
+                            Candidate {
+                                name: name.clone(),
+                                ..existing
+                            }
+                        } else {
+                            Candidate {
+                                id: None,
+                                oauth_sub: oauth_sub.clone(),
+                                name: name.clone(),
+                                profile_text: "".to_string(), // Will be filled later in profile
+                            }
                         };
 
                         match state.db_provider.upsert_candidate(&candidate).await {

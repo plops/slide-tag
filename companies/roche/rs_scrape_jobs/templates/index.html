@@ -3,7 +3,7 @@
 {% block title %}Welcome{% endblock %}
 
 {% block nav_links %}
-{% if user_name.is_some() %}
+{% if user_name != "Guest" %}
     <li><a href="/profile">Profile</a></li>
     <li><a href="/dashboard">Dashboard</a></li>
     <li><a href="/jobs">Jobs</a></li>
@@ -14,9 +14,9 @@
 {% endblock %}
 
 {% block user_info %}
-{% if let Some(name) = user_name %}
+{% if user_name != "Guest" %}
     <div class="user-info">
-        <span>👤 {{ name }}</span>
+        <span>👤 {{ user_name }}</span>
     </div>
 {% endif %}
 {% endblock %}
@@ -31,9 +31,9 @@
                 Get AI-powered job recommendations tailored to your profile.
             </p>
             
-            {% if user_name.is_some() %}
+            {% if user_name != "Guest" %}
                 <div class="logged-in-actions">
-                    <h2>Welcome back, {{ user_name.as_ref().unwrap() }}! 👋</h2>
+                    <h2>Welcome back, {{ user_name }}! 👋</h2>
                     <p>Ready to discover your next career opportunity at Roche?</p>
                     <div class="action-buttons">
                         <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
