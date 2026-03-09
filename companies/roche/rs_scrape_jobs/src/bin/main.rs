@@ -15,6 +15,7 @@ use rs_scrape::{
     ai_core::AiProvider,
     ai_gemini::GeminiProvider,
     app_state::AppState,
+    config::AppConfig,
     scheduler::{NightlyScheduler, SchedulerConfig},
     web_server,
 };
@@ -52,6 +53,12 @@ enum Commands {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Initialize logging
+    tracing_subscriber::fmt::init();
+
+    // Load configuration
+    let config = AppConfig::from_env();
+
     let cli = Cli::parse();
 
     match cli.command {
@@ -61,15 +68,13 @@ async fn main() -> Result<()> {
 
             #[cfg(feature = "web")]
             {
-                println!("Starting Roche Job Scraper web server...");
+                tracing::info!("Starting Roche Job Scraper web server...");
 
                 // Initialize database
-                let db_provider = init_database().await?;
+                let db_provider = init_database(&config.db_path).await?;
 
                 // Initialize AI provider
-                let api_key = std::env::var("GEMINI_API_KEY")
-                    .map_err(|_| anyhow::anyhow!("GEMINI_API_KEY environment variable not set"))?;
-                let ai_provider = Arc::new(GeminiProvider::new(&api_key)?);
+                let ai_provider = Arc::new(GeminiProvider::new(&config.gemini_api_key)?);
 
                 // Create app state
                 let app_state = Arc::new(AppState {
@@ -77,12 +82,20 @@ async fn main() -> Result<()> {
                     ai: ai_provider,
                 });
 
-                // Start web server
-                let addr: SocketAddr = format!("{}:{}", host, port)
-                    .parse()
-                    .map_err(|e| anyhow::anyhow!("Invalid address {}: {}", host, e))?;
+                // Use CLI parameters if provided, otherwise use config defaults
+                let final_host = if host != "127.0.0.1" {
+                    host
+                } else {
+                    config.host.clone()
+                };
+                let final_port = if port != 3000 { port } else { config.port };
 
-                println!("Web server will listen on: {}", addr);
+                // Start web server
+                let addr: SocketAddr = format!("{}:{}", final_host, final_port)
+                    .parse()
+                    .map_err(|e| anyhow::anyhow!("Invalid address {}: {}", final_host, e))?;
+
+                tracing::info!("Web server will listen on: {}", addr);
 
                 // Initialize and start scheduler
                 let scheduler_config = SchedulerConfig::default();
@@ -98,16 +111,16 @@ async fn main() -> Result<()> {
                 tokio::select! {
                     result = server_handle => {
                         match result {
-                            Ok(Ok(())) => println!("Web server shutdown gracefully"),
-                            Ok(Err(e)) => eprintln!("Web server error: {}", e),
-                            Err(e) => eprintln!("Web server task error: {}", e),
+                            Ok(Ok(())) => tracing::info!("Web server shutdown gracefully"),
+                            Ok(Err(e)) => tracing::error!("Web server error: {}", e),
+                            Err(e) => tracing::error!("Web server task error: {}", e),
                         }
                     }
                     result = scheduler_handle => {
                         match result {
-                            Ok(Ok(())) => println!("Scheduler shutdown gracefully"),
-                            Ok(Err(e)) => eprintln!("Scheduler error: {}", e),
-                            Err(e) => eprintln!("Scheduler task error: {}", e),
+                            Ok(Ok(())) => tracing::info!("Scheduler shutdown gracefully"),
+                            Ok(Err(e)) => tracing::error!("Scheduler error: {}", e),
+                            Err(e) => tracing::error!("Scheduler task error: {}", e),
                         }
                     }
                 }
@@ -120,18 +133,20 @@ async fn main() -> Result<()> {
 
             #[cfg(feature = "scraper")]
             {
-                println!("Starting job scraping pipeline...");
+                tracing::info!("Starting job scraping pipeline...");
                 if debug_dump {
-                    println!("Debug dump mode enabled - HTML/JSON will be saved to debug_dumps/");
+                    tracing::info!(
+                        "Debug dump mode enabled - HTML/JSON will be saved to debug_dumps/"
+                    );
                 }
 
                 // Initialize database
-                let db_provider = init_database().await?;
+                let db_provider = init_database(&config.db_path).await?;
 
                 // Run the scraping pipeline
                 pipeline_orchestrator::run_pipeline(&db_provider, debug_dump).await?;
 
-                println!("Scraping completed successfully!");
+                tracing::info!("Scraping completed successfully!");
             }
         }
 
@@ -141,13 +156,13 @@ async fn main() -> Result<()> {
 
             #[cfg(feature = "ai")]
             {
-                println!(
+                tracing::info!(
                     "Forcing AI re-evaluation for candidate ID: {}",
                     candidate_id
                 );
 
                 // Initialize database
-                let db_provider = init_database().await?;
+                let db_provider = init_database(&config.db_path).await?;
 
                 // Get candidate
                 let candidate = db_provider
@@ -157,23 +172,21 @@ async fn main() -> Result<()> {
                         anyhow::anyhow!("Candidate with ID {} not found", candidate_id)
                     })?;
 
-                println!("Found candidate: {}", candidate.name);
+                tracing::info!("Found candidate: {}", candidate.name);
 
                 // Get latest jobs
                 let jobs = db_provider.get_latest_jobs().await?;
                 if jobs.is_empty() {
-                    println!("No jobs found in database");
+                    tracing::warn!("No jobs found in database");
                     return Ok(());
                 }
-                println!("Found {} jobs to match against", jobs.len());
+                tracing::info!("Found {} jobs to match against", jobs.len());
 
                 // Initialize AI provider
-                let api_key = std::env::var("GEMINI_API_KEY")
-                    .map_err(|_| anyhow::anyhow!("GEMINI_API_KEY environment variable not set"))?;
-                let ai_provider = GeminiProvider::new(&api_key)?;
+                let ai_provider = GeminiProvider::new(&config.gemini_api_key)?;
 
                 // Perform matching
-                println!("Running AI matching...");
+                tracing::info!("Running AI matching...");
                 let matches = ai_provider
                     .match_candidate(&candidate.profile_text, jobs)
                     .await?;
@@ -182,13 +195,14 @@ async fn main() -> Result<()> {
                 let matches_count = matches.len();
                 for match_data in matches {
                     db_provider.insert_candidate_match(&match_data).await?;
-                    println!(
+                    tracing::info!(
                         "Stored match for job: {} (score: {})",
-                        match_data.job_identifier, match_data.score
+                        match_data.job_identifier,
+                        match_data.score
                     );
                 }
 
-                println!("AI matching completed! Stored {} matches", matches_count);
+                tracing::info!("AI matching completed! Stored {} matches", matches_count);
             }
         }
     }
@@ -198,23 +212,21 @@ async fn main() -> Result<()> {
 
 /// Initialize database connection and return appropriate provider/repo
 #[cfg(feature = "db")]
-async fn init_database() -> Result<Arc<JobRepository>> {
+async fn init_database(db_path: &str) -> Result<Arc<JobRepository>> {
     use rs_scrape::db_setup;
 
-    println!("Initializing database...");
+    tracing::info!("Initializing database...");
 
     // Setup database
-    let db_path = std::env::var("DB_PATH").unwrap_or_else(|_| "jobs_minutils.db".to_string());
-
-    let conn = db_setup::init_db(&db_path).await?;
+    let conn = db_setup::init_db(db_path).await?;
     let repo = JobRepository::new(conn);
 
-    println!("Database initialized: {}", db_path);
+    tracing::info!("Database initialized: {}", db_path);
     Ok(Arc::new(repo))
 }
 
 /// Database initialization stub when db feature is not enabled
 #[cfg(not(feature = "db"))]
-async fn init_database() -> Result<()> {
+async fn init_database(_db_path: &str) -> Result<()> {
     Err(anyhow::anyhow!("Database feature not enabled"))
 }
