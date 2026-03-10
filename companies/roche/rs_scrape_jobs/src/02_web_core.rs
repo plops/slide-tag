@@ -5,6 +5,14 @@ use futures::StreamExt;
 pub async fn test_browser_title() -> Result<String> {
     println!("Building browser config...");
     let config = BrowserConfig::builder()
+        .arg("--headless=new")
+        .arg("--window-size=1920,1080")
+        .arg("--no-sandbox")
+        .arg("--disable-dev-shm-usage")      // Nutzt /tmp statt /dev/shm
+        .arg("--disable-gpu")                // GPU deaktivieren (hilft bei fehlenden Grafiktreibern)
+        .arg("--disable-software-rasterizer")
+        .arg("--disable-crash-reporter")     // Verhindert den Crashpad-Fehler im Log
+        .arg("--disable-extensions")
         .build()
         .map_err(anyhow::Error::msg)?;
     println!("Launching browser...");
@@ -48,6 +56,11 @@ pub async fn setup_browser() -> Result<(Browser, Page, tokio::task::JoinHandle<(
         .arg("--headless=new")
         .arg("--window-size=1920,1080")
         .arg("--no-sandbox")
+        .arg("--disable-dev-shm-usage")      // Nutzt /tmp statt /dev/shm
+        .arg("--disable-gpu")                // GPU deaktivieren (hilft bei fehlenden Grafiktreibern)
+        .arg("--disable-software-rasterizer")
+        .arg("--disable-crash-reporter")     // Verhindert den Crashpad-Fehler im Log
+        .arg("--disable-extensions")
         .build()
         .map_err(anyhow::Error::msg)?;
     println!("Launching browser...");
