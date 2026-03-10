@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>🛠️ Admin Dashboard</h1>
+    <p>Welcome, {{ user_name }}. Here you can manage the application state and trigger jobs.</p>
+</div>
+
+<div class="card">
+    <h2>Roche Job Scraper Control</h2>
+    
+    <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-left: 4px solid #667eea; border-radius: 4px;">
+        <strong>Current Status:</strong> 
+        <span style="color: {% if is_running %}#ff9800{% else %}#28a745{% endif %}; font-weight: bold;">
+            {{ status }}
+        </span>
+    </div>
+
+    <form action="/admin/trigger" method="POST" style="margin-top: 20px;">
+        <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+            <input type="checkbox" id="debug_dump" name="debug_dump" style="width: 20px; height: 20px;" {% if is_running %}disabled{% endif %}>
+            <label for="debug_dump" style="margin: 0; cursor: pointer;">
+                <strong>Enable Debug Dump</strong> (Saves raw HTML/JSON to disk. Uses lots of space!)
+            </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" {% if is_running %}disabled style="opacity: 0.5; cursor: not-allowed;"{% endif %}>
+            {% if is_running %}
+                Scrape in Progress...
+            {% else %}
+                🚀 Trigger Manual Scrape Now
+            {% endif %}
+        </button>
+    </form>
+</div>
+{% endblock %}
