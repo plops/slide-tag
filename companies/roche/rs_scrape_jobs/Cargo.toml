@@ -95,7 +95,7 @@ strip = true
 
 # Zwingt den Compiler, den Code als Ganzes zu betrachten, nicht in Häppchen.
 # Resultat: Bessere Performance, längere lokale Compile-Zeit.
-codegen-units = 4 # should be enough parallelism for github action 
+codegen-units = 1
 
 # Beendet die App bei einem Panic sofort, statt den Stack aufzuräumen (Unwinding).
 # Spart eine Menge unsichtbaren Code und verkleinert das Binary weiter.
