@@ -49,6 +49,8 @@ dotenvy = "0.15"
 # rustls-tls nutzt reines Rust und kompiliert VIEL schneller.
 reqwest = { version = "0.13", features =["gzip", "brotli", "json"], optional = true }
 
+chromiumoxide_autowait = { path = "crates/chromiumoxide_autowait" }
+
 [features]
 default = ["db", "scraper", "ai", "web"]
 db =["dep:libsql"]
@@ -103,3 +105,9 @@ panic = "abort"
 
 # Maximale Geschwindigkeitsoptimierung (ist der Standard, hier nur zur Klarheit)
 opt-level = 3
+
+[workspace]
+members = [
+    ".",
+    "crates/chromiumoxide_autowait"
+]

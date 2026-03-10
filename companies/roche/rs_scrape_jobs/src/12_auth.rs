@@ -11,7 +11,7 @@ use oauth2::{
 use serde::Deserialize;
 use tower_sessions::Session;
 
-use crate::{db_traits::DatabaseProvider, models::Candidate};
+use crate::{config::AppConfig, db_traits::DatabaseProvider, models::Candidate};
 
 #[cfg(feature = "web")]
 #[derive(Clone)]
@@ -48,6 +48,7 @@ pub fn auth_routes() -> Router<()> {
         .route("/login", get(login))
         .route("/callback", get(auth_callback))
         .route("/logout", get(logout))
+        .route("/dev-login", get(dev_mock_login))
 }
 
 async fn login(Extension(state): Extension<AuthState>, session: Session) -> impl IntoResponse {
@@ -200,4 +201,64 @@ async fn auth_callback(
 async fn logout(session: Session) -> impl IntoResponse {
     session.clear().await;
     Redirect::to("/")
+}
+
+async fn dev_mock_login(
+    Extension(config): Extension<AppConfig>,
+    Extension(auth_state): Extension<AuthState>,
+    session: Session,
+) -> impl IntoResponse {
+    // Only allow dev login in debug mode
+    if !config.is_debug {
+        return Redirect::to("/?error=debug_required");
+    }
+
+    // Create a dummy user for testing
+    let dummy_oauth_sub = "dev_user_12345".to_string();
+    let dummy_name = "Dev Test User".to_string();
+
+    // Check if candidate already exists to preserve profile_text
+    let existing_candidate = auth_state
+        .db_provider
+        .get_candidate_by_oauth_sub(&dummy_oauth_sub)
+        .await
+        .unwrap_or(None);
+
+    let candidate = if let Some(existing) = existing_candidate {
+        // Update name but preserve profile_text!
+        Candidate {
+            name: dummy_name.clone(),
+            ..existing
+        }
+    } else {
+        Candidate {
+            id: None,
+            oauth_sub: dummy_oauth_sub.clone(),
+            name: dummy_name.clone(),
+            profile_text: "".to_string(), // Will be filled later in profile
+        }
+    };
+
+    match auth_state.db_provider.upsert_candidate(&candidate).await {
+        Ok(candidate_id) => {
+            // Store user_id in session to maintain login state
+            session.insert("user_id", candidate_id).await.unwrap();
+            session.insert("user_name", dummy_name.clone()).await.unwrap();
+            session
+                .insert("oauth_sub", dummy_oauth_sub.clone())
+                .await
+                .unwrap();
+
+            // Force session save
+            if let Err(e) = session.save().await {
+                eprintln!("ERROR: Failed to save session: {:?}", e);
+            }
+
+            Redirect::to("/dashboard")
+        }
+        Err(e) => {
+            eprintln!("Failed to upsert dev candidate: {:?}", e);
+            Redirect::to("/?error=database")
+        }
+    }
 }

@@ -1,102 +1,375 @@
-# Implementierungsplan: E2E Integrationstests (Schritt 15)
+# Gesamter Implementierungsplan: E2E-Tests mit Playwright-ähnlichem Auto-Waiting in Rust
 
-Wir implementieren nun einen automatisierten End-to-End (E2E) Test für die komplette Web-Anwendung. Wir bleiben vollständig in **Rust** und nutzen die bestehende **`chromiumoxide`** Library, um den Headless Browser zu steuern.
+Als Vorbereitung für stabile End-to-End Tests implementieren wir zunächst eine eigene Auto-Waiting-Bibliothek (als separaten Crate) auf Basis von `chromiumoxide`, die sich an der Architektur von Playwright orientiert. Anschließend schreiben wir die eigentlichen E2E-Tests für unsere Applikation unter Nutzung dieser neuen Bibliothek.
 
-## 1. Deepwiki MCP Kontext (WICHTIG für die KI)
+## TEIL 1: Architektur & Implementierung des `chromiumoxide_autowait` Crates
+
+Wir wandeln das Projekt in einen Cargo-Workspace um (falls noch nicht geschehen) und erstellen einen neuen lokalen Crate. Das Ziel ist eine ergonomische API mittels *Extension Traits*, sodass wir im Test einfach `page.auto_click("#submit-btn").await` aufrufen können und der Crate intern Visibility, Stabilität und Klickbarkeit prüft.
+
+### 1.1 Workspace Setup
+**Aufgabe:** 
+Füge in der Haupt-`Cargo.toml` (im Root von `rs_scrape_jobs`) am Ende folgendes hinzu:
+```toml
+[workspace]
+members =[
+    ".",
+    "crates/chromiumoxide_autowait"
+]
+```
+Füge außerdem in der Haupt-`Cargo.toml` unter `[dependencies]` hinzu:
+```toml
+chromiumoxide_autowait = { path = "crates/chromiumoxide_autowait" }
+```
+
+### 1.2 Struktur des neuen Crates erstellen
+**Aufgabe:**
+Erstelle das Verzeichnis `crates/chromiumoxide_autowait` und darin eine `Cargo.toml` sowie den `src/`-Ordner.
+
+**`crates/chromiumoxide_autowait/Cargo.toml`**:
+```toml
+[package]
+name = "chromiumoxide_autowait"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+chromiumoxide = "0.9"
+tokio = { version = "1", features = ["time"] }
+thiserror = "1.0"
+futures = "0.3"
+```
+
+### 1.3 Core-Typen definieren (`src/types.rs`)
+Definiere die Zustände, auf die wir warten, und die Fehlerarten.
+
+```rust
+// crates/chromiumoxide_autowait/src/types.rs
+use std::time::Duration;
+use thiserror::Error;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ElementState {
+    Visible,
+    Stable,
+    Enabled,
+    Editable,
+}
+
+#[derive(Debug, Error)]
+pub enum ActionabilityError {
+    #[error("Element state missing: {0:?}")]
+    MissingState(ElementState),
+    #[error("Element is not connected to the DOM")]
+    NotConnected,
+    #[error("Timeout reached while waiting for actionability")]
+    Timeout,
+    #[error("Chromiumoxide protocol error: {0}")]
+    ProtocolError(String),
+}
+
+pub struct AutoWaitOptions {
+    pub timeout: Duration,
+}
+
+impl Default for AutoWaitOptions {
+    fn default() -> Self {
+        Self { timeout: Duration::from_secs(10) } // Default 10s timeout
+    }
+}
+```
+
+### 1.4 JavaScript-Injektionen (`src/scripts.rs`)
+Hier liegen die JS-Snippets, die im Kontext der Seite ausgeführt werden (basierend auf der Playwright-Logik).
+
+```rust
+// crates/chromiumoxide_autowait/src/scripts.rs
+
+pub const CHECK_STATES_JS: &str = r#"
+(function(selector, states) {
+    const el = document.querySelector(selector);
+    if (!el) return { error: 'notconnected' };
+
+    const rect = el.getBoundingClientRect();
+
+    for (const state of states) {
+        if (state === 'visible') {
+            if (rect.width === 0 || rect.height === 0) return { missingState: 'visible' };
+            const style = window.getComputedStyle(el);
+            if (style.visibility === 'hidden') return { missingState: 'visible' };
+        }
+        if (state === 'enabled') {
+            if (el.disabled || el.closest('[aria-disabled=true]'))
+                return { missingState: 'enabled' };
+        }
+        if (state === 'editable') {
+            if (el.disabled || el.readOnly) return { missingState: 'editable' };
+        }
+    }
+    return { ok: true };
+})
+"#;
+
+pub const CHECK_STABLE_JS: &str = r#"
+(function(selector) {
+    return new Promise((resolve) => {
+        const el = document.querySelector(selector);
+        if (!el) { resolve({ error: 'notconnected' }); return; }
+        
+        let lastRect = el.getBoundingClientRect();
+        requestAnimationFrame(() => {
+            const newRect = el.getBoundingClientRect();
+            const stable = lastRect.x === newRect.x && lastRect.y === newRect.y
+                        && lastRect.width === newRect.width && lastRect.height === newRect.height;
+            resolve(stable ? { ok: true } : { missingState: 'stable' });
+        });
+    });
+})
+"#;
+```
+
+### 1.5 Die Retry-Loop (Die Engine) (`src/waiter.rs`)
+Implementiere die Polling-Schleife mit dem progressiven Backoff.
+
+```rust
+// crates/chromiumoxide_autowait/src/waiter.rs
+use crate::types::{ActionabilityError, AutoWaitOptions, ElementState};
+use crate::scripts::{CHECK_STATES_JS, CHECK_STABLE_JS};
+use chromiumoxide::Page;
+use std::time::Instant;
+use tokio::time::sleep;
+
+const BACKOFF_DELAYS_MS: &[u64] = &[0, 20, 100, 100, 500];
+
+pub async fn wait_for_states(
+    page: &Page,
+    selector: &str,
+    states: &[ElementState],
+    options: &AutoWaitOptions,
+) -> Result<(), ActionabilityError> {
+    let deadline = Instant::now() + options.timeout;
+    let mut retry = 0usize;
+
+    loop {
+        if Instant::now() >= deadline {
+            return Err(ActionabilityError::Timeout);
+        }
+
+        if retry > 0 {
+            let delay_ms = BACKOFF_DELAYS_MS[retry.min(BACKOFF_DELAYS_MS.len() - 1)];
+            sleep(std::time::Duration::from_millis(delay_ms)).await;
+        }
+
+        let mut all_passed = true;
+        
+        // Erst Stabilität prüfen (Async via requestAnimationFrame)
+        if states.contains(&ElementState::Stable) {
+            let js = format!("({CHECK_STABLE_JS})(`{selector}`)");
+            match page.evaluate(js).await {
+                Ok(res) => {
+                    let val = res.into_value::<serde_json::Value>().unwrap_or_default();
+                    if val.get("error").is_some() || val.get("missingState").is_some() {
+                        all_passed = false;
+                    }
+                },
+                Err(_) => { all_passed = false; }
+            }
+        }
+
+        // Dann synchrone States prüfen
+        if all_passed {
+            let sync_states: Vec<&str> = states.iter()
+                .filter(|&&s| s != ElementState::Stable)
+                .map(|s| match s {
+                    ElementState::Visible => "visible",
+                    ElementState::Enabled => "enabled",
+                    ElementState::Editable => "editable",
+                    _ => "",
+                })
+                .collect();
+            
+            if !sync_states.is_empty() {
+                let states_json = serde_json::to_string(&sync_states).unwrap();
+                let js = format!("({CHECK_STATES_JS})(`{selector}`, {states_json})");
+                match page.evaluate(js).await {
+                    Ok(res) => {
+                        let val = res.into_value::<serde_json::Value>().unwrap_or_default();
+                        if val.get("error").is_some() || val.get("missingState").is_some() {
+                            all_passed = false;
+                        }
+                    },
+                    Err(_) => { all_passed = false; }
+                }
+            }
+        }
+
+        if all_passed { return Ok(()); }
+        retry += 1;
+    }
+}
+```
+
+### 1.6 Extension Trait API (`src/ext.rs` und `src/lib.rs`)
+Binde die Logik elegant an `chromiumoxide::Page`.
+
+```rust
+// crates/chromiumoxide_autowait/src/ext.rs
+use crate::types::{ActionabilityError, AutoWaitOptions, ElementState};
+use crate::waiter::wait_for_states;
+use chromiumoxide::Page;
+use std::future::Future;
+use std::pin::Pin;
+
+pub trait PageAutoWaitExt {
+    fn auto_click<'a>(&'a self, selector: &'a str) -> Pin<Box<dyn Future<Output = Result<(), ActionabilityError>> + 'a>>;
+    fn auto_fill<'a>(&'a self, selector: &'a str, text: &'a str) -> Pin<Box<dyn Future<Output = Result<(), ActionabilityError>> + 'a>>;
+    fn auto_wait_visible<'a>(&'a self, selector: &'a str) -> Pin<Box<dyn Future<Output = Result<(), ActionabilityError>> + 'a>>;
+}
+
+impl PageAutoWaitExt for Page {
+    fn auto_click<'a>(&'a self, selector: &'a str) -> Pin<Box<dyn Future<Output = Result<(), ActionabilityError>> + 'a>> {
+        Box::pin(async move {
+            let opts = AutoWaitOptions::default();
+            let states =[ElementState::Visible, ElementState::Stable, ElementState::Enabled];
+            wait_for_states(self, selector, &states, &opts).await?;
+            
+            let el = self.find_element(selector).await.map_err(|e| ActionabilityError::ProtocolError(e.to_string()))?;
+            el.click().await.map_err(|e| ActionabilityError::ProtocolError(e.to_string()))?;
+            Ok(())
+        })
+    }
+
+    fn auto_fill<'a>(&'a self, selector: &'a str, text: &'a str) -> Pin<Box<dyn Future<Output = Result<(), ActionabilityError>> + 'a>> {
+        Box::pin(async move {
+            let opts = AutoWaitOptions::default();
+            // Fill braucht Visible, Enabled, Editable
+            let states =[ElementState::Visible, ElementState::Enabled, ElementState::Editable];
+            wait_for_states(self, selector, &states, &opts).await?;
+            
+            let el = self.find_element(selector).await.map_err(|e| ActionabilityError::ProtocolError(e.to_string()))?;
+            // Click to focus, then clear and type
+            el.click().await.map_err(|e| ActionabilityError::ProtocolError(e.to_string()))?;
+            self.evaluate(format!("document.querySelector(`{selector}`).value = ''")).await.ok();
+            el.type_text(text).await.map_err(|e| ActionabilityError::ProtocolError(e.to_string()))?;
+            Ok(())
+        })
+    }
+
+    fn auto_wait_visible<'a>(&'a self, selector: &'a str) -> Pin<Box<dyn Future<Output = Result<(), ActionabilityError>> + 'a>> {
+        Box::pin(async move {
+            let opts = AutoWaitOptions::default();
+            wait_for_states(self, selector, &[ElementState::Visible], &opts).await
+        })
+    }
+}
+```
+
+```rust
+// crates/chromiumoxide_autowait/src/lib.rs
+pub mod types;
+pub mod scripts;
+pub mod waiter;
+pub mod ext;
+
+pub use types::*;
+pub use ext::PageAutoWaitExt;
+```
+
+---
+
+## TEIL 2: E2E Integrationstests (Die App testen)
+
+Nun schreiben wir einen eleganten E2E-Test in `rs_scrape_jobs/tests/web_integration_e2e.rs`, der keine schmutzigen `sleep` Hacks mehr benötigt.
+
 Wenn du Dokumentation benötigst, nutze Deepwiki MCP mit folgenden Repositories:
 *   Axum Webserver: `tokio-rs/axum`
 *   Chromiumoxide: `mattsse/chromiumoxide`
 *   Tower Sessions: `maxcountryman/tower-sessions`
 *   Das eigene Projekt heißt: `plops/slide-tag` (darin der Unterordner `companies/roche/rs_scrape_jobs`).
 
-## 2. Vorbereitung: Die Dev-Login Backdoor
-Echte GitHub-Logins schlagen im automatisierten Test wegen Bot-Protection fehl. Wir brauchen einen Mock-Login.
+### 2.1 Vorbereitung: Dev-Login Backdoor & AI Mock
+Genau wie im alten Plan brauchen wir eine Mock-Login-Backdoor und einen MockAiProvider, damit wir ohne reelles GitHub OAuth und ohne kostenpflichtige Gemini-Calls testen können.
 
-**Aufgabe:**
-1.  Gehe in `src/12_auth.rs` und füge eine neue Funktion `async fn dev_mock_login(...)` hinzu.
-2.  Diese Route soll **nur** aktiv sein, wenn `config.is_debug == true`.
-3.  Die Route soll einen Fake-User erstellen (Name: exakt der aus `config.admin_username`, also z.B. "plops", `oauth_sub`: "dev_test_sub"). Schreibe ihn via `db_provider.upsert_candidate` in die DB, setze die Werte in die `Session` (analog zum normalen Login) und mache einen Redirect auf `/dashboard`.
-4.  Füge diese Route in `11_web_server.rs` dem Router hinzu (z.B. unter `/auth/dev-login`).
+**Aufgaben:**
+1.  Füge in `src/12_auth.rs` eine Route `dev_mock_login` hinzu, die nur verfügbar ist, wenn `config.is_debug == true`. Sie generiert einen Dummy-User und schreibt ihn als eingeloggt in die `Session`.
+2.  Erstelle in den Tests (`tests/web_integration_e2e.rs`) einen struct `MockAiProvider`, das `AiProvider` implementiert und sofort Dummydaten (`CandidateMatch`) zurückliefert.
 
-## 3. Vorbereitung: Ein Mock für die KI
-Damit E2E-Tests nicht echtes Geld über die Gemini-API kosten und schnell durchlaufen, erstelle in `src/07_ai_core.rs` (oder einer speziellen Test-Datei) einen `MockAiProvider`, der das `AiProvider` Trait implementiert. Er soll einfach statische Dummy-Matches und Dummy-Annotations zurückgeben.
+### 2.2 Der saubere E2E-Test (`tests/web_integration_e2e.rs`)
 
-## 4. Implementierung des E2E-Tests
-Erstelle eine neue Datei `tests/web_integration_e2e.rs`.
-Nutze `tokio::test`. 
+Nutze den neuen `PageAutoWaitExt` Trait für alle Interaktionen.
 
-### 4.1 Setup (Test-Infrastruktur hochfahren)
-*   Initialisiere eine **temporäre SQLite Datenbank** (z.B. eine Datei `test_e2e.db`, die am Ende gelöscht wird).
-*   Füge manuell 2-3 Dummy-Jobs in die Datenbank ein, damit wir etwas sehen.
-*   Erstelle eine `AppConfig` mit `is_debug = true`, `port = 3030`, `admin_username = "plops"`.
-*   Instanziiere `AppState` (nutze hier den `MockAiProvider` statt dem `GeminiProvider`).
-*   Starte den Webserver asynchron in einem Hintergrundtask:
-    ```rust
-    tokio::spawn(async move {
-        let addr = std::net::SocketAddr::from(([127, 0, 0, 1], 3030));
-        web_server::run_server(addr, app_state, &config).await.unwrap();
-    });
-    // Warte kurz, bis der Server lauscht
+```rust
+use rs_scrape::{app_state::AppState, config::AppConfig, web_server};
+use chromiumoxide_autowait::PageAutoWaitExt;
+use chromiumoxide::browser::{Browser, BrowserConfig};
+use futures::StreamExt;
+use std::sync::Arc;
+
+// (Hier Code für MockAiProvider einfügen)
+
+#[tokio::test]
+async fn test_full_user_journey() {
+    // 1. Setup DB & AppState mit MockAiProvider
+    // ... (wie gehabt: test_e2e.db anlegen, 2 Dummy Jobs injecten)
+    
+    // 2. Server im Hintergrund starten (z.B. Port 3040)
+    let port = 3040;
+    // ... tokio::spawn(web_server::run_server(...));
     tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-    ```
-*   Starte Chromiumoxide:
-    ```rust
-    use chromiumoxide::browser::{Browser, BrowserConfig};
+
+    // 3. Browser starten
     let (mut browser, mut handler) = Browser::launch(
-        BrowserConfig::builder().with_head().build().unwrap() // .with_head() ggf. entfernen für reines headless
+        BrowserConfig::builder().build().unwrap()
     ).await.unwrap();
     let handler_task = tokio::spawn(async move {
-        use futures::StreamExt;
         while let Some(_) = handler.next().await {}
     });
     let page = browser.new_page("about:blank").await.unwrap();
-    ```
 
-### 4.2 Die Workflows testen (Chronologischer Ablauf)
-Steuere die `page` nun programmatisch durch alle Workflows. Da `chromiumoxide` kein "Auto-Waiting" hat, musst du nach jedem Button-Klick oder `goto` kurz warten (`tokio::time::sleep`), damit das DOM rendern kann.
+    // SCHRITT A: Ohne Login Jobs ansehen
+    page.goto(format!("http://localhost:{}/jobs", port)).await.unwrap();
+    // Auto-wait for the job card to appear! Kein manuelles Sleep mehr!
+    page.auto_wait_visible(".job-card").await.expect("Job card did not appear");
 
-**Schritt A: Ohne Login browsen**
-*   Gehe zu `http://localhost:3030/jobs`: `page.goto(...).await;`
-*   Lies das DOM aus und `assert!`, dass die Dummy-Jobs sichtbar sind (z.B. Textsuche nach dem Titel).
+    // SCHRITT B: Dev-Login
+    page.goto(format!("http://localhost:{}/auth/dev-login", port)).await.unwrap();
+    // Wir sollten direkt aufs Dashboard redirected werden. Wir warten bis die Stats laden:
+    page.auto_wait_visible(".stat-card").await.expect("Dashboard failed to load");
 
-**Schritt B: Einloggen**
-*   Gehe zu `http://localhost:3030/auth/dev-login`.
-*   Durch den Redirect solltest du nun auf `/dashboard` landen. Lese das DOM aus und prüfe, ob der Text "Welcome" oder "plops" (User-Name) auf dem Dashboard steht.
+    // SCHRITT C: Profil bearbeiten
+    page.goto(format!("http://localhost:{}/profile", port)).await.unwrap();
+    // Nutze auto_fill (wartet auf Visible, Enabled, Editable)
+    page.auto_fill("#profile_text", "Senior Rust Engineer with AI experience").await.unwrap();
+    // Nutze auto_click (wartet auf Visible, Enabled, Stable)
+    page.auto_click("button[type=\"submit\"]").await.unwrap();
 
-**Schritt C: Profil eingeben**
-*   Gehe zu `http://localhost:3030/profile`.
-*   Fülle das Textfeld via JavaScript aus:
-    `page.evaluate("document.querySelector('#profile_text').value = 'Senior Rust Architect';").await;`
-*   Submitte das Formular:
-    `page.evaluate("document.querySelector('form').submit();").await;`
-*   Warte 1-2 Sekunden. Prüfe, ob du auf dem Dashboard landest und das Profil gespeichert wurde.
+    // SCHRITT D: Match triggern
+    page.auto_wait_visible(".alert-success").await.expect("Success alert missing"); // Optional, falls Profil-Save auf der Seite bleibt
+    page.goto(format!("http://localhost:{}/dashboard", port)).await.unwrap();
+    
+    // Auto-click auf den Re-evaluate Button
+    page.auto_click("form[action=\"/api/trigger-match\"] button").await.unwrap();
+    
+    // Nach kurzem Reload (da Background Job):
+    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+    page.goto(format!("http://localhost:{}/dashboard", port)).await.unwrap();
+    
+    // Warten, bis mindestens eine Match-Card gerendert ist
+    page.auto_wait_visible(".match-card").await.expect("Matches were not generated");
 
-**Schritt D: Matches generieren**
-*   Auf dem Dashboard, klicke den "Re-evaluate Matches" Button:
-    `page.evaluate("document.querySelector('form[action=\"/api/trigger-match\"] button').click();").await;`
-*   (Da dies im Backend asynchron läuft, warte etwas und lade das Dashboard via `page.goto` neu).
-*   Prüfe, ob jetzt ein Match (vom MockAiProvider) in der Liste auftaucht.
+    // SCHRITT E: Admin Funktion testen
+    page.goto(format!("http://localhost:{}/admin", port)).await.unwrap();
+    // Warten bis Admin Button bereit ist, dann klicken
+    page.auto_click("form[action=\"/admin/trigger\"] button").await.unwrap();
 
-**Schritt E: Match Details aufrufen**
-*   Lies via JS die URL des ersten Match-Links aus:
-    `let url = page.evaluate("document.querySelector('.match-card a').href").await?.into_value::<String>()?;`
-*   Navigiere dorthin: `page.goto(&url).await;`
-*   Prüfe, ob die Seite den Titel des Jobs und die KI-Erklärung anzeigt.
-
-**Schritt F: Admin Scraping triggern**
-*   Gehe zu `http://localhost:3030/admin`.
-*   (Funktioniert nur, weil unser Dev-Login-User "plops" ist!)
-*   Klicke auf den Button:
-    `page.evaluate("document.querySelector('form[action=\"/admin/trigger\"] button').click();").await;`
-*   Prüfe, ob sich der Status auf dem UI auf "Running" oder "Success" ändert.
-
-### 4.3 Cleanup
-Am Ende der Test-Funktion:
-```rust
-browser.close().await.unwrap();
-handler_task.await.unwrap();
-// Lösche die temporäre test_e2e.db
+    // Cleanup
+    browser.close().await.unwrap();
+    handler_task.await.unwrap();
+}
 ```
 
-**Anweisung für Code-Qualität:** 
-Setze den Test-Code in kleine Hilfsfunktionen (z.B. `async fn wait_and_click(page: &Page, selector: &str)`), um den Haupttest lesbar und robust zu halten. Achte peinlich genau darauf, dass bei asynchronen Aufrufen keine Panics auftreten, die den Test-Runner einfrieren.
+### Zusammenfassung der Anweisungen an die KI:
+Bitte setze dieses Setup exakt wie beschrieben um.
+1. Erstelle zuerst den Workspace und den `chromiumoxide_autowait` Crate.
+2. Implementiere die Extension Traits.
+3. Füge die `dev_mock_login` Route in der Haupt-Applikation (`rs_scrape_jobs`) ein.
+4. Schreibe den E2E-Test, der die volle Power des neuen `auto_wait` Crates demonstriert. Achte auf saubere Fehlerbehandlung (verwende `expect` mit aussagekräftigen Fehlermeldungen in den Tests).

@@ -93,6 +93,7 @@ pub async fn create_app(app_state: Arc<AppState>, config: &AppConfig) -> Router 
         .nest("/auth", auth_router)
         .merge(db_routes)
         .layer(Extension(auth_state))
+        .layer(Extension(config.clone()))
         .layer(session_layer)
 }
 
