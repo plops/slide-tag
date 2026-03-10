@@ -14,8 +14,8 @@ pub async fn run_pipeline(repo: &JobRepository, debug_dump: bool) -> Result<()> 
     // Setup browser
     let (mut browser, page, handle) = web_core::setup_browser().await?;
 
-    // 1. Scrape URLs
-    let urls = scraper_roche::scrape_roche_jobs(&page).await?;
+    // 1. Scrape URLs (Jetzt mit debug_dump Parameter!)
+    let urls = scraper_roche::scrape_roche_jobs(&page, debug_dump).await?;
 
     // Cleanup browser
     browser.close().await?;

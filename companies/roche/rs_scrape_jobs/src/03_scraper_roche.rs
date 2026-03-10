@@ -104,7 +104,7 @@ pub async fn click_schweiz_checkbox(page: &Page) -> Result<()> {
 }
 
 /// Collect job URLs by paginating through results
-pub async fn collect_job_urls(page: &Page) -> Result<Vec<String>> {
+pub async fn collect_job_urls(page: &Page, debug_dump: bool) -> Result<Vec<String>> {
     println!("Collecting job URLs from paginated results...");
     let mut links = HashSet::new();
     let mut visited_urls = HashSet::new();
@@ -133,10 +133,12 @@ pub async fn collect_job_urls(page: &Page) -> Result<Vec<String>> {
             links.insert(href.clone());
         }
 
-        // Dump HTML before click
-        let html_before = page.content().await?;
-        fs::write("page_before_click.html", &html_before)?;
-        println!("Dumped HTML to page_before_click.html");
+        // NUR schreiben, wenn debug_dump aktiv ist
+        if debug_dump {
+            let html_before = page.content().await?;
+            let _ = fs::write("page_before_click.html", &html_before);
+            println!("Dumped HTML to page_before_click.html");
+        }
 
         // Check for next button
         let next_result = page
@@ -158,10 +160,12 @@ pub async fn collect_job_urls(page: &Page) -> Result<Vec<String>> {
                     "Navigated to: {}",
                     page.url().await?.unwrap_or_else(|| "No URL".to_string())
                 );
-                // Dump HTML after wait
-                let html_after = page.content().await?;
-                fs::write("page_after_click.html", &html_after)?;
-                println!("Dumped HTML to page_after_click.html");
+                // NUR schreiben, wenn debug_dump aktiv ist
+                if debug_dump {
+                    let html_after = page.content().await?;
+                    let _ = fs::write("page_after_click.html", &html_after);
+                    println!("Dumped HTML to page_after_click.html");
+                }
             } else {
                 println!("No valid next button href, last page.");
                 break;
@@ -179,11 +183,11 @@ pub async fn collect_job_urls(page: &Page) -> Result<Vec<String>> {
 }
 
 /// Main scraper function
-pub async fn scrape_roche_jobs(page: &Page) -> Result<Vec<String>> {
+pub async fn scrape_roche_jobs(page: &Page, debug_dump: bool) -> Result<Vec<String>> {
     navigate_to_roche(page).await?;
     handle_cookie_banner(page).await?;
     click_ort_accordion(page).await?;
     enter_schweiz_filter(page).await?;
     click_schweiz_checkbox(page).await?;
-    collect_job_urls(page).await
+    collect_job_urls(page, debug_dump).await
 }
