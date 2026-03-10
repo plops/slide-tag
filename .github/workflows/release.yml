@@ -11,7 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+      
+    # Standard-Verzeichnis für alle 'run' Befehle in diesem Job festlegen
+    defaults:
+      run:
+        working-directory: companies/roche/rs_scrape_jobs
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -23,11 +28,16 @@ jobs:
 
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
+        with:
+          # Sag dem Cache, wo das eigentliche Rust-Projekt liegt
+          workspaces: "companies/roche/rs_scrape_jobs -> target"
 
       - name: Build release
+        # Läuft jetzt automatisch in companies/roche/rs_scrape_jobs/
         run: cargo build --release --target x86_64-unknown-linux-gnu
 
       - name: Prepare Asset
+        # Läuft ebenfalls im Unterordner. Tar packt das Binary ein.
         run: |
           tar czf rs-scrape-linux-x86_64.tar.gz -C target/x86_64-unknown-linux-gnu/release rs-scrape
 
@@ -35,6 +45,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: rs-scrape-linux-x86_64.tar.gz
+          # 'uses' Befehle starten immer im Root des Repos, daher der volle Pfad zur Datei
+          files: companies/roche/rs_scrape_jobs/rs-scrape-linux-x86_64.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
