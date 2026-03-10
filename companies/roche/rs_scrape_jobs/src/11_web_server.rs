@@ -11,7 +11,8 @@ use tower_sessions::{
 };
 
 use crate::{
-    app_state::AppState, auth, config::AppConfig, custom_session_store::LibsqlSessionStore, web_ui,
+    admin, app_state::AppState, auth, config::AppConfig, custom_session_store::LibsqlSessionStore,
+    web_ui,
 };
 
 #[cfg(feature = "web")]
@@ -82,6 +83,7 @@ pub async fn create_app(app_state: Arc<AppState>, config: &AppConfig) -> Router 
         .route("/job/{identifier}", get(web_ui::get_job_detail))
         .route("/jobs", get(web_ui::get_jobs))
         .route("/api/trigger-match", post(web_ui::trigger_match))
+        .nest("/admin", admin::admin_routes())
         .with_state(app_state.clone());
 
     // Main router with session and auth layers applied to everything

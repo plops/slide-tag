@@ -1,3 +1,5 @@
+#[path = "17_admin.rs"]
+pub mod admin;
 #[path = "07e_ai_batch_builder.rs"]
 pub mod ai_batch_builder;
 #[path = "07_ai_core.rs"]

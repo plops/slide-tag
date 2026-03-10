@@ -1,6 +1,10 @@
 use rs_scrape::{
-    ai_gemini::GeminiProvider, app_state::AppState, config::AppConfig, db_repo::JobRepository,
-    db_setup::init_db, web_server,
+    ai_gemini::GeminiProvider,
+    app_state::{AppState, ScrapeStatus},
+    config::AppConfig,
+    db_repo::JobRepository,
+    db_setup::init_db,
+    web_server,
 };
 use std::sync::Arc;
 use tokio::net::TcpListener;
@@ -26,6 +30,8 @@ async fn main() -> anyhow::Result<()> {
     let app_state = Arc::new(AppState {
         db: db_provider,
         ai: ai_provider,
+        config: Arc::new(config.clone()),
+        scrape_status: Arc::new(tokio::sync::RwLock::new(ScrapeStatus::Idle)),
     });
 
     // Create the app

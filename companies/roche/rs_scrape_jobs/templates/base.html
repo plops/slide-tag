@@ -345,6 +345,9 @@
                     <ul>
                         <li><a href="/">Home</a></li>
                         <li><a href="/jobs">Jobs</a></li>
+                        {% if user_name == "plops" %}
+                            <li><a href="/admin">⚙️ Admin</a></li>
+                        {% endif %}
                         {% if user_name != "Guest" %}
                             <li><a href="/dashboard">Dashboard</a></li>
                             <li><a href="/profile">Profile</a></li>

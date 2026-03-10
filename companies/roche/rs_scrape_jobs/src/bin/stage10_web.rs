@@ -1,6 +1,8 @@
 use rs_scrape::{
-    ai_gemini::GeminiProvider, app_state::AppState, config::AppConfig, db_repo, db_setup,
-    web_server,
+    ai_gemini::GeminiProvider,
+    app_state::{AppState, ScrapeStatus},
+    config::AppConfig,
+    db_repo, db_setup, web_server,
 };
 use std::{net::SocketAddr, sync::Arc};
 
@@ -23,6 +25,8 @@ async fn main() -> anyhow::Result<()> {
     let app_state = Arc::new(AppState {
         db: db_repo,
         ai: ai_provider,
+        config: Arc::new(config.clone()),
+        scrape_status: Arc::new(tokio::sync::RwLock::new(ScrapeStatus::Idle)),
     });
 
     // Start web server on port 3000

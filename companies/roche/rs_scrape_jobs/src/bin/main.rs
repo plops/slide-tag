@@ -14,7 +14,7 @@ use rs_scrape::pipeline_orchestrator;
 use rs_scrape::{
     ai_core::AiProvider,
     ai_gemini::GeminiProvider,
-    app_state::AppState,
+    app_state::{AppState, ScrapeStatus},
     config::AppConfig,
     scheduler::{NightlyScheduler, SchedulerConfig},
     web_server,
@@ -84,6 +84,8 @@ async fn main() -> Result<()> {
                 let app_state = Arc::new(AppState {
                     db: db_provider.clone(),
                     ai: ai_provider,
+                    config: Arc::new(config.clone()),
+                    scrape_status: Arc::new(tokio::sync::RwLock::new(ScrapeStatus::Idle)),
                 });
 
                 // Use CLI parameters if provided, otherwise use config defaults
@@ -157,7 +159,7 @@ async fn main() -> Result<()> {
                 let db_provider = init_database(&config.db_path).await?;
 
                 // Run the scraping pipeline
-                pipeline_orchestrator::run_pipeline(&db_provider, debug_dump).await?;
+                pipeline_orchestrator::run_pipeline(db_provider.clone(), debug_dump).await?;
 
                 tracing::info!("Scraping completed successfully!");
             }

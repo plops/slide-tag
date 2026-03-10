@@ -12,6 +12,7 @@ pub struct AppConfig {
     pub oauth_redirect_url: String,
     pub session_secure: bool,
     pub session_max_age_days: u64,
+    pub admin_username: String,
 }
 
 impl AppConfig {
@@ -43,6 +44,7 @@ impl AppConfig {
                 .unwrap_or_else(|_| "30".to_string())
                 .parse()
                 .unwrap_or(30),
+            admin_username: env::var("ADMIN_USERNAME").unwrap_or_else(|_| "plops".to_string()),
         }
     }
 }

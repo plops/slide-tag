@@ -1,16 +1,16 @@
 use anyhow::Result;
 use chrono::Utc;
 use std::fs;
+use std::sync::Arc;
 
 use crate::data_ingestion;
-use crate::db_repo::JobRepository;
 use crate::db_traits::DatabaseProvider;
 use crate::downloader;
 use crate::json_extractor;
 use crate::scraper_roche;
 use crate::web_core;
 
-pub async fn run_pipeline(repo: &JobRepository, debug_dump: bool) -> Result<()> {
+pub async fn run_pipeline(repo: Arc<dyn DatabaseProvider>, debug_dump: bool) -> Result<()> {
     // Setup browser
     let (mut browser, page, handle) = web_core::setup_browser().await?;
 
