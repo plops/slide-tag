@@ -10,10 +10,10 @@ pub mod ai_rate_limiter;
 pub mod app_state;
 #[path = "12_auth.rs"]
 pub mod auth;
-#[path = "16_custom_session_store.rs"]
-pub mod custom_session_store;
 #[path = "08_config.rs"]
 pub mod config;
+#[path = "16_custom_session_store.rs"]
+pub mod custom_session_store;
 #[path = "06_data_ingestion.rs"]
 pub mod data_ingestion;
 #[path = "01b_db_repo.rs"]

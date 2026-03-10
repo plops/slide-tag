@@ -11,21 +11,20 @@ use tower_sessions::{
 };
 
 use crate::{
-    app_state::AppState, 
-    auth, 
-    web_ui,
-    custom_session_store::LibsqlSessionStore,
+    app_state::AppState, auth, config::AppConfig, custom_session_store::LibsqlSessionStore, web_ui,
 };
 
 #[cfg(feature = "web")]
-pub async fn create_app(app_state: Arc<AppState>) -> Router {
+pub async fn create_app(app_state: Arc<AppState>, config: &AppConfig) -> Router {
     // Use custom LibsqlSessionStore for persistent sessions
     let session_store = LibsqlSessionStore::new(app_state.db.clone());
-    
+
     // Run migration to create sessions table
-    session_store.migrate().await
+    session_store
+        .migrate()
+        .await
         .expect("Failed to migrate session store table");
-    
+
     // Start background cleanup task
     let cleanup_store = session_store.clone();
     tokio::spawn(async move {
@@ -38,18 +37,8 @@ pub async fn create_app(app_state: Arc<AppState>) -> Router {
         }
     });
 
-    // Configure session cookie using environment variables where appropriate
-    let session_secure = std::env::var("SESSION_SECURE")
-        .unwrap_or_else(|_| "false".to_string())
-        .parse::<bool>()
-        .unwrap_or(false);
-
-    let session_max_age_days = std::env::var("SESSION_MAX_AGE_DAYS")
-        .unwrap_or_else(|_| "30".to_string())
-        .parse::<u64>()
-        .unwrap_or(30);
-
-    let session_max_age_secs = session_max_age_days * 24 * 60 * 60;
+    // Configure session cookie using config values
+    let session_max_age_secs = config.session_max_age_days * 24 * 60 * 60;
 
     // Optional domain for cookie (useful in production)
     let session_domain = std::env::var("SESSION_DOMAIN").ok();
@@ -58,7 +47,7 @@ pub async fn create_app(app_state: Arc<AppState>) -> Router {
     let mut session_layer = SessionManagerLayer::new(session_store)
         .with_same_site(SameSite::Lax)
         .with_http_only(true)
-        .with_secure(session_secure)
+        .with_secure(config.session_secure)
         .with_path("/")
         .with_name("id")
         .with_expiry(Expiry::OnInactivity(TsDuration::seconds(
@@ -70,13 +59,11 @@ pub async fn create_app(app_state: Arc<AppState>) -> Router {
         session_layer = session_layer.with_domain(domain);
     }
 
-    let client_id = std::env::var("GITHUB_CLIENT_ID").expect("GITHUB_CLIENT_ID must be set");
-    let client_secret =
-        std::env::var("GITHUB_CLIENT_SECRET").expect("GITHUB_CLIENT_SECRET must be set");
-    let redirect_url = std::env::var("OAUTH_REDIRECT_URL")
-        .unwrap_or_else(|_| "http://localhost:3000/auth/callback".to_string());
-
-    let oauth_client = auth::create_github_oauth_client(client_id, client_secret, redirect_url);
+    let oauth_client = auth::create_github_oauth_client(
+        config.github_client_id.clone(),
+        config.github_client_secret.clone(),
+        config.oauth_redirect_url.clone(),
+    );
     let auth_state = auth::AuthState {
         oauth_client: std::sync::Arc::new(oauth_client),
         db_provider: app_state.db.clone(),
@@ -172,8 +159,12 @@ async fn debug_session(session: Session) -> Html<String> {
 }
 
 #[cfg(feature = "web")]
-pub async fn run_server(addr: SocketAddr, app_state: Arc<AppState>) -> anyhow::Result<()> {
-    let app = create_app(app_state).await;
+pub async fn run_server(
+    addr: SocketAddr,
+    app_state: Arc<AppState>,
+    config: &AppConfig,
+) -> anyhow::Result<()> {
+    let app = create_app(app_state, config).await;
 
     println!("Starting web server on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await?;

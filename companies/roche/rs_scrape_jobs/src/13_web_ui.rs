@@ -176,8 +176,11 @@ async fn get_current_user(
         .ok_or_else(|| WebError::Auth("No oauth_sub in session".to_string()))?;
 
     // Debug: Log session data and oauth_sub
-    tracing::info!("get_current_user: Session ID: {:?}, oauth_sub: {}", 
-        session.id(), oauth_sub);
+    tracing::info!(
+        "get_current_user: Session ID: {:?}, oauth_sub: {}",
+        session.id(),
+        oauth_sub
+    );
 
     db_provider
         .get_candidate_by_oauth_sub(&oauth_sub)
@@ -253,11 +256,12 @@ pub async fn get_dashboard(
 ) -> Result<Html<String>, WebError> {
     // Get current user
     let candidate = get_current_user(&session, &*state.db).await?;
-    
+
     // Debug: Log candidate info
-    tracing::info!("Dashboard: Retrieved candidate - ID: {}, Name: {}, OAuth: {}", 
-        candidate.id.unwrap_or(0), 
-        candidate.name, 
+    tracing::info!(
+        "Dashboard: Retrieved candidate - ID: {}, Name: {}, OAuth: {}",
+        candidate.id.unwrap_or(0),
+        candidate.name,
         candidate.oauth_sub
     );
 
@@ -267,10 +271,11 @@ pub async fn get_dashboard(
         .get_matches_for_candidate(candidate.id.unwrap_or(0))
         .await
         .map_err(WebError::Database)?;
-    
+
     // Debug: Log match count
-    tracing::info!("Dashboard: Retrieved {} matches for candidate ID: {}", 
-        matches.len(), 
+    tracing::info!(
+        "Dashboard: Retrieved {} matches for candidate ID: {}",
+        matches.len(),
         candidate.id.unwrap_or(0)
     );
 
@@ -336,7 +341,12 @@ pub async fn get_dashboard(
     }
 
     // Sort by score descending (best matches first)
-    matches_with_jobs.sort_by(|a, b| b.match_data.score.partial_cmp(&a.match_data.score).unwrap_or(std::cmp::Ordering::Equal));
+    matches_with_jobs.sort_by(|a, b| {
+        b.match_data
+            .score
+            .partial_cmp(&a.match_data.score)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
 
     // Calculate statistics
     let matches_count = matches_with_jobs.len();

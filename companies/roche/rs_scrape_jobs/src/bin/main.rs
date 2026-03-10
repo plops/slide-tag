@@ -103,7 +103,9 @@ async fn main() -> Result<()> {
 
                 // Start both server and scheduler concurrently
                 let server_handle =
-                    tokio::spawn(async move { web_server::run_server(addr, app_state).await });
+                    tokio::spawn(
+                        async move { web_server::run_server(addr, app_state, &config).await },
+                    );
 
                 let scheduler_handle = tokio::spawn(async move {
                     if let Err(e) = scheduler.start().await {

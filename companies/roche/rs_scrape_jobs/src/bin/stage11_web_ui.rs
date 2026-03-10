@@ -1,6 +1,6 @@
 use rs_scrape::{
-    ai_gemini::GeminiProvider, app_state::AppState, db_repo::JobRepository, db_setup::init_db,
-    web_server,
+    ai_gemini::GeminiProvider, app_state::AppState, config::AppConfig, db_repo::JobRepository,
+    db_setup::init_db, web_server,
 };
 use std::sync::Arc;
 use tokio::net::TcpListener;
@@ -9,6 +9,9 @@ use tokio::net::TcpListener;
 async fn main() -> anyhow::Result<()> {
     // Initialize logging
     println!("🚀 Starting Stage 11 Web UI Server...");
+
+    // Load configuration
+    let config = AppConfig::from_env();
 
     // Set up database
     let conn = init_db("jobs_stage11.db").await?;
@@ -26,7 +29,7 @@ async fn main() -> anyhow::Result<()> {
     });
 
     // Create the app
-    let app = web_server::create_app(app_state).await;
+    let app = web_server::create_app(app_state, &config).await;
 
     // Bind to port 3000 (standard port for OAuth callback)
     let listener = TcpListener::bind("127.0.0.1:3000").await?;

@@ -1,0 +1,15 @@
+[Unit]
+Description=RocketRecap Jobs Rust App
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/DEPLOY_PATH
+ExecStart=/DEPLOY_PATH/rs-scrape serve --port 3000
+Restart=always
+Environment="PORT=3000"
+EnvironmentFile=/DEPLOY_PATH/.env
+
+[Install]
+WantedBy=multi-user.target

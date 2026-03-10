@@ -462,13 +462,13 @@ impl DatabaseProvider for JobRepository {
                 .execute(
                     "UPDATE candidates SET name = ?, profile_text = ? WHERE id = ?",
                     params![
-                        candidate.name.clone(), 
-                        candidate.profile_text.clone(), 
+                        candidate.name.clone(),
+                        candidate.profile_text.clone(),
                         existing_id
                     ],
                 )
                 .await?;
-            
+
             // Gebe die existierende und beibehaltene ID zurück
             Ok(existing_id)
         } else {
@@ -477,13 +477,13 @@ impl DatabaseProvider for JobRepository {
                 .execute(
                     "INSERT INTO candidates (oauth_sub, name, profile_text) VALUES (?, ?, ?)",
                     params![
-                        candidate.oauth_sub.clone(), 
-                        candidate.name.clone(), 
+                        candidate.oauth_sub.clone(),
+                        candidate.name.clone(),
                         candidate.profile_text.clone()
                     ],
                 )
                 .await?;
-            
+
             Ok(self.conn.last_insert_rowid())
         }
     }
@@ -992,7 +992,7 @@ impl DatabaseProvider for JobRepository {
             Ok(None)
         }
     }
-    
+
     fn get_connection(&self) -> libsql::Connection {
         self.conn.clone()
     }

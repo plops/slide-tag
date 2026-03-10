@@ -1,9 +1,15 @@
-use rs_scrape::{ai_gemini::GeminiProvider, app_state::AppState, db_repo, db_setup, web_server};
+use rs_scrape::{
+    ai_gemini::GeminiProvider, app_state::AppState, config::AppConfig, db_repo, db_setup,
+    web_server,
+};
 use std::{net::SocketAddr, sync::Arc};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     println!("Starting stage 10: Axum Web Server & Authentication");
+
+    // Load configuration
+    let config = AppConfig::from_env();
 
     // Initialize database
     let conn = db_setup::init_db("jobs_minutils.db").await?;
@@ -21,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
 
     // Start web server on port 3000
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    web_server::run_server(addr, app_state).await?;
+    web_server::run_server(addr, app_state, &config).await?;
 
     Ok(())
 }

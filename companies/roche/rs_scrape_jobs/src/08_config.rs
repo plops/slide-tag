@@ -7,6 +7,11 @@ pub struct AppConfig {
     pub host: String,
     pub port: u16,
     pub is_debug: bool,
+    pub github_client_id: String,
+    pub github_client_secret: String,
+    pub oauth_redirect_url: String,
+    pub session_secure: bool,
+    pub session_max_age_days: u64,
 }
 
 impl AppConfig {
@@ -24,6 +29,20 @@ impl AppConfig {
                 .unwrap_or_else(|_| "false".to_string())
                 .parse()
                 .unwrap_or(false),
+            github_client_id: env::var("GITHUB_CLIENT_ID")
+                .expect("GITHUB_CLIENT_ID muss gesetzt sein"),
+            github_client_secret: env::var("GITHUB_CLIENT_SECRET")
+                .expect("GITHUB_CLIENT_SECRET muss gesetzt sein"),
+            oauth_redirect_url: env::var("OAUTH_REDIRECT_URL")
+                .unwrap_or_else(|_| "http://localhost:3000/auth/callback".to_string()),
+            session_secure: env::var("SESSION_SECURE")
+                .unwrap_or_else(|_| "false".to_string())
+                .parse()
+                .unwrap_or(false),
+            session_max_age_days: env::var("SESSION_MAX_AGE_DAYS")
+                .unwrap_or_else(|_| "30".to_string())
+                .parse()
+                .unwrap_or(30),
         }
     }
 }

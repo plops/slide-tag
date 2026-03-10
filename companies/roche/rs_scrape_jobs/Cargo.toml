@@ -77,5 +77,29 @@ codegen-units = 256  # Parallelisiert die Code-Generierung in kleine Häppchen (
 #opt-level = 3
 
 [[bin]]
-name = "main"
+name = "rs-scrape"
 path = "src/bin/main.rs"
+
+
+# ==========================================
+# RELEASE OPTIMIERUNGEN (Für Hetzner)
+# ==========================================
+[profile.release]
+# Entfernt alle Debug-Symbole. DAS ist der wichtigste Trick für die Dateigröße.
+# Wird die 33MB voraussichtlich auf 10-15MB schrumpfen lassen.
+strip = true 
+
+# Link-Time Optimization: Analysiert den Code über Crate-Grenzen hinweg.
+# Dauert beim Kompilieren länger, macht die App aber spürbar schneller und kleiner.
+lto = true 
+
+# Zwingt den Compiler, den Code als Ganzes zu betrachten, nicht in Häppchen.
+# Resultat: Bessere Performance, längere lokale Compile-Zeit.
+codegen-units = 1 
+
+# Beendet die App bei einem Panic sofort, statt den Stack aufzuräumen (Unwinding).
+# Spart eine Menge unsichtbaren Code und verkleinert das Binary weiter.
+panic = "abort" 
+
+# Maximale Geschwindigkeitsoptimierung (ist der Standard, hier nur zur Klarheit)
+opt-level = 3
