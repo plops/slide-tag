@@ -23,7 +23,7 @@ impl AiProvider for MockAiProvider {
     async fn match_candidate(&self, _profile: &str, jobs: Vec<Job>) -> Result<Vec<CandidateMatch>> {
         // Return dummy matches for testing
         let mut matches = Vec::new();
-        for (_idx, job) in jobs.into_iter().enumerate() {
+        for job in jobs.into_iter() {
             matches.push(CandidateMatch {
                 id: None,
                 candidate_id: 1, // Dummy candidate ID
@@ -172,7 +172,7 @@ async fn test_full_user_journey() -> Result<()> {
     ).await?;
     
     let handler_task = tokio::spawn(async move {
-        while let Some(_) = handler.next().await {}
+        while (handler.next().await).is_some() {}
     });
     
     let page = browser.new_page("about:blank").await?;
