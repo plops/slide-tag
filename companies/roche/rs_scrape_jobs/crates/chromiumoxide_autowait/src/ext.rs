@@ -14,8 +14,7 @@ impl PageAutoWaitExt for Page {
     fn auto_click<'a>(&'a self, selector: &'a str) -> Pin<Box<dyn Future<Output = Result<(), ActionabilityError>> + 'a>> {
         Box::pin(async move {
             let opts = AutoWaitOptions::default();
-            let states = [ElementState::Visible, ElementState::Stable, ElementState::Enabled];
-            wait_for_states(self, selector, &states, &opts).await?;
+            wait_for_states(self, selector, &[ElementState::Visible, ElementState::Stable, ElementState::Enabled], &opts).await?;
             
             let el = self.find_element(selector).await.map_err(|e| ActionabilityError::ProtocolError(e.to_string()))?;
             el.click().await.map_err(|e| ActionabilityError::ProtocolError(e.to_string()))?;
@@ -27,8 +26,7 @@ impl PageAutoWaitExt for Page {
         Box::pin(async move {
             let opts = AutoWaitOptions::default();
             // Fill braucht Visible, Enabled, Editable
-            let states = [ElementState::Visible, ElementState::Enabled, ElementState::Editable];
-            wait_for_states(self, selector, &states, &opts).await?;
+            wait_for_states(self, selector, &[ElementState::Visible, ElementState::Enabled, ElementState::Editable], &opts).await?;
             
             let el = self.find_element(selector).await.map_err(|e| ActionabilityError::ProtocolError(e.to_string()))?;
             // Click to focus, then clear and type
@@ -42,7 +40,7 @@ impl PageAutoWaitExt for Page {
     fn auto_wait_visible<'a>(&'a self, selector: &'a str) -> Pin<Box<dyn Future<Output = Result<(), ActionabilityError>> + 'a>> {
         Box::pin(async move {
             let opts = AutoWaitOptions::default();
-            wait_for_states(self, selector, &[ElementState::Visible], &opts).await
+            wait_for_states(self, selector, &[ElementState::Visible][..], &opts).await
         })
     }
 }
