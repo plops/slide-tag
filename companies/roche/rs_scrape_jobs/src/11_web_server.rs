@@ -117,10 +117,12 @@ async fn root(session: Session) -> Result<Html<String>, axum::response::ErrorRes
     #[template(path = "index.html")]
     struct IndexTemplate {
         user_name: String,
+        app_version: &'static str,
     }
 
     let template = IndexTemplate {
         user_name: user_name.unwrap_or_else(|| "Guest".to_string()),
+        app_version: env!("CARGO_PKG_VERSION"),
     };
     match template.render() {
         Ok(html) => Ok(Html(html)),

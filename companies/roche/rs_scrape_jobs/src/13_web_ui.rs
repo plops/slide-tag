@@ -23,6 +23,7 @@ pub struct ProfileTemplate {
     pub user_name: String,
     pub profile_text: String,
     pub success: bool,
+    pub app_version: &'static str,
 }
 
 #[derive(Template)]
@@ -35,6 +36,7 @@ pub struct DashboardTemplate {
     pub good_fit_count: usize,
     pub has_matches: bool,
     pub matches_with_jobs: Vec<MatchWithJob>,
+    pub app_version: &'static str,
 }
 
 #[derive(Template)]
@@ -50,6 +52,7 @@ pub struct MatchDetailTemplate {
     pub job_employment_type: Option<String>,
     pub job_level: Option<String>,
     pub job_family: Option<String>,
+    pub app_version: &'static str,
 }
 
 #[derive(Template)]
@@ -63,6 +66,7 @@ pub struct JobsTemplate {
     pub search_query: String,
     pub total_count: i64,
     pub has_search: bool,
+    pub app_version: &'static str,
 }
 
 #[derive(Template)]
@@ -71,6 +75,7 @@ pub struct JobDetailTemplate {
     pub title: String,
     pub user_name: String,
     pub job: JobHistory,
+    pub app_version: &'static str,
 }
 
 // Data structure for dashboard - simplified for Askama
@@ -211,6 +216,7 @@ pub async fn get_profile(
         user_name: candidate.name,
         profile_text: candidate.profile_text,
         success,
+        app_version: env!("CARGO_PKG_VERSION"),
     };
 
     Ok(Html(template.render()?))
@@ -368,6 +374,7 @@ pub async fn get_dashboard(
         good_fit_count,
         has_matches,
         matches_with_jobs,
+        app_version: env!("CARGO_PKG_VERSION"),
     };
 
     Ok(Html(template.render()?))
@@ -446,6 +453,7 @@ pub async fn get_match_detail(
         job_employment_type: job.employment_type,
         job_level: job.job_level,
         job_family: job.job_family,
+        app_version: env!("CARGO_PKG_VERSION"),
     };
 
     Ok(Html(template.render()?))
@@ -487,6 +495,7 @@ pub async fn get_jobs(
         search_query,
         total_count,
         has_search,
+        app_version: env!("CARGO_PKG_VERSION"),
     };
 
     Ok(Html(template.render()?))
@@ -511,6 +520,7 @@ pub async fn get_job_detail(
         title: format!("Job: {}", job.title),
         user_name: user_name.unwrap_or_else(|| "Guest".to_string()),
         job,
+        app_version: env!("CARGO_PKG_VERSION"),
     };
 
     Ok(Html(template.render()?))

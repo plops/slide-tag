@@ -56,6 +56,10 @@ async fn main() -> Result<()> {
     // Initialize logging
     tracing_subscriber::fmt::init();
 
+    // App-Version direkt beim Start loggen
+    let app_version = env!("CARGO_PKG_VERSION");
+    tracing::info!("🚀 Starting rs-scrape v{}", app_version);
+
     // Load configuration
     let config = AppConfig::from_env();
 
