@@ -1,3 +1,5 @@
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/plops/slide-tag)
+
 ![Rendering of cell classes of mouse brain](https://raw.githubusercontent.com/plops/slide-tag/main/img/plot-or8.png)
 
 In the realm of modern genomics, the ability to understand not just what genes are active but precisely *where* they are
