@@ -158,8 +158,28 @@ async fn main() -> Result<()> {
                 // Initialize database
                 let db_provider = init_database(&config.db_path).await?;
 
-                // Run the scraping pipeline
-                pipeline_orchestrator::run_pipeline(db_provider.clone(), debug_dump).await?;
+                // NEU: AI Provider optional instanziieren
+                #[cfg(feature = "ai")]
+                let ai_provider: Option<Arc<dyn rs_scrape::ai_core::AiProvider>> = {
+                    use rs_scrape::ai_gemini::GeminiProvider;
+                    match GeminiProvider::new(&config.gemini_api_key) {
+                        Ok(provider) => Some(Arc::new(provider)),
+                        Err(e) => {
+                            tracing::warn!("AI Provider Fehler. Überspringe AI-Annotation: {}", e);
+                            None
+                        }
+                    }
+                };
+                
+                #[cfg(not(feature = "ai"))]
+                let ai_provider = None;
+
+                // AUFRUF ANPASSEN:
+                pipeline_orchestrator::run_pipeline(
+                    db_provider.clone(), 
+                    ai_provider, 
+                    debug_dump
+                ).await?;
 
                 tracing::info!("Scraping completed successfully!");
             }

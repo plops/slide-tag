@@ -34,5 +34,11 @@
             {% endif %}
         </button>
     </form>
+
+    <form action="/admin/trigger-ai" method="POST" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+        <button type="submit" class="btn btn-secondary" {% if is_running %}disabled style="opacity: 0.5; cursor: not-allowed;"{% endif %}>
+            🤖 Generate AI Summaries (Unannotated Jobs)
+        </button>
+    </form>
 </div>
 {% endblock %}

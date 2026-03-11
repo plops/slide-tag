@@ -8,6 +8,9 @@ pub mod ai_core;
 pub mod ai_gemini;
 #[path = "07d_ai_rate_limiter.rs"]
 pub mod ai_rate_limiter;
+#[cfg(feature = "ai")]
+#[path = "08_ai_workflow.rs"]
+pub mod ai_workflow;
 #[path = "15_app_state.rs"]
 pub mod app_state;
 #[path = "12_auth.rs"]

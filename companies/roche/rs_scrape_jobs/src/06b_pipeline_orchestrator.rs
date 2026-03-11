@@ -3,6 +3,9 @@ use chrono::Utc;
 use std::fs;
 use std::sync::Arc;
 
+#[cfg(feature = "ai")]
+use crate::ai_core::AiProvider;
+
 use crate::data_ingestion;
 use crate::db_traits::DatabaseProvider;
 use crate::downloader;
@@ -10,7 +13,12 @@ use crate::json_extractor;
 use crate::scraper_roche;
 use crate::web_core;
 
-pub async fn run_pipeline(repo: Arc<dyn DatabaseProvider>, debug_dump: bool) -> Result<()> {
+pub async fn run_pipeline(
+    repo: Arc<dyn DatabaseProvider>, 
+    #[cfg(feature = "ai")] ai: Option<Arc<dyn AiProvider>>,
+    #[cfg(not(feature = "ai"))] ai: Option<()>,
+    debug_dump: bool
+) -> Result<()> {
     // Setup browser
     let (mut browser, page, handle) = web_core::setup_browser().await?;
 
@@ -72,6 +80,16 @@ pub async fn run_pipeline(repo: Arc<dyn DatabaseProvider>, debug_dump: bool) -> 
         // Insert into job history
         repo.insert_job_history(&job).await?;
         println!("Inserted job: {}", job.title);
+    }
+
+    // AI annotation step at the end of pipeline
+    #[cfg(feature = "ai")]
+    if let Some(ai_provider) = ai {
+        tracing::info!("Scraping abgeschlossen. Starte AI-Annotation für unannotierte Jobs...");
+        match crate::ai_workflow::annotate_unannotated_jobs(repo.clone(), ai_provider, 50).await {
+            Ok(count) => tracing::info!("Pipeline AI-Schritt: Erfolgreich {} Jobs annotiert.", count),
+            Err(e) => tracing::error!("Pipeline AI-Schritt fehlgeschlagen: {:?}", e),
+        }
     }
 
     Ok(())

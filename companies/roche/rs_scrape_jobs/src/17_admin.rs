@@ -109,7 +109,7 @@ pub async fn post_trigger_scrape(
     tokio::spawn(async move {
         tracing::info!("Admin triggered manual scrape. Debug: {}", debug_dump);
 
-        match pipeline_orchestrator::run_pipeline(bg_state.db.clone(), debug_dump).await {
+        match pipeline_orchestrator::run_pipeline(bg_state.db.clone(), Some(bg_state.ai.clone()), debug_dump).await {
             Ok(_) => {
                 tracing::info!("Manual scrape completed successfully.");
                 let mut status_lock = bg_state.scrape_status.write().await;
@@ -126,8 +126,29 @@ pub async fn post_trigger_scrape(
     Ok(Redirect::to("/admin"))
 }
 
+pub async fn post_trigger_ai(
+    session: Session,
+    State(state): State<Arc<AppState>>,
+) -> Result<Redirect, WebError> {
+    is_admin(&session, &state).await?;
+
+    let bg_state = state.clone();
+    tokio::spawn(async move {
+        tracing::info!("Admin hat manuelle AI-Annotation getriggert.");
+        
+        #[cfg(feature = "ai")]
+        match crate::ai_workflow::annotate_unannotated_jobs(bg_state.db.clone(), bg_state.ai.clone(), 50).await {
+            Ok(count) => tracing::info!("Admin-Action: Erfolgreich {} Jobs annotiert.", count),
+            Err(e) => tracing::error!("Admin-Action: AI Annotation fehlgeschlagen: {:?}", e),
+        }
+    });
+
+    Ok(Redirect::to("/admin"))
+}
+
 pub fn admin_routes() -> axum::Router<Arc<AppState>> {
     axum::Router::new()
         .route("/", axum::routing::get(get_admin_dashboard))
         .route("/trigger", axum::routing::post(post_trigger_scrape))
+        .route("/trigger-ai", axum::routing::post(post_trigger_ai))
 }

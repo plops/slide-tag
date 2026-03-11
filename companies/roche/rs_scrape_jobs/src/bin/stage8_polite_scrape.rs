@@ -16,7 +16,7 @@ async fn main() -> anyhow::Result<()> {
     let conn = db_setup::init_db("jobs_minutils.db").await?;
     let repo = Arc::new(db_repo::JobRepository::new(conn));
 
-    pipeline_orchestrator::run_pipeline(repo, args.debug_dump).await?;
+    pipeline_orchestrator::run_pipeline(repo, None, args.debug_dump).await?;
 
     Ok(())
 }

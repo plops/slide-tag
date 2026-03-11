@@ -22,6 +22,8 @@ pub trait DatabaseProvider: Send + Sync {
         search_query: Option<String>,
     ) -> Result<(Vec<JobHistory>, i64)>;
     async fn get_job_by_identifier(&self, identifier: &str) -> Result<Option<JobHistory>>;
+    async fn get_unannotated_jobs(&self, limit: usize) -> Result<Vec<Job>>;
+    async fn update_job_ai(&self, identifier: &str, summary: &str) -> Result<()>;
 
     /// Get a cloned libsql connection for session store usage
     fn get_connection(&self) -> Connection;
