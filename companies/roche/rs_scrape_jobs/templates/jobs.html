@@ -258,8 +258,10 @@
             {% if let Some(employment_type) = job.employment_type %}
             <div class="meta-item">💼 {{ employment_type }}</div>
             {% endif %}
-            {% if let Some(job_level) = job.job_level %}
-            <div class="meta-item">📊 {{ job_level }}</div>
+            {% if is_admin %}
+                {% if let Some(job_level) = job.job_level %}
+                <div class="meta-item">📊 {{ job_level }}</div>
+                {% endif %}
             {% endif %}
         </div>
         

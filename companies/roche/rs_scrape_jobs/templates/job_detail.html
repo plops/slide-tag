@@ -96,11 +96,13 @@
                     </div>
                     {% endif %}
                     
-                    {% if let Some(job_level) = job.job_level %}
-                    <div class="metadata-item">
-                        <strong>Job Level:</strong>
-                        <span>{{ job_level }}</span>
-                    </div>
+                    {% if is_admin %}
+                        {% if let Some(job_level) = job.job_level %}
+                        <div class="metadata-item">
+                            <strong>Job Level:</strong>
+                            <span>{{ job_level }}</span>
+                        </div>
+                        {% endif %}
                     {% endif %}
                     
                     {% if let Some(job_family) = job.job_family %}

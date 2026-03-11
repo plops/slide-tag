@@ -11,6 +11,7 @@ pub struct AiModelConfig {
     pub tpm_limit: u32,               // Tokens per minute
     pub rpd_limit: u32,               // Requests per day
     pub assumed_words_per_token: f32, // e.g., 0.75 for Gemini
+    pub words_per_request: u32,       // Words per request limit
 }
 
 /// Tracks usage for rate limiting

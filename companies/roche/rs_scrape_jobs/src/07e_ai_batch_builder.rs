@@ -6,18 +6,21 @@ pub struct BatchBuilder {
     _rate_limiter: SharedRateLimiter,
     jobs: Vec<Job>,
     current_tokens: u32,
+    current_words: u32,
     token_threshold: u32,
+    max_words_per_request: u32,
     assumed_words_per_token: f32,
 }
 
 impl BatchBuilder {
     pub async fn new(rate_limiter: SharedRateLimiter) -> Self {
         // Acquire the limiter to read config values for thresholds, then drop the guard
-        let (token_threshold, assumed_words_per_token) = {
+        let (token_threshold, assumed_words_per_token, max_words_per_request) = {
             let guard = rate_limiter.lock().await;
             (
                 (guard.config.tpm_limit as f32 * 0.8) as u32,
                 guard.config.assumed_words_per_token,
+                guard.config.words_per_request,
             )
         };
 
@@ -25,7 +28,9 @@ impl BatchBuilder {
             _rate_limiter: rate_limiter,
             jobs: Vec::new(),
             current_tokens: 0,
+            current_words: 0,
             token_threshold,
+            max_words_per_request,
             assumed_words_per_token,
         }
     }
@@ -34,13 +39,15 @@ impl BatchBuilder {
     /// Returns true if added, false if it would exceed limit
     pub fn try_add_job(&mut self, job: Job) -> bool {
         let job_tokens = self.estimate_job_tokens(&job);
+        let job_words = self.count_job_words(&job);
 
-        if self.current_tokens + job_tokens > self.token_threshold {
+        if self.current_tokens + job_tokens > self.token_threshold || self.current_words + job_words > self.max_words_per_request {
             return false;
         }
 
         self.jobs.push(job);
         self.current_tokens += job_tokens;
+        self.current_words += job_words;
         true
     }
 
@@ -52,7 +59,41 @@ impl BatchBuilder {
 
         let batch = std::mem::take(&mut self.jobs);
         self.current_tokens = 0;
+        self.current_words = 0;
         Some(batch)
+    }
+
+    /// Count words for a single job
+    pub fn count_job_words(&self, job: &Job) -> u32 {
+        let mut total_words = 0;
+
+        // Count words in title
+        total_words += job.title.split_whitespace().count();
+
+        // Count words in description
+        if let Some(desc) = &job.description {
+            total_words += desc.split_whitespace().count();
+        }
+
+        // Count words in location, organization, etc.
+        total_words += job.location.split_whitespace().count();
+        if let Some(org) = &job.organization {
+            total_words += org.split_whitespace().count();
+        }
+
+        // Count words in required_topics and nice_to_haves
+        if let Some(topics) = &job.required_topics {
+            for topic in topics {
+                total_words += topic.split_whitespace().count();
+            }
+        }
+        if let Some(nice) = &job.nice_to_haves {
+            for nice in nice {
+                total_words += nice.split_whitespace().count();
+            }
+        }
+
+        total_words as u32
     }
 
     /// Estimate tokens for a single job based on its text content

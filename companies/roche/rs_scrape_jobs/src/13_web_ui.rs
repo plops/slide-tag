@@ -60,6 +60,7 @@ pub struct MatchDetailTemplate {
 pub struct JobsTemplate {
     pub title: String,
     pub user_name: String,
+    pub is_admin: bool,
     pub jobs: Vec<JobHistory>,
     pub current_page: i64,
     pub total_pages: i64,
@@ -75,6 +76,7 @@ pub struct JobDetailTemplate {
     pub title: String,
     pub user_name: String,
     pub job: JobHistory,
+    pub is_admin: bool,
     pub app_version: &'static str,
 }
 
@@ -467,6 +469,12 @@ pub async fn get_jobs(
     // Try to get current user, but don't require authentication for public access
     let user_name = session.get::<String>("user_name").await.unwrap_or(None);
 
+    // Check if user is admin
+    let is_admin = match user_name {
+        Some(ref name) => name.to_lowercase() == state.config.admin_username.to_lowercase(),
+        None => false,
+    };
+
     // Pagination parameters
     let page = params.page.unwrap_or(1).max(1); // Default to page 1, minimum 1
     let limit = 20; // 20 items per page
@@ -489,6 +497,7 @@ pub async fn get_jobs(
     let template = JobsTemplate {
         title: "All Jobs".to_string(),
         user_name: user_name.unwrap_or_else(|| "Guest".to_string()),
+        is_admin,
         jobs,
         current_page: page,
         total_pages,
@@ -509,6 +518,12 @@ pub async fn get_job_detail(
     // Try to get current user, but don't require authentication for public access
     let user_name = session.get::<String>("user_name").await.unwrap_or(None);
 
+    // Check if user is admin
+    let is_admin = match user_name {
+        Some(ref name) => name.to_lowercase() == state.config.admin_username.to_lowercase(),
+        None => false,
+    };
+
     let job = state
         .db
         .get_job_by_identifier(&identifier)
@@ -520,6 +535,7 @@ pub async fn get_job_detail(
         title: format!("Job: {}", job.title),
         user_name: user_name.unwrap_or_else(|| "Guest".to_string()),
         job,
+        is_admin,
         app_version: env!("CARGO_PKG_VERSION"),
     };
 
