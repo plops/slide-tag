@@ -21,7 +21,7 @@ impl GeminiProvider {
         let config = AiModelConfig {
             name: "gemini-3.1-flash-lite-preview".to_string(),
             rpm_limit: 15,
-            tpm_limit: 250_000,
+            tpm_limit: 25_000, // TODO: 250k
             rpd_limit: 500,
             assumed_words_per_token: 0.75, // 1 word ≈ 1.33 tokens, so 1/1.33 ≈ 0.75
         };
