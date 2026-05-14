@@ -196,3 +196,5 @@ I started investigating companies related to this technology. Have a look at
 7. [Microfluidics video](https://www.precigenome.com/microfluidic-fluidic/single-cell-analysis-instrument)
 
 [ this is a summary of a conversation with AI (gemini 2.5 pro) ]
+
+https://www.youtube.com/watch?v=5pPCgkPlu3M
